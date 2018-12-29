@@ -155,7 +155,154 @@ def demo():
         selected_system_type = system_type.get()
         print(selected_system_type)
 
+    def all_children(window):
+        _list = window.winfo_children()
+
+        for item in _list:
+            if item.winfo_children():
+                _list.extend(item.winfo_children())
+
+        return _list
+
+    def change_dropdown_change_window(*args):
+        tab3_list = all_children(tab3)
+        for item in tab3_list:
+            item.grid_forget()
+        if system_type.get() == 'Drinking Water System':
+            Label(tab3, text='Drinking Water System', font=('Arial', 10, 'bold')).grid(column=1, row=0)
+
+            Label(tab3, text='Source Water Type:', font=('Arial', 10)).grid(column=0, row=1, sticky=E)
+            source_water = StringVar(root)
+            source_water_choices = ['Fresh Surface Water', 'Fresh Groundwater', 'Brackish Groundwater', 'Seawater']
+            source_water.set('Fresh Surface Water')
+            source_water_type_popup_menu = OptionMenu(tab3, source_water, *source_water_choices).grid(column=1, row=1, sticky=W)
+
+            Label(tab3, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
+
+            flocculation = BooleanVar(root)
+            flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation).grid(column=1, row=2, sticky=W)
+
+            coagulation = BooleanVar(root)
+            coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation).grid(column=1, row=3, sticky=W)
+
+            sedimentation = BooleanVar(root)
+            sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation).grid(column=1, row=4, sticky=W)
+
+            Label(tab3, text='Filtration:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
+            filtration = StringVar(root)
+            filtration_choices = ['No Filtration', 'Generic', 'Cartridge', 'Diatomaceous Earth', 'Greensand',
+                                  'Pressurized Sand', 'Rapid Sand', 'Slow Sand', 'Ultrafiltration Membrane']
+            filtration.set('Generic')
+            filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
+
+            Label(tab3, text='Primary Disinfection:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
+            primary_disinfection = StringVar(root)
+            primary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'Iodine', 'Ozonation', 'UV Disinfection']
+            primary_disinfection.set('Hypochlorite')
+            primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection, *primary_disinfection_choices).grid(column=1, row=6, sticky=W)
+
+            Label(tab3, text='Secondary Disinfection:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
+            secondary_disinfection = StringVar(root)
+            secondary_disinfection_choices = ['Hypochlorite', 'Chloramine']
+            secondary_disinfection.set('Hypochlorite')
+            secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection, *secondary_disinfection_choices).grid(column=1, row=7, sticky=W)
+
+            Label(tab3, text='Advanced Processes:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
+
+            fluoridation = BooleanVar(root)
+            fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation).grid(column=1, row=8, sticky=W)
+
+            softening = BooleanVar(root)
+            softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening).grid(column=1, row=9, sticky=W)
+
+            ph_adjustment = BooleanVar(root)
+            ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment).grid(column=1, row=10, sticky=W)
+
+            granular_activated_carbon = BooleanVar(root)
+            granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon', variable=granular_activated_carbon).grid(column=1, row=11, sticky=W)
+
+            reverse_osmosis = BooleanVar(root)
+            reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis).grid(column=1, row=12, sticky=W)
+
+            Label(tab3, text='Corrosion Control:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
+            corrosion_control = StringVar(root)
+            corrosion_control_choices = ['Bimetallic Phosphate', 'Hexametaphosphate', 'Orthophosphate', 'Polyphosphate',
+                                         'Silicate', 'Permagnate', 'Sodium Bisulfate', 'Sodium Sulfate',
+                                         'Sulfur Dioxide', 'None']
+            corrosion_control.set('None')
+            corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(column=1, row=13, sticky=W)
+
+        elif system_type.get() == 'Municipal Wastewater System':
+            Label(tab3, text='Municipal Wastewater System', font=('Arial', 10, 'bold')).grid(column=1, row=0)
+
+            Label(tab3, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=1, sticky=E)
+
+            aerated_grit = BooleanVar(root)
+            aerated_grit_button = Checkbutton(tab3, text='Aerated Grit', variable=aerated_grit).grid(column=1, row=1, sticky=W)
+
+            grinding = BooleanVar(root)
+            grinding_button = Checkbutton(tab3, text='Grinding', variable=grinding).grid(column=1, row=2, sticky=W)
+
+            filtration = BooleanVar(root)
+            filtration_button = Checkbutton(tab3, text='Filtration', variable=filtration).grid(column=1, row=3, sticky=W)
+
+            grit_removal = BooleanVar(root)
+            grit_removal_button = Checkbutton(tab3, text='Grit Removal', variable=grit_removal).grid(column=1, row=4, sticky=W)
+
+            screening = BooleanVar(root)
+            screening_button = Checkbutton(tab3, text='Screening', variable=screening).grid(column=1, row=5, sticky=W)
+
+            Label(tab3, text='Primary Treatment:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
+
+            sedimentation = BooleanVar(root)
+            sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation).grid(column=1, row=6, sticky=W)
+
+            Label(tab3, text='Secondary Treatment:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
+            secondary_treatment = StringVar(root)
+            secondary_treatment_choices = ['Aerated Activated Sludge and Clarification', 'Lagoon', 'Stabilization Pond',
+                                           'Trickling Filter']
+            secondary_treatment.set('Aerated Activated Sludge and Clarification')
+            secondary_treatment_popup_menu = OptionMenu(tab3, secondary_treatment, *secondary_treatment_choices).grid(column=1, row=7, sticky=W)
+
+            Label(tab3, text='Tertiary Treatment:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
+
+            nitrification_denitrification = BooleanVar(root)
+            nitrification_denitrification_button = Checkbutton(tab3, text='Nitrification/Denitrification', variable=nitrification_denitrification).grid(column=1, row=8, sticky=W)
+
+            phosphorous_removal = BooleanVar(root)
+            phosphorous_removal_button = Checkbutton(tab3, text='Phosphorous Removal', variable=phosphorous_removal).grid(column=1, row=9, sticky=W)
+
+            reverse_osmosis = BooleanVar(root)
+            reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis).grid(column=1, row=10, sticky=W)
+
+
+            Label(tab3, text='Disinfection:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
+            disinfection = StringVar(root)
+            disinfection_choices = ['Hypochlorite', 'Ultraviolet', 'Ozone']
+            disinfection.set('Hypochlorite')
+            disinfection_popup_menu = OptionMenu(tab3, disinfection, *disinfection_choices).grid(column=1, row=11, sticky=W)
+
+            dechlorination = BooleanVar(root)
+            dechlorination_button = Checkbutton(tab3, text='Dechlorination', variable=dechlorination).grid(column=1, row=12, sticky=W)
+
+            Label(tab3, text='Digestion:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
+            digestion = StringVar(root)
+            digestion_choices = ['Aerobic Digestion', 'Anaerobic Digestion w/o Biogas Use',
+                                 'Anaerobic Digestion w/ Biogas Use', 'None']
+            digestion.set('Aerobic Digestion')
+            digestion_popup_menu = OptionMenu(tab3, digestion, *digestion_choices).grid(column=1, row=13, sticky=W)
+
+            Label(tab3, text='Solids Dewatering:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
+            dewatering = StringVar(root)
+            dewatering_choices = ['Gravity Thickening', 'Mechanical Dewatering', 'Polymer Dewatering', 'None']
+            dewatering.set('Mechanical Dewatering')
+            dewatering_popup_menu = OptionMenu(tab3, dewatering, *dewatering_choices).grid(column=1, row=14, sticky=W)
+
+        elif system_type.get() == 'Industrial Wastewater System':
+            Label(tab3, text='Industrial Wastewater System', font=('Arial', 10, 'bold')).grid(column=1, row=0)
+
     system_type.trace('w', change_dropdown)
+    system_type.trace('w', change_dropdown_change_window)
 
     def callback(P):
         # if P in ['0', '1', '2', '3,' '4', '5', '6', '7', '8', '9', '.']:
@@ -213,14 +360,82 @@ def demo():
     chem_state.set('US Average')
     chem_state_popup_menu = OptionMenu(tab2, chem_state, *chem_state_choices).grid(row=2, column=1, sticky=W)
 
-    Button(tab3, text='Destroy Tab Four!', command=lambda: note.destroy_tab(tab4)).grid()
-    Label(tab3,
-          text="Destroying a tab will remove it,\nand competely destoy all child widgets.\nOnce you destroy a tab, you have to recreate it\ncompletely in order to get it back.",
-          font=("Comic Sans MS", 12, "italic")).grid()
-    Label(tab4, text='Tab 4').grid()
-    Button(tab5, text='Tab One', command=lambda: note.focus_on(tab1)).grid(pady=3)
-    Button(tab5, text='EXIT', width=23, command=root.destroy).grid()
-    note.focus_on(tab1)
+    Label(tab3, text='Drinking Water System', font=('Arial', 10, 'bold')).grid(column=1, row=0)
+
+    Label(tab3, text='Source Water Type:', font=('Arial', 10)).grid(column=0, row=1, sticky=E)
+    source_water = StringVar(root)
+    source_water_choices = ['Fresh Surface Water', 'Fresh Groundwater', 'Brackish Groundwater', 'Seawater']
+    source_water.set('Fresh Surface Water')
+    source_water_type_popup_menu = OptionMenu(tab3, source_water, *source_water_choices).grid(column=1, row=1, sticky=W)
+
+    Label(tab3, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
+
+    flocculation = BooleanVar(root)
+    flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation).grid(column=1, row=2, sticky=W)
+
+    coagulation = BooleanVar(root)
+    coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation).grid(column=1, row=3, sticky=W)
+
+    sedimentation = BooleanVar(root)
+    sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation).grid(column=1, row=4,
+                                                                                                sticky=W)
+
+    Label(tab3, text='Filtration:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
+    filtration = StringVar(root)
+    filtration_choices = ['No Filtration', 'Generic', 'Cartridge', 'Diatomaceous Earth', 'Greensand',
+                          'Pressurized Sand', 'Rapid Sand', 'Slow Sand', 'Ultrafiltration Membrane']
+    filtration.set('Generic')
+    filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
+
+    Label(tab3, text='Primary Disinfection:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
+    primary_disinfection = StringVar(root)
+    primary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'Iodine', 'Ozonation', 'UV Disinfection']
+    primary_disinfection.set('Hypochlorite')
+    primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection, *primary_disinfection_choices).grid(
+        column=1, row=6, sticky=W)
+
+    Label(tab3, text='Secondary Disinfection:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
+    secondary_disinfection = StringVar(root)
+    secondary_disinfection_choices = ['Hypochlorite', 'Chloramine']
+    secondary_disinfection.set('Hypochlorite')
+    secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection, *secondary_disinfection_choices).grid(
+        column=1, row=7, sticky=W)
+
+    Label(tab3, text='Advanced Processes:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
+
+    fluoridation = BooleanVar(root)
+    fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation).grid(column=1, row=8, sticky=W)
+
+    softening = BooleanVar(root)
+    softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening).grid(column=1, row=9, sticky=W)
+
+    ph_adjustment = BooleanVar(root)
+    ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment).grid(column=1, row=10,
+                                                                                                sticky=W)
+
+    granular_activated_carbon = BooleanVar(root)
+    granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
+                                                   variable=granular_activated_carbon).grid(column=1, row=11, sticky=W)
+
+    reverse_osmosis = BooleanVar(root)
+    reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis).grid(column=1, row=12,
+                                                                                                      sticky=W)
+
+    Label(tab3, text='Corrosion Control:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
+    corrosion_control = StringVar(root)
+    corrosion_control_choices = ['Bimetallic Phosphate', 'Hexametaphosphate', 'Orthophosphate', 'Polyphosphate',
+                                 'Silicate', 'Permagnate', 'Sodium Bisulfate', 'Sodium Sulfate',
+                                 'Sulfur Dioxide', 'None']
+    corrosion_control.set('None')
+    corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(column=1,
+                                                                                                        row=13,
+                                                                                                        sticky=W)
+
+    Label(tab4, text='On this tab, the user will get to specify a new process \n including electricity consumption and chemical usages.').grid()
+    Label(tab5, text='On this tab, the user will get to see results for their \n process including breakdowns by electricity generation, \n chemical manufacturing, and on-site damages and by climate and health damages.').grid()
+    # Button(tab5, text='Tab One', command=lambda: note.focus_on(tab1)).grid(pady=3)
+    # Button(tab5, text='EXIT', width=23, command=root.destroy).grid()
+    # note.focus_on(tab1)
     root.mainloop()
 
 if __name__ == "__main__":
