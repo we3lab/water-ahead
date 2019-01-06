@@ -169,7 +169,7 @@ def demo():
         for item in tab3_list:
             item.grid_forget()
         if system_type.get() == 'Drinking Water System':
-            Label(tab3, text='Drinking Water System', font=('Arial', 10, 'bold')).grid(column=1, row=0)
+            Label(tab3, text='Drinking Water System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=2)
 
             Label(tab3, text='Source Water Type:', font=('Arial', 10)).grid(column=0, row=1, sticky=E)
             source_water = StringVar(root)
@@ -233,7 +233,7 @@ def demo():
             corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(column=1, row=13, sticky=W)
 
         elif system_type.get() == 'Municipal Wastewater System':
-            Label(tab3, text='Municipal Wastewater System', font=('Arial', 10, 'bold')).grid(column=1, row=0)
+            Label(tab3, text='Municipal Wastewater System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=2)
 
             Label(tab3, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=1, sticky=E)
 
@@ -299,7 +299,80 @@ def demo():
             dewatering_popup_menu = OptionMenu(tab3, dewatering, *dewatering_choices).grid(column=1, row=14, sticky=W)
 
         elif system_type.get() == 'Industrial Wastewater System':
-            Label(tab3, text='Industrial Wastewater System', font=('Arial', 10, 'bold')).grid(column=1, row=0)
+            Label(tab3, text='Industrial Wastewater System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=4)
+            Label(tab3, text='Treatment Processes', font=('Arial', 10)).grid(column=0, row=1, columnspan=4)
+
+
+            Label(tab3, text='Soda Ash Softening:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
+            softening_process = BooleanVar(root)
+            softening_process_button = Checkbutton(tab3, text='', variable=softening_process).grid(column=1, row=2, sticky=W)
+
+            Label(tab3, text='Number of Chemical Addition Reactors:', font =('Arial', 10)).grid(column=0, row=3, sticky=E)
+            chemcial_addition_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=3, sticky=W)
+
+            Label(tab3, text='Biological Treatment Process:', font=('Arial', 10)).grid(column=0, row=4, sticky=E)
+            bio_treatment = StringVar(root)
+            bio_treatment_choices = ['None', 'Aerated Activated Sludge and Clarification', 'Lagoon',
+                                     'Stabilization Pond', 'Trickling Filter']
+            bio_treatment.set('None')
+            bio_treatment_popup_menu = OptionMenu(tab3, bio_treatment, *bio_treatment_choices).grid(column=1, row=4, columnspan=3, sticky=W)
+
+            Label(tab3, text='Volume Reduction Process:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
+            volume_reduction = StringVar(root)
+            volume_reduction_choices = ['None', 'Mechanical Vapor Compression', 'Thermal Vapor Compression',
+                                        'Reverse Osmosis', 'Forward Osmosis', 'Multiple Effect Distillation',
+                                        'Multi-Stage Flash Distillation', 'Membrane Distillation']
+            volume_reduction.set('None')
+            volume_reduction_popup_menu = OptionMenu(tab3, volume_reduction, *volume_reduction_choices).grid(column=1, row=5, columnspan=3, sticky=W)
+
+            Label(tab3, text='Crystallization:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
+            crystallization = BooleanVar(root)
+            crystallization_button = Checkbutton(tab3, text='', variable=crystallization).grid(column=1, row=6, sticky=W)
+
+            Label(tab3, text='Chemical Consumption', font=('Arial', 10)).grid(column=0, row=7, columnspan=4)
+            Label(tab3, text='Min', font=('Arial', 10)).grid(column=1, row=8)
+            Label(tab3, text='Max', font=('Arial', 10)).grid(column=2, row=8)
+
+            Label(tab3, text='CaOH:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
+            caoh_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=9, sticky=W)
+            caoh_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=9, sticky=W)
+            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=9, sticky=W)
+
+            Label(tab3, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
+            fecl3_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=10, sticky=W)
+            fecl3_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=10, sticky=W)
+            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=10, sticky=W)
+
+            Label(tab3, text='HCl:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
+            hcl_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=11, sticky=W)
+            hcl_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=11, sticky=W)
+            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=11, sticky=W)
+
+            Label(tab3, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
+            nutrients_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=12, sticky=W)
+            nutrients_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=12, sticky=W)
+            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=12, sticky=W)
+            
+            Label(tab3, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
+            sodium_carbonate_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=13, sticky=W)
+            sodium_carbonate_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=13, sticky=W)
+            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=13, sticky=W)
+
+            Label(tab3, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
+            gac_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=14, sticky=W)
+            gac_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=14, sticky=W)
+            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=14, sticky=W)
+
+            Label(tab3, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
+            inorganics_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=15, sticky=W)
+            inorganics_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=15, sticky=W)
+            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=15, sticky=W)
+
+            Label(tab3, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=16, sticky=E)
+            organics_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=16, sticky=W)
+            organics_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=16, sticky=W)
+            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=16, sticky=W)
+
 
     system_type.trace('w', change_dropdown)
     system_type.trace('w', change_dropdown_change_window)
@@ -360,7 +433,7 @@ def demo():
     chem_state.set('US Average')
     chem_state_popup_menu = OptionMenu(tab2, chem_state, *chem_state_choices).grid(row=2, column=1, sticky=W)
 
-    Label(tab3, text='Drinking Water System', font=('Arial', 10, 'bold')).grid(column=1, row=0)
+    Label(tab3, text='Drinking Water System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=2)
 
     Label(tab3, text='Source Water Type:', font=('Arial', 10)).grid(column=0, row=1, sticky=E)
     source_water = StringVar(root)
@@ -431,7 +504,60 @@ def demo():
                                                                                                         row=13,
                                                                                                         sticky=W)
 
-    Label(tab4, text='On this tab, the user will get to specify a new process \n including electricity consumption and chemical usages.').grid()
+    Label(tab4, text='Enter electricity consumption and chemical dosages for the new process.').grid(column=0, row=1, columnspan=4)
+
+    Label(tab4, text='Electricity Consumption', font=('Arial', 10)).grid(column=0, row=2, columnspan=4)
+    Label(tab4, text='Min', font=('Arial', 10)).grid(column=1, row=3)
+    Label(tab4, text='Max', font=('Arial', 10)).grid(column=2, row=3)
+    Label(tab4, text='Unit Electricity Consumption:', font=('Arial', 10)).grid(column=0, row=4, sticky=E)
+    new_elec_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=4, sticky=W)
+    new_elec_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=4, sticky=W)
+    Label(tab4, text='kWh/m\N{SUPERSCRIPT THREE} of water', font=('Arial', 10)).grid(column=3, row=4, sticky=W)
+
+    Label(tab4, text='Chemical Consumption', font=('Arial', 10)).grid(column=0, row=5, columnspan=4)
+    Label(tab4, text='Min', font=('Arial', 10)).grid(column=1, row=6)
+    Label(tab4, text='Max', font=('Arial', 10)).grid(column=2, row=6)
+
+    Label(tab4, text='CaOH:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
+    new_caoh_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=7, sticky=W)
+    new_caoh_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=7, sticky=W)
+    Label(tab4, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=7, sticky=W)
+
+    Label(tab4, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
+    new_fecl3_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=8, sticky=W)
+    new_fecl3_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=8, sticky=W)
+    Label(tab4, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=8, sticky=W)
+
+    Label(tab4, text='HCl:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
+    new_hcl_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=9, sticky=W)
+    new_hcl_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=9, sticky=W)
+    Label(tab4, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=9, sticky=W)
+
+    Label(tab4, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
+    new_nutrients_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=10, sticky=W)
+    new_nutrients_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=10, sticky=W)
+    Label(tab4, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=10, sticky=W)
+
+    Label(tab4, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
+    new_sodium_carbonate_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=11, sticky=W)
+    new_sodium_carbonate_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=11, sticky=W)
+    Label(tab4, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=11, sticky=W)
+
+    Label(tab4, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
+    new_gac_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=12, sticky=W)
+    new_gac_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=12, sticky=W)
+    Label(tab4, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=12, sticky=W)
+
+    Label(tab4, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
+    new_inorganics_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=13, sticky=W)
+    new_inorganics_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=13, sticky=W)
+    Label(tab4, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=13, sticky=W)
+
+    Label(tab4, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
+    new_organics_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=14, sticky=W)
+    new_organics_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=2, row=14, sticky=W)
+    Label(tab4, text='mg/L of wastewater', font=('Arial', 10)).grid(column=3, row=14, sticky=W)
+    
     Label(tab5, text='On this tab, the user will get to see results for their \n process including breakdowns by electricity generation, \n chemical manufacturing, and on-site damages and by climate and health damages.').grid()
     # Button(tab5, text='Tab One', command=lambda: note.focus_on(tab1)).grid(pady=3)
     # Button(tab5, text='EXIT', width=23, command=root.destroy).grid()
