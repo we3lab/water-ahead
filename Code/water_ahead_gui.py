@@ -5,8 +5,16 @@ import tkinter.messagebox
 import os
 import numpy as np
 
+# TODO Add thermal energy inputs
+# TODO Add embedded energy in chemicals
+# TODO Add cost tab
+
 from chem_manufacturing_distribution_dictionary import chem_manufacturing_share_dict
 from unit_elec_consumption import unit_elec_consumption_dictionary
+from unit_chem_consumption import unit_caoh_consumption_dictionary, unit_fecl3_consumption_dictionary, \
+    unit_hcl_consumption_dictionary,unit_nutrients_consumption_dictionary, \
+    unit_sodium_carbonate_consumption_dictionary, unit_gac_consumption_dictionary, \
+    unit_inorganics_consumption_dictionary, unit_organics_consumption_dictionary
 
 def menu_option_selected():
     print('Called the callback!')
@@ -128,20 +136,59 @@ def main():
 
         return combined_func
 
-    def calculate_electricity_consumption(flocculation, flocculation_installed, coagulation, coagulation_installed,
-                                          sedimentation, sedimentation_installed, filtration, primary_disinfection,
-                                          secondary_disinfection, fluoridation, softening, ph_adjustment,
-                                          ph_adjustment_installed, granular_activated_carbon,
-                                          granular_activated_carbon_installed, reverse_osmosis,
-                                          reverse_osmosis_installed, corrosion_control, aerated_grit,
-                                          aerated_grit_installed, grinding, grit_removal, grit_removal_installed,
-                                          screening, screening_installed, secondary_treatment,
-                                          nitrification_denitrification, nitrification_denitrification_installed,
-                                          phosphorous_removal, phosphorous_removal_installed, disinfection,
-                                          dechlorination, digestion, dewatering, softening_process,
-                                          chemical_addition_input, bio_treatment, bio_treatment_installed,
-                                          volume_reduction, volume_reduction_installed, crystallization,
-                                          new_elec_min_input, new_elec_best_input, new_elec_max_input, runs):
+    def calculate_electricity_consumption(basic_info_dict, baseline_process_dict, new_process_dict):
+        source_water = baseline_process_dict['source water']
+        flocculation = baseline_process_dict['flocculation']
+        flocculation_installed = baseline_process_dict['no. of flocculation units']
+        coagulation = baseline_process_dict['coagulation']
+        coagulation_installed = baseline_process_dict['no. of coagulation units']
+        sedimentation = baseline_process_dict['sedimentation']
+        sedimentation_installed = baseline_process_dict['no. of sedimentation units']
+        filtration = baseline_process_dict['filtration']
+        primary_disinfection = baseline_process_dict['primary disinfection']
+        secondary_disinfection = baseline_process_dict['secondary disinfection']
+        fluoridation = baseline_process_dict['fluoridation']
+        softening = baseline_process_dict['softening']
+        ph_adjustment = baseline_process_dict['pH adjustment']
+        ph_adjustment_installed = baseline_process_dict['no. of pH adjustment units']
+        granular_activated_carbon = baseline_process_dict['gac']
+        granular_activated_carbon_installed = baseline_process_dict['no. of gac units']
+        reverse_osmosis = baseline_process_dict['ro']
+        reverse_osmosis_installed = baseline_process_dict['no. of ro units']
+        corrosion_control = baseline_process_dict['corrosion control']
+        aerated_grit = baseline_process_dict['aerated grit']
+        aerated_grit_installed = baseline_process_dict['no. of aerated grit units']
+        grinding = baseline_process_dict['grinding']
+        grit_removal = baseline_process_dict['grit removal']
+        grit_removal_installed = baseline_process_dict['no. of grit removal units']
+        screening = baseline_process_dict['screening']
+        screening_installed = baseline_process_dict['no. of screening units']
+        wastewater_sedimentation = baseline_process_dict['wastewater sedimentation']
+        wastewater_sedimentation_installed = baseline_process_dict['no. of wastewater sedimentation units']
+        secondary_treatment = baseline_process_dict['secondary treatment']
+        nitrification_denitrification = baseline_process_dict['nitrification denitrification']
+        nitrification_denitrification_installed = baseline_process_dict['no. of nitrification denitrification units']
+        phosphorous_removal = baseline_process_dict['phosphorous removal']
+        phosphorous_removal_installed = baseline_process_dict['no. of phosphorous removal units']
+        wastewater_reverse_osmosis = baseline_process_dict['wastewater ro']
+        wastewater_reverse_osmosis_installed = baseline_process_dict['no. of ro units']
+        disinfection = baseline_process_dict['disinfection']
+        dechlorination = baseline_process_dict['dechlorination']
+        digestion = baseline_process_dict['digestion']
+        dewatering = baseline_process_dict['dewatering']
+        softening_process = baseline_process_dict['softening process']
+        chemical_addition_input = baseline_process_dict['chemical addition input']
+        bio_treatment = baseline_process_dict['bio treatment']
+        bio_treatment_installed = baseline_process_dict['no. of bio treatment units']
+        volume_reduction = baseline_process_dict['volume reduction']
+        volume_reduction_installed = baseline_process_dict['no. of volume reduction units']
+        crystallization = baseline_process_dict['crystallization']
+        new_elec_min_input = new_process_dict['new electricity min input']
+        new_elec_best_input = new_process_dict['new electricity best input']
+        new_elec_max_input = new_process_dict['new electricity max input']
+        runs = basic_info_dict['mc runs']
+        system_type = basic_info_dict['system type']
+
         if (reverse_osmosis == 1) and (system_type == 'Drinking Water System'):
             if source_water == 'Seawater':
                 volume_scale_factor = 1/0.5
@@ -150,7 +197,7 @@ def main():
         else:
             volume_scale_factor = 1
 
-        if system_type == 'Municipal Wasteawter System':
+        if system_type == 'Municipal Wastewater System':
             if secondary_treatment == 'None':
                 tertiary_treatment_scale_factor = 1
                 solids_processing_scale_factor = 0
@@ -298,10 +345,6 @@ def main():
             reverse_osmosis_electricity = np.random.uniform(unit_elec_consumption_dictionary['reverse_osmosis_seawater']['min'],
                 unit_elec_consumption_dictionary['reverse_osmosis_seawater']['max'],
                 (runs, reverse_osmosis_installed))
-        elif (reverse_osmosis == 1) and (system_type == 'Industrial Wastewater Treatment'):
-            reverse_osmosis_electricity = np.random.uniform(unit_elec_consumption_dictionary['reverse_osmosis_industrial']['min'],
-                unit_elec_consumption_dictionary['reverse_osmosis_industrial']['max'],
-                (runs, reverse_osmosis_installed))
         else:
             reverse_osmosis_electricity = np.zeros(runs)
 
@@ -313,8 +356,8 @@ def main():
                                                              (runs,1))
 
         if aerated_grit == 1:
-            aerated_grit_electricity = np.random.uniform(unit_elec_consumption_dictionary['aerated_grit_electricity']['min'],
-                                                           unit_elec_consumption_dictionary['aerated_grit_electricity']['max'],
+            aerated_grit_electricity = np.random.uniform(unit_elec_consumption_dictionary['aerated_grit']['min'],
+                                                           unit_elec_consumption_dictionary['aerated_grit']['max'],
                                                            (runs, aerated_grit_installed))
         else:
             aerated_grit_electricity  = np.zeros(runs)
@@ -340,9 +383,16 @@ def main():
         else:
             screening_electricity  = np.zeros(runs)
 
+        if wastewater_sedimentation == 1:
+            wastewater_sedimentation_electricity = np.random.uniform(unit_elec_consumption_dictionary['sedimentation']['min'],
+                                                           unit_elec_consumption_dictionary['sedimentation']['max'],
+                                                           (runs, wastewater_sedimentation_installed)) * volume_scale_factor
+        else:
+            wastewater_sedimentation_electricity  = np.zeros(runs)
+
         if secondary_treatment == 'Activated Sludge and Clarification':
             secondary_treatment_electricity = np.random.uniform(unit_elec_consumption_dictionary['activated_sludge']['min'],
-                                                       unit_elec_consumption_dictionary['activatd_sludge']['max'],
+                                                       unit_elec_consumption_dictionary['activated_sludge']['max'],
                                                        (runs, 1)) + \
                                               np.random.uniform(unit_elec_consumption_dictionary['aeration']['min'],
                                                        unit_elec_consumption_dictionary['aeration']['max'],
@@ -388,6 +438,13 @@ def main():
         else:
             disinfection_electricity = np.zeros(runs)
 
+        if wastewater_reverse_osmosis == 1:
+            wastewater_reverse_osmosis_electricity = np.random.uniform(unit_elec_consumption_dictionary['reverse_osmosis_brackish']['min'],
+                                                                       unit_elec_consumption_dictionary['reverse_osmosis_brackish']['max'],
+                                                           (runs, wastewater_reverse_osmosis_installed))
+        else:
+            wastewater_reverse_osmosis_electricity = np.zeros(runs)
+
         if dechlorination == 1:
             dechlorination_electricity = np.random.uniform(unit_elec_consumption_dictionary['dechlorination']['min'],
                                                            unit_elec_consumption_dictionary['dechlorination']['max'],
@@ -396,14 +453,14 @@ def main():
             dechlorination_electricity  = np.zeros(runs)
 
         if digestion == 'Aerobic Digestion':
-            disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['aerobic_digestion']['min'],
+            digestion_electricity = np.random.uniform(unit_elec_consumption_dictionary['aerobic_digestion']['min'],
                     unit_elec_consumption_dictionary['aerobic_digestion']['max'], (runs, 1)) * solids_processing_scale_factor
         elif digestion == 'Anaerobic Digestion w/ Biogas Use':
-            disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['anaerobic_digestion']['min'],
+            digestion_electricity = np.random.uniform(unit_elec_consumption_dictionary['anaerobic_digestion']['min'],
                     unit_elec_consumption_dictionary['anaerobic_digestion']['max'], (runs, 1)) * solids_processing_scale_factor
         # TODO Add biogas recovery to below estimates.
         elif digestion == 'Anaerobic Digestion w/o Biogas Use':
-            disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['anaerobic_digestion']['min'],
+            digestion_electricity = np.random.uniform(unit_elec_consumption_dictionary['anaerobic_digestion']['min'],
                     unit_elec_consumption_dictionary['anaerobic_digestion']['max'], (runs, 1)) * solids_processing_scale_factor
         else:
             digestion_electricity = np.zeros(runs)
@@ -421,8 +478,8 @@ def main():
             dewatering_electricity = np.zeros(runs)
 
         if softening_process == 1:
-            softening_process_electricity = np.random.uniform(unit_elec_consumption_dictionary['softening']['min'],
-                                                           unit_elec_consumption_dictionary['softening']['max'],
+            softening_process_electricity = np.random.uniform(unit_elec_consumption_dictionary['lime_soda_ash_softening']['min'],
+                                                           unit_elec_consumption_dictionary['lime_soda_ash_softening']['max'],
                                                            (runs, 1))
         else:
             softening_process_electricity  = np.zeros(runs)
@@ -436,7 +493,7 @@ def main():
 
         if bio_treatment == 'Activated Sludge and Clarification':
             bio_treatment_electricity = np.random.uniform(unit_elec_consumption_dictionary['activated_sludge_industrial']['min'],
-                                                       unit_elec_consumption_dictionary['activatd_sludge_industrial']['max'],
+                                                       unit_elec_consumption_dictionary['activated_sludge_industrial']['max'],
                                                        (runs, bio_treatment_installed)) + \
                                               np.random.uniform(unit_elec_consumption_dictionary['aeration_industrial']['min'],
                                                        unit_elec_consumption_dictionary['aeration_industrial']['max'],
@@ -490,8 +547,11 @@ def main():
         else:
             crystallization_electricity = np.zeros(runs)
 
-        new_process_electricity = np.random.triangular(new_elec_min_input, new_elec_best_input,
+        if new_elec_max_input > 0:
+            new_process_electricity = np.random.triangular(new_elec_min_input, new_elec_best_input,
                                                              new_elec_max_input, runs)
+        else:
+            new_process_electricity = np.zeros(runs)
 
         total_electricity_consumption = flocculation_electricity + coagulation_electricity  + \
                                         sedimentation_electricity  + filtration_electricity + \
@@ -500,8 +560,9 @@ def main():
                                         granular_activated_carbon_electricity + reverse_osmosis_electricity + \
                                         corrosion_control_electricity + aerated_grit_electricity + \
                                         grinding_electricity + grit_removal_electricity + screening_electricity + \
-                                        secondary_treatment_electricity + nitrification_denitrification_electricity \
-                                        + phosphorous_removal_electricity + disinfection_electricity + \
+                                        wastewater_sedimentation_electricity + wastewater_reverse_osmosis_electricity + \
+                                        secondary_treatment_electricity + nitrification_denitrification_electricity + \
+                                        phosphorous_removal_electricity + disinfection_electricity + \
                                         dechlorination_electricity + digestion_electricity + dewatering_electricity + \
                                         softening_process_electricity + chemical_addition_input_electricity + \
                                         bio_treatment_electricity + volume_reduction_electricity + \
@@ -509,17 +570,431 @@ def main():
 
         return total_electricity_consumption
 
+    def calculate_chemical_consumption(basic_info_dict, baseline_process_dict, new_process_dict):
+        source_water = baseline_process_dict['source water']
+        coagulation = baseline_process_dict['coagulation']
+        coagulation_installed = baseline_process_dict['no. of coagulation units']
+        filtration = baseline_process_dict['filtration']
+        filtration_installed = baseline_process_dict['no. of filtration units']
+        primary_disinfection = baseline_process_dict['primary disinfection']
+        secondary_disinfection = baseline_process_dict['secondary disinfection']
+        fluoridation = baseline_process_dict['fluoridation']
+        softening = baseline_process_dict['softening']
+        ph_adjustment = baseline_process_dict['pH adjustment']
+        ph_adjustment_installed = baseline_process_dict['no. of pH adjustment units']
+        granular_activated_carbon = baseline_process_dict['gac']
+        granular_activated_carbon_installed = baseline_process_dict['no. of gac units']
+        reverse_osmosis = baseline_process_dict['ro']
+        reverse_osmosis_installed = baseline_process_dict['no. of ro units']
+        corrosion_control = baseline_process_dict['corrosion control']
+        disinfection = baseline_process_dict['disinfection']
+        dechlorination = baseline_process_dict['dechlorination']
+        wastewater_reverse_osmosis = baseline_process_dict['wastewater ro']
+        wastewater_reverse_osmosis_installed = baseline_process_dict['no. of wastewater ro units']
+        dewatering = baseline_process_dict['dewatering']
+        softening_process = baseline_process_dict['softening process']
+        bio_treatment = baseline_process_dict['bio treatment']
+        volume_reduction = baseline_process_dict['volume reduction']
+        volume_reduction_installed = baseline_process_dict['no. of volume reduction units']
+        crystallization = baseline_process_dict['crystallization']
+        caoh_dose_min_input = baseline_process_dict['caoh dose min input']
+        caoh_dose_best_input = baseline_process_dict['caoh dose best input']
+        caoh_dose_max_input = baseline_process_dict['caoh dose max input']
+        new_caoh_min_input = new_process_dict['new caoh dose min input']
+        new_caoh_best_input = new_process_dict['new caoh dose best input']
+        new_caoh_max_input = new_process_dict['new caoh dose max input']
+        fecl3_dose_min_input = baseline_process_dict['fecl3 dose min input']
+        fecl3_dose_best_input = baseline_process_dict['fecl3 dose best input']
+        fecl3_dose_max_input = baseline_process_dict['fecl3 dose max input']
+        new_fecl3_min_input = new_process_dict['new fecl3 dose min input']
+        new_fecl3_best_input = new_process_dict['new fecl3 dose best input']
+        new_fecl3_max_input = new_process_dict['new fecl3 dose max input']
+        hcl_dose_min_input = baseline_process_dict['hcl dose min input']
+        hcl_dose_best_input = baseline_process_dict['hcl dose best input']
+        hcl_dose_max_input = baseline_process_dict['hcl dose max input']
+        new_hcl_min_input = new_process_dict['new hcl dose min input']
+        new_hcl_best_input = new_process_dict['new hcl dose best input']
+        new_hcl_max_input = new_process_dict['new hcl dose max input']
+        nutrients_dose_min_input = baseline_process_dict['nutrients dose min input']
+        nutrients_dose_best_input = baseline_process_dict['nutrients dose best input']
+        nutrients_dose_max_input = baseline_process_dict['nutrients dose max input']
+        new_nutrients_min_input = new_process_dict['new nutrients dose min input']
+        new_nutrients_best_input = new_process_dict['new nutrients dose best input']
+        new_nutrients_max_input = new_process_dict['new nutrients dose max input']
+        sodium_carbonate_dose_min_input = baseline_process_dict['sodium carbonate dose min input']
+        sodium_carbonate_dose_best_input = baseline_process_dict['sodium carbonate dose best input']
+        sodium_carbonate_dose_max_input = baseline_process_dict['sodium carbonate dose max input']
+        new_sodium_carbonate_min_input = new_process_dict['new sodium carbonate dose min input']
+        new_sodium_carbonate_best_input = new_process_dict['new sodium carbonate dose best input']
+        new_sodium_carbonate_max_input = new_process_dict['new sodium carbonate dose max input']
+        gac_dose_min_input = baseline_process_dict['gac dose min input']
+        gac_dose_best_input = baseline_process_dict['gac dose best input']
+        gac_dose_max_input = baseline_process_dict['gac dose max input']
+        new_gac_min_input = new_process_dict['new gac dose min input']
+        new_gac_best_input = new_process_dict['new gac dose best input']
+        new_gac_max_input = new_process_dict['new gac dose max input']
+        organics_dose_min_input = baseline_process_dict['organics dose min input']
+        organics_dose_best_input = baseline_process_dict['organics dose best input']
+        organics_dose_max_input = baseline_process_dict['organics dose max input']
+        new_organics_min_input = new_process_dict['new organics dose min input']
+        new_organics_best_input = new_process_dict['new organics dose best input']
+        new_organics_max_input = new_process_dict['new organics dose max input']
+        inorganics_dose_min_input = baseline_process_dict['inorganics dose min input']
+        inorganics_dose_best_input = baseline_process_dict['inorganics dose best input']
+        inorganics_dose_max_input = baseline_process_dict['inorganics dose max input']
+        new_inorganics_min_input = new_process_dict['new inorganics dose min input']
+        new_inorganics_best_input = new_process_dict['new inorganics dose best input']
+        new_inorganics_max_input = new_process_dict['new inorganics dose max input']
+        runs = basic_info_dict['mc runs']
+        system_type = basic_info_dict['system type']
+
+        if (reverse_osmosis == 1) and (system_type == 'Drinking Water System'):
+            if source_water == 'Seawater':
+                volume_scale_factor = 1/0.5
+            else:
+                volume_scale_factor = 1/0.85
+        else:
+            volume_scale_factor = 1
+
+        if system_type == 'Municipal Wastewater System':
+            if secondary_treatment == 'None':
+                tertiary_treatment_scale_factor = 1
+                solids_processing_scale_factor = 0
+            else:
+                tertiary_treatment_scale_factor = 0.95
+                solids_processing_scale_factor = 0.05
+
+        if system_type == 'Industrial Wastewater System':
+            if volume_reduction == 'None':
+                crystallization_scale_factor = 1
+            else:
+                crystallization_scale_factor = 0.67
+
+        if coagulation == 1:
+            coagulation_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['coagulation']['min'],
+                                                            unit_inorganics_consumption_dictionary['coagulation']['max'],
+                                                            (runs, coagulation_installed)) * volume_scale_factor
+        else:
+            coagulation_inorganics = np.zeros(runs)
+
+        if filtration == 'Ultrafiltration Membrane':
+            ultrafiltration_organics = np.random.uniform(unit_organics_consumption_dictionary['uf membrane cleaning']['min'],
+                                                       unit_organics_consumption_dictionary['uf membrane cleaning']['max'],
+                                                       (runs, filtration_installed)) * volume_scale_factor
+        else:
+            ultrafiltration_organics = np.zeros(runs)
+
+        if (primary_disinfection == 'Hypochlorite') and (source_water == "Fresh Surface Water"):
+            primary_disinfection_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['hypochlorination surface']['min'],
+                                                       unit_inorganics_consumption_dictionary['hypochlorination surface']['max'],
+                                                       (runs, 1))
+        elif primary_disinfection == 'Hypochlorite' and (source_water == "Fresh Groundwater"):
+            primary_disinfection_inorganics = np.random.uniform(
+                unit_inorganics_consumption_dictionary['hypochlorination groundwater']['min'],
+                    unit_inorganics_consumption_dictionary['hypochlorination groundwater']['max'], (runs, 1))
+        elif primary_disinfection == 'Hypochlorite' and (source_water == "Brackish Groundwater"):
+            primary_disinfection_inorganics = np.random.uniform(
+                unit_inorganics_consumption_dictionary['hypochlorination groundwater']['min'],
+                    unit_inorganics_consumption_dictionary['hypochlorination groundwater']['max'], (runs, 1))
+        elif primary_disinfection == 'Hypochlorite' and (source_water == "Seawater"):
+            primary_disinfection_inorganics = np.random.uniform(
+                unit_inorganics_consumption_dictionary['hypochlorination surface']['min'],
+                    unit_inorganics_consumption_dictionary['hypochlorination surface']['max'], (runs, 1))
+        elif primary_disinfection == 'Chloramine':
+            primary_disinfection_inorganics = np.random.uniform(
+                unit_inorganics_consumption_dictionary['chloramination']['min'],
+                    unit_inorganics_consumption_dictionary['chloramination']['max'], (runs, 1))
+        elif primary_disinfection == 'Iodine':
+            primary_disinfection_inorganics = np.random.uniform(
+                unit_inorganics_consumption_dictionary['iodine_addition disinfection']['min'],
+                                                       unit_inorganics_consumption_dictionary['iodine_addition disinfection']['max'],
+                                                       (runs, 1))
+        else:
+            primary_disinfection_inorganics = np.zeros(runs)
+
+        if (secondary_disinfection == 'Hypochlorite') and (source_water == "Fresh Surface Water"):
+            secondary_disinfection_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['hypochlorination surface']['min'],
+                                                       unit_inorganics_consumption_dictionary['hypochlorination surface']['max'],
+                                                       (runs, 1))
+        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Fresh Groundwater"):
+            secondary_disinfection_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['hypochlorination groundwater']['min'],
+                    unit_inorganics_consumption_dictionary['hypochlorination groundwater']['max'], (runs, 1))
+        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Brackish Groundwater"):
+            secondary_disinfection_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['hypochlorination groundwater']['min'],
+                    unit_inorganics_consumption_dictionary['hypochlorination groundwater']['max'], (runs, 1))
+        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Seawater"):
+            secondary_disinfection_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['hypochlorination surface']['min'],
+                    unit_inorganics_consumption_dictionary['hypochlorination surface']['max'], (runs, 1))
+        elif secondary_disinfection == 'Chloramine':
+            secondary_disinfection_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['chloramination']['min'],
+                    unit_inorganics_consumption_dictionary['chloramination']['max'], (runs, 1))
+        else:
+            secondary_disinfection_inorganics = np.zeros(runs)
+
+        if fluoridation == 1:
+            fluoridation_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['fluoridation']['min'],
+                                                           unit_inorganics_consumption_dictionary['fluoridation']['max'],
+                                                           (runs, 1))
+        else:
+            fluoridation_inorganics = np.zeros(runs)
+
+        if softening == 1:
+            softening_soda_ash = np.random.uniform(unit_sodium_carbonate_consumption_dictionary['lime_soda_ash_softening']['min'],
+                                                           unit_sodium_carbonate_consumption_dictionary['lime_soda_ash_softening']['max'],
+                                                           (runs, 1)) * volume_scale_factor
+        else:
+            softening_soda_ash = np.zeros(runs)
+
+        if ph_adjustment == 1:
+            ph_adjustment_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['pH_adjustment']['min'],
+                                                           unit_inorganics_consumption_dictionary['pH_adjustment']['max'],
+                                                           (runs, ph_adjustment_installed))
+        else:
+            ph_adjustment_inorganics = np.zeros(runs)
+
+        if granular_activated_carbon == 1:
+            gac_granular_activated_carbon = np.random.uniform(unit_gac_consumption_dictionary['granular_activated_carbon']['min'],
+                                                           unit_gac_consumption_dictionary['granular_activated_carbon']['max'],
+                                                           (runs, granular_activated_carbon_installed)) * volume_scale_factor
+        else:
+            gac_granular_activated_carbon = np.zeros(runs)
+
+        if reverse_osmosis == 1:
+            reverse_osmosis_organics = np.random.uniform(unit_organics_consumption_dictionary['ro membrane cleaning']['min'],
+                                                           unit_organics_consumption_dictionary['ro membrane cleaning']['max'],
+                                                           (runs, reverse_osmosis_installed))
+        else:
+            reverse_osmosis_organics = np.zeros(runs)
+
+        if corrosion_control == 'Bimetallic Phosphate':
+            corrosion_control_organics = np.random.uniform(
+                unit_organics_consumption_dictionary['bimetallic phosphate corrosion']['min'],
+                unit_organics_consumption_dictionary['bimetallic phosphate corrosion']['max'],
+                (runs, 1))
+            corrosion_control_inorganics = np.zeros(runs)
+        elif corrosion_control == 'Hexametaphosphate':
+            corrosion_control_organics = np.random.uniform(
+                unit_organics_consumption_dictionary['hexametaphosphate corrosion']['min'],
+                unit_organics_consumption_dictionary['hexametaphosphate corrosion']['max'],
+                (runs, 1))
+            corrosion_control_inorganics = np.zeros(runs)
+        elif corrosion_control == 'Orthophosphate':
+            corrosion_control_organics = np.random.uniform(
+                unit_organics_consumption_dictionary['orthoaphosphate corrosion']['min'],
+                unit_organics_consumption_dictionary['orthophosphate corrosion']['max'],
+                (runs, 1))
+            corrosion_control_inorganics = np.zeros(runs)
+        elif corrosion_control == 'Polyphosphate':
+            corrosion_control_organics = np.random.uniform(
+                unit_organics_consumption_dictionary['polyphosphate corrosion']['min'],
+                unit_organics_consumption_dictionary['polyphosphate corrosion']['max'],
+                (runs, 1))
+            corrosion_control_inorganics = np.zeros(runs)
+        elif corrosion_control == 'Permagnate':
+            corrosion_control_organics = np.random.uniform(
+                unit_organics_consumption_dictionary['permagnate corrosion']['min'],
+                unit_organics_consumption_dictionary['permagnate corrosion']['max'],
+                (runs, 1))
+            corrosion_control_inorganics = np.zeros(runs)
+        elif corrosion_control == 'Silicate':
+            corrosion_control_inorganics = np.random.uniform(
+                unit_inorganics_consumption_dictionary['silicate corrosion']['min'],
+                unit_inorganics_consumption_dictionary['silicate corrosion']['max'],
+                (runs, 1))
+            corrosion_control_organics = np.zeros(runs)
+        elif corrosion_control == 'Sodium Bisulfate':
+            corrosion_control_inorganics = np.random.uniform(
+                unit_inorganics_consumption_dictionary['sodium bisulfate corrosion']['min'],
+                unit_inorganics_consumption_dictionary['sodium bisulfate corrosion']['max'],
+                (runs, 1))
+            corrosion_control_organics = np.zeros(runs)
+        elif corrosion_control == 'Sodium Sulfite':
+            corrosion_control_inorganics = np.random.uniform(
+                unit_inorganics_consumption_dictionary['sodium sulfite corrosion']['min'],
+                unit_inorganics_consumption_dictionary['sodium sulfite corrosion']['max'],
+                (runs, 1))
+            corrosion_control_organics = np.zeros(runs)
+        elif corrosion_control == 'Sulfur Dioxide':
+            corrosion_control_inorganics = np.random.uniform(
+                unit_inorganics_consumption_dictionary['sulfur dioxide corrosion']['min'],
+                unit_inorganics_consumption_dictionary['sulfur dioxide corrosion']['max'],
+                (runs, 1))
+            corrosion_control_organics = np.zeros(runs)
+
+        else:
+            corrosion_control_organics = np.zeros(runs)
+            corrosion_control_inorganics = np.zeros(runs)
+
+        if disinfection == 'Hypochlorite':
+            disinfection_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['hypochlorination wastewater']['min'],
+                    unit_inorganics_consumption_dictionary['hypochlorination wastewater']['max'], (runs, 1)) * tertiary_treatment_scale_factor
+        else:
+            disinfection_inorganics = np.zeros(runs)
+
+        if wastewater_reverse_osmosis == 1:
+            wastewater_reverse_osmosis_organics = np.random.uniform(unit_organics_consumption_dictionary['ro membrane cleaning']['min'],
+                                                                       unit_organics_consumption_dictionary['ro membrane cleaning']['max'],
+                                                           (runs, wastewater_reverse_osmosis_installed))
+        else:
+            wastewater_reverse_osmosis_organics = np.zeros(runs)
+
+        if dechlorination == 1:
+            dechlorination_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['sulfur dioxide dechlorination']['min'],
+                                                           unit_inorganics_consumption_dictionary['sulfur dioxide dechlorination']['max'],
+                                                           (runs, 1)) * tertiary_treatment_scale_factor
+        else:
+            dechlorination_inorganics = np.zeros(runs)
+
+        if dewatering == 'Polymer Dewatering':
+            dewatering_organics = np.random.uniform(unit_organics_consumption_dictionary['polymer_dewatering']['min'],
+                    unit_organics_consumption_dictionary['poiymer_dewatering']['max'], (runs, 1)) * solids_processing_scale_factor
+        else:
+            dewatering_organics = np.zeros(runs)
+
+        if volume_reduction == 'None':
+            volume_reduction_organics = np.zeros(runs)
+        elif volume_reduction == 0:
+            volume_reduction_organics = np.zeros(runs)
+        else:
+            volume_reduction_organics = np.random.uniform(unit_organics_consumption_dictionary['membrane_distillation']['min'],
+                unit_organics_consumption_dictionary['membrane_distillation']['max'], (runs, 1))
+
+        if caoh_dose_max_input > 0:
+            industrial_process_caoh = np.random.triangular(caoh_dose_min_input, caoh_dose_best_input,
+                                                             caoh_dose_max_input, runs)
+        else:
+            industrial_process_caoh = np.zeros(runs)
+
+        if new_caoh_max_input > 0:
+            new_process_caoh = np.random.triangular(new_caoh_min_input, new_caoh_best_input,
+                                                    new_caoh_max_input, runs)
+        else:
+            new_process_caoh = np.zeros(runs)
+
+        if fecl3_dose_max_input > 0:
+            industrial_process_fecl3 = np.random.triangular(fecl3_dose_min_input, fecl3_dose_best_input,
+                                                             fecl3_dose_max_input, runs)
+        else:
+            industrial_process_fecl3 = np.zeros(runs)
+
+        if new_fecl3_max_input > 0:
+            new_process_fecl3 = np.random.triangular(new_fecl3_min_input, new_fecl3_best_input,
+                                                             new_fecl3_max_input, runs)
+        else:
+            new_process_fecl3 = np.zeros(runs)
+
+        if hcl_dose_max_input > 0:
+            industrial_process_hcl = np.random.triangular(hcl_dose_min_input, hcl_dose_best_input,
+                                                             hcl_dose_max_input, runs)
+        else:
+            industrial_process_hcl = np.zeros(runs)
+
+        if new_hcl_max_input > 0:
+            new_process_hcl = np.random.triangular(new_hcl_min_input, new_hcl_best_input,
+                                                             new_hcl_max_input, runs)
+        else:
+            new_process_hcl = np.zeros(runs)
+
+        if nutrients_dose_max_input > 0:
+            industrial_process_nutrients = np.random.triangular(nutrients_dose_min_input, nutrients_dose_best_input,
+                                                             nutrients_dose_max_input, runs)
+        else:
+            industrial_process_nutrients = np.zeros(runs)
+
+        if new_nutrients_max_input > 0:
+            new_process_nutrients = np.random.triangular(new_nutrients_min_input, new_nutrients_best_input,
+                                                             new_nutrients_max_input, runs)
+        else:
+            new_process_nutrients = np.zeros(runs)
+
+        if sodium_carbonate_dose_max_input > 0:
+            industrial_process_soda_ash = np.random.triangular(sodium_carbonate_dose_min_input, sodium_carbonate_dose_best_input,
+                                                               sodium_carbonate_dose_max_input, runs)
+        else:
+            industrial_process_soda_ash = np.zeros(runs)
+
+        if new_sodium_carbonate_max_input > 0:
+            new_process_soda_ash = np.random.triangular(new_sodium_carbonate_min_input, new_sodium_carbonate_best_input,
+                                                             new_sodium_carbonate_max_input, runs)
+        else:
+            new_process_soda_ash = np.zeros(runs)
+
+        if gac_dose_max_input > 0:
+            industrial_process_gac = np.random.triangular(gac_dose_min_input, gac_dose_best_input,
+                                                             gac_dose_max_input, runs)
+        else:
+            industrial_process_gac = np.zeros(runs)
+
+        if new_gac_max_input > 0:
+            new_process_gac = np.random.triangular(new_gac_min_input, new_gac_best_input,
+                                                             new_gac_max_input, runs)
+        else:
+            new_process_gac = np.zeros(runs)
+
+        if inorganics_dose_max_input > 0:
+            industrial_process_inorganics = np.random.triangular(inorganics_dose_min_input, inorganics_dose_best_input,
+                                                             inorganics_dose_max_input, runs)
+        else:
+            industrial_process_inorganics = np.zeros(runs)
+
+        if new_inorganics_max_input > 0:
+            new_process_inorganics = np.random.triangular(new_inorganics_min_input, new_inorganics_best_input,
+                                                             new_inorganics_max_input, runs)
+        else:
+            new_process_inorganics = np.zeros(runs)
+
+        if organics_dose_max_input > 0:
+            industrial_process_organics = np.random.triangular(organics_dose_min_input, organics_dose_best_input,
+                                                             organics_dose_max_input, runs)
+        else:
+            industrial_process_organics = np.zeros(runs)
+
+        if new_organics_max_input > 0:
+            new_process_organics = np.random.triangular(new_organics_min_input, new_organics_best_input,
+                                                             new_organics_max_input, runs)
+        else:
+            new_process_organics = np.zeros(runs)
+
+        total_caoh_consumption = industrial_process_caoh + new_process_caoh
+
+        total_fecl3_consumption = industrial_process_fecl3 + new_process_fecl3
+
+        total_hcl_consumption = industrial_process_hcl + new_process_hcl
+
+        total_nutrients_consumption = industrial_process_nutrients + new_process_nutrients
+
+        total_soda_ash_consumption = industrial_process_soda_ash + new_process_soda_ash + softening_soda_ash
+
+        total_gac_consumption = industrial_process_gac + new_process_gac + gac_granular_activated_carbon
+
+        total_inorganics_consumption = industrial_process_inorganics + new_process_inorganics + coagulation_inorganics \
+                                       + primary_disinfection_inorganics + secondary_disinfection_inorganics + \
+                                       fluoridation_inorganics + ph_adjustment_inorganics + \
+                                       corrosion_control_inorganics + disinfection_inorganics + \
+                                       dechlorination_inorganics
+
+        total_organics_consumption = industrial_process_organics + new_process_organics + ultrafiltration_organics + \
+                                     reverse_osmosis_organics + corrosion_control_organics + \
+                                     wastewater_reverse_osmosis_organics + dewatering_organics + \
+                                     volume_reduction_organics
+
+        return total_caoh_consumption, total_fecl3_consumption, total_hcl_consumption, total_nutrients_consumption, \
+               total_soda_ash_consumption, total_gac_consumption, total_inorganics_consumption, \
+               total_organics_consumption
+
     #Create the notebook.
     root = Tk()
 
     root.title("Water AHEAD")
-    note = Notebook(root, width=600, height=500, activefg='black', inactivefg='gray')  # Create a Note book Instance
+    note = Notebook(root, width=850, height=700, activefg='black', inactivefg='gray')  # Create a Note book Instance
     note.grid()
     tab1 = note.add_tab(text='General Properties')  # Create an overview tab.
     tab2 = note.add_tab(text='Geography')  # Create a tab to ask about the system geography (i.e., where is it located  or will you be using nationwide averages?)
-    tab3 = note.add_tab(text='Baseline Treatment Process')  # Create a tab with the text "Tab Three"
-    tab4 = note.add_tab(text='New Treatment Process')  # Create a tab with the text "Tab Four"
-    tab5 = note.add_tab(text='Results')  # Create a tab with the text "Tab Five"
+    tab3 = note.add_tab(text='Drinking Water System')
+    tab4 = note.add_tab(text='Municipal Wastewater System')
+    tab5 = note.add_tab(text='Industrial Wasteawter System')
+    tab6 = note.add_tab(text='New Treatment Process')
+    tab7 = note.add_tab(text='Results')
 
     def callback(P):
         if str.isalpha(P):
@@ -528,92 +1003,6 @@ def main():
             return True
 
     vcmd = (tab1.register(callback))
-
-    Label(tab3, text='Drinking Water System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=3)
-
-    Label(tab3, text='Source Water Type:', font=('Arial', 10)).grid(column=0, row=1, sticky=E)
-    source_water = StringVar(root)
-    source_water_choices = ['Fresh Surface Water', 'Fresh Groundwater', 'Brackish Groundwater', 'Seawater']
-    source_water.set('Fresh Surface Water')
-    source_water_type_popup_menu = OptionMenu(tab3, source_water, *source_water_choices).grid(column=1, row=1, sticky=W)
-
-    Label(tab3, text='Number of Processes Installed', font=('Arial', 10, 'bold')).grid(column=2, row=1)
-    Label(tab3, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=3, sticky=E)
-
-    flocculation = BooleanVar(root)
-    flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation).grid(column=1, row=2, sticky=W)
-    flocculation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    flocculation_installed.grid(column=2, row=2)
-
-    coagulation = BooleanVar(root)
-    coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation).grid(column=1, row=3, sticky=W)
-    coagulation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    coagulation_installed.grid(column=2, row=3)
-
-    sedimentation = BooleanVar(root)
-    sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation).grid(column=1, row=4,
-                                                                                                sticky=W)
-    sedimentation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    sedimentation_installed.grid(column=2, row=4)
-
-    Label(tab3, text='Filtration:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
-    filtration = StringVar(root)
-    filtration_choices = ['No Filtration', 'Generic', 'Cartridge', 'Diatomaceous Earth', 'Greensand',
-                          'Pressurized Sand', 'Rapid Sand', 'Slow Sand', 'Ultrafiltration Membrane']
-    filtration.set('Generic')
-    filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
-    filtration_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    filtration_installed.grid(column=2, row=5)
-
-    Label(tab3, text='Primary Disinfection:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
-    primary_disinfection = StringVar(root)
-    primary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'Iodine', 'Ozonation', 'UV Disinfection', 'None']
-    primary_disinfection.set('Hypochlorite')
-    primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection, *primary_disinfection_choices).grid(
-        column=1, row=6, sticky=W)
-
-    Label(tab3, text='Secondary Disinfection:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
-    secondary_disinfection = StringVar(root)
-    secondary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'None']
-    secondary_disinfection.set('Hypochlorite')
-    secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection, *secondary_disinfection_choices).grid(
-        column=1, row=7, sticky=W)
-
-    Label(tab3, text='Advanced Processes:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
-
-    fluoridation = BooleanVar(root)
-    fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation).grid(column=1, row=8, sticky=W)
-
-    softening = BooleanVar(root)
-    softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening).grid(column=1, row=9, sticky=W)
-
-    ph_adjustment = BooleanVar(root)
-    ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment).grid(column=1, row=10,
-                                                                                                sticky=W)
-    ph_adjustment_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    ph_adjustment_installed.grid(column=2, row=10)
-
-    granular_activated_carbon = BooleanVar(root)
-    granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
-                                                   variable=granular_activated_carbon).grid(column=1, row=11, sticky=W)
-    granular_activated_carbon_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    granular_activated_carbon_installed.grid(column=2, row=11)
-
-    reverse_osmosis = BooleanVar(root)
-    reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis).grid(column=1, row=12,
-                                                                                                      sticky=W)
-    reverse_osmosis_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    reverse_osmosis_installed.grid(column=2, row=12)
-
-    Label(tab3, text='Corrosion Control:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
-    corrosion_control = StringVar(root)
-    corrosion_control_choices = ['Bimetallic Phosphate', 'Hexametaphosphate', 'Orthophosphate', 'Polyphosphate',
-                                 'Silicate', 'Permagnate', 'Sodium Bisulfate', 'Sodium Sulfate',
-                                 'Sulfur Dioxide', 'None']
-    corrosion_control.set('None')
-    corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(column=1,
-                                                                                                        row=13,
-                                                                                                        sticky=W)
 
     Label(tab1, text='System Parameters',font=('Arial', 10, 'bold')).grid(row=0, column=1)  # Use each created tab as a parent, etc etc...
     Label(tab1, text='System Type:', font=('Arial', 10)).grid(row=1, column=0, sticky=E)
@@ -642,290 +1031,10 @@ def main():
 
         return value_updated
 
-    def change_dropdown_change_window(*args):
-        tab3_list = all_children(tab3)
-        for item in tab3_list:
-            item.grid_forget()
-        if system_type.get() == 'Drinking Water System':
-            Label(tab3, text='Drinking Water System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=3)
-
-            Label(tab3, text='Source Water Type:', font=('Arial', 10)).grid(column=0, row=1, sticky=E)
-            source_water = StringVar(root)
-            source_water_choices = ['Fresh Surface Water', 'Fresh Groundwater', 'Brackish Groundwater', 'Seawater']
-            source_water.set('Fresh Surface Water')
-            source_water_type_popup_menu = OptionMenu(tab3, source_water, *source_water_choices).grid(column=1, row=1, sticky=W)
-
-            Label(tab3, text='Number of Processes Installed', font=('Arial', 10, 'bold')).grid(column=2, row=1)
-            Label(tab3, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=3, sticky=E)
-
-            flocculation = BooleanVar(root)
-            flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation).grid(column=1, row=2, sticky=W)
-            flocculation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            flocculation_installed.grid(column=2, row=2)
-
-            coagulation = BooleanVar(root)
-            coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation).grid(column=1, row=3, sticky=W)
-            coagulation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            coagulation_installed.grid(column=2, row=3)
-
-            sedimentation = BooleanVar(root)
-            sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation).grid(column=1, row=4, sticky=W)
-            sedimentation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            sedimentation_installed.grid(column=2, row=4)
-
-            Label(tab3, text='Filtration:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
-            filtration = StringVar(root)
-            filtration_choices = ['No Filtration', 'Generic', 'Cartridge', 'Diatomaceous Earth', 'Greensand',
-                                  'Pressurized Sand', 'Rapid Sand', 'Slow Sand', 'Ultrafiltration Membrane']
-            filtration.set('Generic')
-            filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
-            filtration_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            filtration_installed.grid(column=2, row=5)
-
-            Label(tab3, text='Primary Disinfection:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
-            primary_disinfection = StringVar(root)
-            primary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'Iodine', 'Ozonation', 'UV Disinfection', 'None']
-            primary_disinfection.set('Hypochlorite')
-            primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection, *primary_disinfection_choices).grid(column=1, row=6, sticky=W)
-
-            Label(tab3, text='Secondary Disinfection:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
-            secondary_disinfection = StringVar(root)
-            secondary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'None']
-            secondary_disinfection.set('Hypochlorite')
-            secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection, *secondary_disinfection_choices).grid(column=1, row=7, sticky=W)
-
-            Label(tab3, text='Advanced Processes:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
-
-            fluoridation = BooleanVar(root)
-            fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation).grid(column=1, row=8, sticky=W)
-
-            softening = BooleanVar(root)
-            softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening).grid(column=1, row=9, sticky=W)
-
-            ph_adjustment = BooleanVar(root)
-            ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment).grid(column=1, row=10, sticky=W)
-            ph_adjustment_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            ph_adjustment_installed.grid(column=2, row=10)
-
-            granular_activated_carbon = BooleanVar(root)
-            granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon', variable=granular_activated_carbon).grid(column=1, row=11, sticky=W)
-            granular_activated_carbon_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            granular_activated_carbon_installed.grid(column=2, row=11)
-
-            reverse_osmosis = BooleanVar(root)
-            reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis).grid(column=1, row=12, sticky=W)
-            reverse_osmosis_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            reverse_osmosis_installed.grid(column=2, row=12)
-
-            Label(tab3, text='Corrosion Control:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
-            corrosion_control = StringVar(root)
-            corrosion_control_choices = ['Bimetallic Phosphate', 'Hexametaphosphate', 'Orthophosphate', 'Polyphosphate',
-                                         'Silicate', 'Permagnate', 'Sodium Bisulfate', 'Sodium Sulfate',
-                                         'Sulfur Dioxide', 'None']
-            corrosion_control.set('None')
-            corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(column=1, row=13, sticky=W)
-
-        elif system_type.get() == 'Municipal Wastewater System':
-            Label(tab3, text='Municipal Wastewater System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=2)
-            Label(tab3, text='Treatment Train', font=('Arial', 10, 'bold')).grid(column=0, row=1, columnspan=2)
-            Label(tab3, text='Number of Processes Installed', font=('Arial', 10, 'bold')).grid(column=2, row=1)
-
-            Label(tab3, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
-
-            aerated_grit = BooleanVar(root)
-            aerated_grit_button = Checkbutton(tab3, text='Aerated Grit', variable=aerated_grit).grid(column=1, row=2, sticky=W)
-            aerated_grit_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            aerated_grit_installed.grid(column=2, row=2)
-
-            grinding = BooleanVar(root)
-            grinding_button = Checkbutton(tab3, text='Grinding', variable=grinding).grid(column=1, row=3, sticky=W)
-
-            filtration = BooleanVar(root)
-            filtration_button = Checkbutton(tab3, text='Filtration', variable=filtration).grid(column=1, row=4, sticky=W)
-            filtration_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            filtration_installed.grid(column=2, row=4)
-
-            grit_removal = BooleanVar(root)
-            grit_removal_button = Checkbutton(tab3, text='Grit Removal', variable=grit_removal).grid(column=1, row=5, sticky=W)
-            grit_removal_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            grit_removal_installed.grid(column=2, row=5)
-
-            screening = BooleanVar(root)
-            screening_button = Checkbutton(tab3, text='Screening', variable=screening).grid(column=1, row=6, sticky=W)
-            screening_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            screening_installed.grid(column=2, row=6)
-
-            Label(tab3, text='Primary Treatment:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
-
-            sedimentation = BooleanVar(root)
-            sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation).grid(column=1, row=7, sticky=W)
-            sedimentation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            sedimentation_installed.grid(column=2, row=7)
-
-            Label(tab3, text='Secondary Treatment:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
-            secondary_treatment = StringVar(root)
-            secondary_treatment_choices = ['Activated Sludge and Clarification', 'Lagoon', 'Stabilization Pond',
-                                           'Trickling Filter','None']
-            secondary_treatment.set('Activated Sludge and Clarification')
-            secondary_treatment_popup_menu = OptionMenu(tab3, secondary_treatment, *secondary_treatment_choices).grid(column=1, row=8, sticky=W)
-
-            Label(tab3, text='Tertiary Treatment:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
-
-            nitrification_denitrification = BooleanVar(root)
-            nitrification_denitrification_button = Checkbutton(tab3, text='Nitrification/Denitrification', variable=nitrification_denitrification).grid(column=1, row=9, sticky=W)
-            nitrification_denitrification_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            nitrification_denitrification_installed.grid(column=2, row=9)
-
-            phosphorous_removal = BooleanVar(root)
-            phosphorous_removal_button = Checkbutton(tab3, text='Phosphorous Removal', variable=phosphorous_removal).grid(column=1, row=10, sticky=W)
-            phosphorous_removal_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            phosphorous_removal_installed.grid(column=2, row=10)
-
-            reverse_osmosis = BooleanVar(root)
-            reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis).grid(column=1, row=11, sticky=W)
-            reverse_osmosis_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            reverse_osmosis_installed.grid(column=2, row=11)
-
-            Label(tab3, text='Disinfection:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
-            disinfection = StringVar(root)
-            disinfection_choices = ['Hypochlorite', 'Ultraviolet', 'Ozone', 'None']
-            disinfection.set('Hypochlorite')
-            disinfection_popup_menu = OptionMenu(tab3, disinfection, *disinfection_choices).grid(column=1, row=12, sticky=W)
-
-            dechlorination = BooleanVar(root)
-            dechlorination_button = Checkbutton(tab3, text='Dechlorination', variable=dechlorination).grid(column=1, row=13, sticky=W)
-
-            Label(tab3, text='Digestion:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
-            digestion = StringVar(root)
-            digestion_choices = ['Aerobic Digestion', 'Anaerobic Digestion w/o Biogas Use',
-                                 'Anaerobic Digestion w/ Biogas Use', 'None']
-            digestion.set('Aerobic Digestion')
-            digestion_popup_menu = OptionMenu(tab3, digestion, *digestion_choices).grid(column=1, row=14, sticky=W)
-
-            Label(tab3, text='Solids Dewatering:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
-            dewatering = StringVar(root)
-            dewatering_choices = ['Gravity Thickening', 'Mechanical Dewatering', 'Polymer Dewatering', 'None']
-            dewatering.set('Mechanical Dewatering')
-            dewatering_popup_menu = OptionMenu(tab3, dewatering, *dewatering_choices).grid(column=1, row=15, sticky=W)
-
-            print(aerated_grit.get())
-
-        elif system_type.get() == 'Industrial Wastewater System':
-            Label(tab3, text='Industrial Wastewater System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=5)
-            Label(tab3, text='Treatment Train', font=('Arial', 10, 'bold')).grid(column=0, row=1, columnspan=2)
-            Label(tab3, text='Number of Processes Installed', font=('Arial', 10, 'bold')).grid(column=2, row=1, columnspan=3)
-
-            Label(tab3, text='Soda Ash Softening:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
-            softening_process = BooleanVar(root)
-            softening_process_button = Checkbutton(tab3, text='', variable=softening_process).grid(column=1, row=2, sticky=W)
-
-            Label(tab3, text='Number of Chemical Addition Reactors:', font =('Arial', 10)).grid(column=0, row=3, sticky=E)
-            chemcial_addition_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10).grid(column=1, row=3, sticky=W)
-
-            Label(tab3, text='Biological Treatment Process:', font=('Arial', 10)).grid(column=0, row=4, sticky=E)
-            bio_treatment = StringVar(root)
-            bio_treatment_choices = ['None', 'Activated Sludge and Clarification', 'Lagoon', 'Stabilization Pond',
-                                     'Trickling Filter']
-            bio_treatment.set('None')
-            bio_treatment_popup_menu = OptionMenu(tab3, bio_treatment, *bio_treatment_choices).grid(column=1, row=4, columnspan=3, sticky=W)
-            bio_treatment_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            bio_treatment_installed.grid(column=2, row=4, columnspan=3)
-
-            Label(tab3, text='Volume Reduction Process:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
-            volume_reduction = StringVar(root)
-            volume_reduction_choices = ['None', 'Mechanical Vapor Compression', 'Thermal Vapor Compression',
-                                        'Reverse Osmosis', 'Forward Osmosis', 'Multiple Effect Distillation',
-                                        'Multi-Stage Flash Distillation', 'Membrane Distillation']
-            volume_reduction.set('None')
-            volume_reduction_popup_menu = OptionMenu(tab3, volume_reduction, *volume_reduction_choices).grid(column=1, row=5, columnspan=3, sticky=W)
-            volume_reduction_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            volume_reduction_installed.grid(column=2, row=5, columnspan=3)
-
-            Label(tab3, text='Crystallization:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
-            crystallization = BooleanVar(root)
-            crystallization_button = Checkbutton(tab3, text='', variable=crystallization).grid(column=1, row=6, sticky=W)
-
-            Label(tab3, text='Chemical Consumption', font=('Arial', 10, 'bold')).grid(column=0, row=7, columnspan=5)
-            Label(tab3, text='Min', font=('Arial', 10)).grid(column=1, row=8)
-            Label(tab3, text='Best', font=('Arial', 10)).grid(column=2, row=8)
-            Label(tab3, text='Max', font=('Arial', 10)).grid(column=3, row=8)
-
-            Label(tab3, text='CaOH:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
-            caoh_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            caoh_dose_min_input.grid(column=1, row=9, sticky=W)
-            caoh_dose_best_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            caoh_dose_best_input.grid(column=2, row=9, sticky=W)
-            caoh_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            caoh_dose_max_input.grid(column=3, row=9, sticky=W)
-            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=9, sticky=W)
-
-            Label(tab3, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
-            fecl3_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            fecl3_dose_min_input.grid(column=1, row=10, sticky=W)
-            fecl3_dose_best_input = Entry(tab3, validate='all', validatecommand=(vcmd, 'P%'), width=10)
-            fecl3_dose_best_input.grid(column=2, row=10, sticky=W)
-            fecl3_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            fecl3_dose_max_input.grid(column=3, row=10, sticky=W)
-            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=10, sticky=W)
-
-            Label(tab3, text='HCl:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
-            hcl_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            hcl_dose_min_input.grid(column=1, row=11, sticky=W)
-            hcl_dose_best_input = Entry(tab3, validate='all', validatecommand=(vcmd, 'P%'), width=10)
-            hcl_dose_best_input.grid(column=2, row=11, sticky=W)
-            hcl_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            hcl_dose_max_input.grid(column=3, row=11, sticky=W)
-            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=11, sticky=W)
-
-            Label(tab3, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
-            nutrients_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            nutrients_dose_min_input.grid(column=1, row=12, sticky=W)
-            nutrients_dose_best_input = Entry(tab3, validate='all', validatecommand=(vcmd, 'P%'), width=10)
-            nutrients_dose_best_input.grid(column=2, row=12, sticky=W)
-            nutrients_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            nutrients_dose_max_input.grid(column=3, row=12, sticky=W)
-            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=12, sticky=W)
-            
-            Label(tab3, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
-            sodium_carbonate_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            sodium_carbonate_dose_min_input.grid(column=1, row=13, sticky=W)
-            sodium_carbonate_dose_best_input = Entry(tab3, validate='all', validatecommand=(vcmd, 'P%'), width=10)
-            sodium_carbonate_dose_best_input.grid(column=2, row=13, sticky=W)
-            sodium_carbonate_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            sodium_carbonate_max_input.grid(column=3, row=13, sticky=W)
-            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=13, sticky=W)
-
-            Label(tab3, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
-            gac_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            gac_dose_min_input.grid(column=1, row=14, sticky=W)
-            gac_dose_best_input = Entry(tab3, validate='all', validatecommand=(vcmd, 'P%'), width=10)
-            gac_dose_best_input.grid(column=2, row=14, sticky=W)
-            gac_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            gac_dose_max_input.grid(column=3, row=14, sticky=W)
-            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=14, sticky=W)
-
-            Label(tab3, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
-            inorganics_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            inorganics_dose_min_input.grid(column=1, row=15, sticky=W)
-            inorganics_dose_best_input = Entry(tab3, validate='all', validatecommand=(vcmd, 'P%'), width=10)
-            inorganics_dose_best_input.grid(column=2, row=15, sticky=W)
-            inorganics_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            inorganics_dose_max_input.grid(column=3, row=15, sticky=W)
-            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=15, sticky=W)
-
-            Label(tab3, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=16, sticky=E)
-            organics_dose_min_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            organics_dose_min_input.grid(column=1, row=16, sticky=W)
-            organics_dose_best_input = Entry(tab3, validate='all', validatecommand=(vcmd, 'P%'), width=10)
-            organics_dose_best_input.grid(column=2, row=16, sticky=W)
-            organics_dose_max_input = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
-            organics_dose_max_input.grid(column=3, row=16, sticky=W)
-            Label(tab3, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=16, sticky=W)
-
     system_type.trace('w', change_dropdown)
-    system_type.trace('w', change_dropdown_change_window)
 
     system_size_input = Entry(tab1, validate='all', validatecommand=(vcmd, '%P'))
+    system_size_input.insert(END, 0)
     system_size_input.grid(row=2, column=1)
     Label(tab1, text=f'm\N{SUPERSCRIPT THREE}/d', font=('Arial', 10)).grid(row=2, column=2, sticky=W)
 
@@ -952,6 +1061,7 @@ def main():
     Label(tab1, text='Simulation Parameters', font=('Arial', 10, 'bold')).grid(row=7, column=1)
     Label(tab1, text='Number of Simulations:', font=('Arial', 10)).grid(row=8, column=0, sticky=E)
     model_runs = Entry(tab1, validate='all', validatecommand=(vcmd, '%P'))
+    model_runs.insert(END, 1000)
     model_runs.grid(row=8, column=1)
 
     Label(tab2,
@@ -976,170 +1086,557 @@ def main():
     chem_state.set('US Average')
     chem_state_popup_menu = OptionMenu(tab2, chem_state, *chem_state_choices).grid(row=2, column=1, sticky=W)
 
-    Label(tab4, text='Enter electricity consumption and chemical dosages for the new process.').grid(column=0, row=1, columnspan=4)
+    Label(tab3, text='Drinking Water System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=3)
 
-    Label(tab4, text='Electricity Consumption', font=('Arial', 10)).grid(column=0, row=2, columnspan=4)
-    Label(tab4, text='Min', font=('Arial', 10)).grid(column=1, row=3)
-    Label(tab4, text='Best', font=('Arial', 10)).grid(column=2, row=3)
-    Label(tab4, text='Max', font=('Arial', 10)).grid(column=3, row=3)
-    Label(tab4, text='Unit Electricity Consumption:', font=('Arial', 10)).grid(column=0, row=4, sticky=E)
-    new_elec_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    Label(tab3, text='Source Water Type:', font=('Arial', 10)).grid(column=0, row=1, sticky=E)
+    source_water = StringVar(root)
+    source_water_choices = ['Fresh Surface Water', 'Fresh Groundwater', 'Brackish Groundwater', 'Seawater']
+    source_water.set('Fresh Surface Water')
+    source_water_type_popup_menu = OptionMenu(tab3, source_water, *source_water_choices).grid(column=1, row=1,
+                                                                                              sticky=W)
+
+    Label(tab3, text='Number of Processes Installed', font=('Arial', 10, 'bold')).grid(column=2, row=1)
+    Label(tab3, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=3, sticky=E)
+
+    flocculation = BooleanVar(root)
+    flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation).grid(column=1, row=2,
+                                                                                             sticky=W)
+    flocculation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    flocculation_installed.grid(column=2, row=2)
+    flocculation_installed.insert(END, 0)
+
+    coagulation = BooleanVar(root)
+    coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation).grid(column=1, row=3, sticky=W)
+    coagulation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    coagulation_installed.grid(column=2, row=3)
+    coagulation_installed.insert(END, 0)
+
+    sedimentation = BooleanVar(root)
+    sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation).grid(column=1, row=4,
+                                                                                                sticky=W)
+    sedimentation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sedimentation_installed.grid(column=2, row=4)
+    sedimentation_installed.insert(END, 0)
+
+    Label(tab3, text='Filtration:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
+    filtration = StringVar(root)
+    filtration_choices = ['No Filtration', 'Generic', 'Cartridge', 'Diatomaceous Earth', 'Greensand',
+                          'Pressurized Sand', 'Rapid Sand', 'Slow Sand', 'Ultrafiltration Membrane']
+    filtration.set('Generic')
+    filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
+    filtration_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    filtration_installed.grid(column=2, row=5)
+    filtration_installed.insert(END, 0)
+
+    Label(tab3, text='Primary Disinfection:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
+    primary_disinfection = StringVar(root)
+    primary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'Iodine', 'Ozonation', 'UV Disinfection', 'None']
+    primary_disinfection.set('Hypochlorite')
+    primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection, *primary_disinfection_choices).grid(
+        column=1, row=6, sticky=W)
+
+    Label(tab3, text='Secondary Disinfection:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
+    secondary_disinfection = StringVar(root)
+    secondary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'None']
+    secondary_disinfection.set('Hypochlorite')
+    secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection,
+                                                   *secondary_disinfection_choices).grid(column=1, row=7, sticky=W)
+
+    Label(tab3, text='Advanced Processes:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
+
+    fluoridation = BooleanVar(root)
+    fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation).grid(column=1, row=8,
+                                                                                             sticky=W)
+
+    softening = BooleanVar(root)
+    softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening).grid(column=1, row=9,
+                                                                                             sticky=W)
+
+    ph_adjustment = BooleanVar(root)
+    ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment).grid(column=1, row=10,
+                                                                                                sticky=W)
+    ph_adjustment_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ph_adjustment_installed.grid(column=2, row=10)
+    ph_adjustment_installed.insert(END, 0)
+
+    granular_activated_carbon = BooleanVar(root)
+    granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
+                                                   variable=granular_activated_carbon).grid(column=1, row=11,
+                                                                                            sticky=W)
+    granular_activated_carbon_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    granular_activated_carbon_installed.grid(column=2, row=11)
+    granular_activated_carbon_installed.insert(END, 0)
+
+    reverse_osmosis = BooleanVar(root)
+    reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis).grid(column=1,
+                                                                                                      row=12,
+                                                                                                      sticky=W)
+    reverse_osmosis_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    reverse_osmosis_installed.grid(column=2, row=12)
+    reverse_osmosis_installed.insert(END, 0)
+
+    Label(tab3, text='Corrosion Control:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
+    corrosion_control = StringVar(root)
+    corrosion_control_choices = ['Bimetallic Phosphate', 'Hexametaphosphate', 'Orthophosphate', 'Polyphosphate',
+                                 'Silicate', 'Permagnate', 'Sodium Bisulfate', 'Sodium Sulfate',
+                                 'Sulfur Dioxide', 'None']
+    corrosion_control.set('None')
+    corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(column=1,
+                                                                                                        row=13,
+                                                                                                        sticky=W)
+
+    Label(tab4, text='Municipal Wastewater System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=2)
+    Label(tab4, text='Treatment Train', font=('Arial', 10, 'bold')).grid(column=0, row=1, columnspan=2)
+    Label(tab4, text='Number of Processes Installed', font=('Arial', 10, 'bold')).grid(column=2, row=1)
+
+    Label(tab4, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
+
+    aerated_grit = BooleanVar(root)
+    aerated_grit_button = Checkbutton(tab4, text='Aerated Grit', variable=aerated_grit).grid(column=1, row=2,
+                                                                                             sticky=W)
+    aerated_grit_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    aerated_grit_installed.grid(column=2, row=2)
+    aerated_grit_installed.insert(END, 0)
+
+    grinding = BooleanVar(root)
+    grinding_button = Checkbutton(tab4, text='Grinding', variable=grinding).grid(column=1, row=3, sticky=W)
+
+    filtration = BooleanVar(root)
+    filtration_button = Checkbutton(tab4, text='Filtration', variable=filtration).grid(column=1, row=4, sticky=W)
+    filtration_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    filtration_installed.grid(column=2, row=4)
+    filtration_installed.insert(END, 0)
+
+    grit_removal = BooleanVar(root)
+    grit_removal_button = Checkbutton(tab4, text='Grit Removal', variable=grit_removal).grid(column=1, row=5,
+                                                                                             sticky=W)
+    grit_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    grit_removal_installed.grid(column=2, row=5)
+    grit_removal_installed.insert(END, 0)
+
+    screening = BooleanVar(root)
+    screening_button = Checkbutton(tab4, text='Screening', variable=screening).grid(column=1, row=6, sticky=W)
+    screening_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    screening_installed.grid(column=2, row=6)
+    screening_installed.insert(END, 0)
+
+    Label(tab4, text='Primary Treatment:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
+
+    wastewater_sedimentation = BooleanVar(root)
+    wastewater_sedimentation_button = Checkbutton(tab4, text='Sedimentation', variable=wastewater_sedimentation).grid(column=1, row=7,
+                                                                                                sticky=W)
+    wastewater_sedimentation_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_sedimentation_installed.grid(column=2, row=7)
+    wastewater_sedimentation_installed.insert(END, 0)
+
+    Label(tab4, text='Secondary Treatment:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
+    secondary_treatment = StringVar(root)
+    secondary_treatment_choices = ['Activated Sludge and Clarification', 'Lagoon', 'Stabilization Pond',
+                                   'Trickling Filter', 'None']
+    secondary_treatment.set('Activated Sludge and Clarification')
+    secondary_treatment_popup_menu = OptionMenu(tab4, secondary_treatment, *secondary_treatment_choices).grid(
+        column=1, row=8, sticky=W)
+
+    Label(tab4, text='Tertiary Treatment:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
+
+    nitrification_denitrification = BooleanVar(root)
+    nitrification_denitrification_button = Checkbutton(tab4, text='Nitrification/Denitrification',
+                                                       variable=nitrification_denitrification).grid(column=1, row=9,
+                                                                                                    sticky=W)
+    nitrification_denitrification_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nitrification_denitrification_installed.grid(column=2, row=9)
+    nitrification_denitrification_installed.insert(END, 0)
+
+    phosphorous_removal = BooleanVar(root)
+    phosphorous_removal_button = Checkbutton(tab4, text='Phosphorous Removal', variable=phosphorous_removal).grid(
+        column=1, row=10, sticky=W)
+    phosphorous_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    phosphorous_removal_installed.grid(column=2, row=10)
+    phosphorous_removal_installed.insert(END, 0)
+
+    wastewater_reverse_osmosis = BooleanVar(root)
+    wastewater_reverse_osmosis_button = Checkbutton(tab4, text='Reverse Osmosis', variable=wastewater_reverse_osmosis).grid(column=1,
+                                                                                                      row=11,
+                                                                                                      sticky=W)
+    wastewater_reverse_osmosis_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_reverse_osmosis_installed.grid(column=2, row=11)
+    wastewater_reverse_osmosis_installed.insert(END, 0)
+
+    Label(tab4, text='Disinfection:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
+    disinfection = StringVar(root)
+    disinfection_choices = ['Hypochlorite', 'Ultraviolet', 'Ozone', 'None']
+    disinfection.set('Hypochlorite')
+    disinfection_popup_menu = OptionMenu(tab4, disinfection, *disinfection_choices).grid(column=1, row=12, sticky=W)
+
+    dechlorination = BooleanVar(root)
+    dechlorination_button = Checkbutton(tab4, text='Dechlorination', variable=dechlorination).grid(column=1, row=13,
+                                                                                                   sticky=W)
+
+    Label(tab4, text='Digestion:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
+    digestion = StringVar(root)
+    digestion_choices = ['Aerobic Digestion', 'Anaerobic Digestion w/o Biogas Use',
+                         'Anaerobic Digestion w/ Biogas Use', 'None']
+    digestion.set('Aerobic Digestion')
+    digestion_popup_menu = OptionMenu(tab4, digestion, *digestion_choices).grid(column=1, row=14, sticky=W)
+
+    Label(tab4, text='Solids Dewatering:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
+    dewatering = StringVar(root)
+    dewatering_choices = ['Gravity Thickening', 'Mechanical Dewatering', 'Polymer Dewatering', 'None']
+    dewatering.set('Mechanical Dewatering')
+    dewatering_popup_menu = OptionMenu(tab4, dewatering, *dewatering_choices).grid(column=1, row=15, sticky=W)
+
+    Label(tab5, text='Industrial Wastewater System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=5)
+    Label(tab5, text='Treatment Train', font=('Arial', 10, 'bold')).grid(column=0, row=1, columnspan=2)
+    Label(tab5, text='Number of Processes Installed', font=('Arial', 10, 'bold')).grid(column=2, row=1,
+                                                                                       columnspan=3)
+
+    Label(tab5, text='Soda Ash Softening:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
+    softening_process = BooleanVar(root)
+    softening_process_button = Checkbutton(tab5, text='', variable=softening_process).grid(column=1, row=2,
+                                                                                           sticky=W)
+
+    Label(tab5, text='Number of Chemical Addition Reactors:', font=('Arial', 10)).grid(column=0, row=3, sticky=E)
+    chemical_addition_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    chemical_addition_input.grid(column=1, row=3, sticky=W)
+    chemical_addition_input.insert(END, 0)
+
+    Label(tab5, text='Biological Treatment Process:', font=('Arial', 10)).grid(column=0, row=4, sticky=E)
+    bio_treatment = StringVar(root)
+    bio_treatment_choices = ['None', 'Activated Sludge and Clarification', 'Lagoon', 'Stabilization Pond',
+                             'Trickling Filter']
+    bio_treatment.set('None')
+    bio_treatment_popup_menu = OptionMenu(tab5, bio_treatment, *bio_treatment_choices).grid(column=1, row=4,
+                                                                                            columnspan=3, sticky=W)
+    bio_treatment_installed = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    bio_treatment_installed.grid(column=2, row=4, columnspan=3)
+    bio_treatment_installed.insert(END, 0)
+
+    Label(tab5, text='Volume Reduction Process:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
+    volume_reduction = StringVar(root)
+    volume_reduction_choices = ['None', 'Mechanical Vapor Compression', 'Thermal Vapor Compression',
+                                'Reverse Osmosis', 'Forward Osmosis', 'Multiple Effect Distillation',
+                                'Multi-Stage Flash Distillation', 'Membrane Distillation']
+    volume_reduction.set('None')
+    volume_reduction_popup_menu = OptionMenu(tab5, volume_reduction, *volume_reduction_choices).grid(column=1,
+                                                                                                     row=5,
+                                                                                                     columnspan=3,
+                                                                                                     sticky=W)
+    volume_reduction_installed = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    volume_reduction_installed.grid(column=2, row=5, columnspan=3)
+    volume_reduction_installed.insert(END, 0)
+
+    Label(tab5, text='Crystallization:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
+    crystallization = BooleanVar(root)
+    crystallization_button = Checkbutton(tab5, text='', variable=crystallization).grid(column=1, row=6, sticky=W)
+
+    Label(tab5, text='Chemical Consumption', font=('Arial', 10, 'bold')).grid(column=0, row=7, columnspan=5)
+    Label(tab5, text='Min', font=('Arial', 10)).grid(column=1, row=8)
+    Label(tab5, text='Best', font=('Arial', 10)).grid(column=2, row=8)
+    Label(tab5, text='Max', font=('Arial', 10)).grid(column=3, row=8)
+
+    Label(tab5, text='CaOH:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
+    caoh_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    caoh_dose_min_input.grid(column=1, row=9, sticky=W)
+    caoh_dose_min_input.insert(END, 0)
+    caoh_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    caoh_dose_best_input.grid(column=2, row=9, sticky=W)
+    caoh_dose_best_input.insert(END, 0)
+    caoh_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    caoh_dose_max_input.grid(column=3, row=9, sticky=W)
+    caoh_dose_max_input.insert(END, 0)
+    Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=9, sticky=W)
+
+    Label(tab5, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
+    fecl3_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    fecl3_dose_min_input.grid(column=1, row=10, sticky=W)
+    fecl3_dose_min_input.insert(END, 0)
+    fecl3_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    fecl3_dose_best_input.grid(column=2, row=10, sticky=W)
+    fecl3_dose_best_input.insert(END, 0)
+    fecl3_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    fecl3_dose_max_input.grid(column=3, row=10, sticky=W)
+    fecl3_dose_max_input.insert(END, 0)
+    Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=10, sticky=W)
+
+    Label(tab5, text='HCl:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
+    hcl_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    hcl_dose_min_input.grid(column=1, row=11, sticky=W)
+    hcl_dose_min_input.insert(END, 0)
+    hcl_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    hcl_dose_best_input.grid(column=2, row=11, sticky=W)
+    hcl_dose_best_input.insert(END, 0)
+    hcl_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    hcl_dose_max_input.grid(column=3, row=11, sticky=W)
+    hcl_dose_max_input.insert(END, 0)
+    Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=11, sticky=W)
+
+    Label(tab5, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
+    nutrients_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nutrients_dose_min_input.grid(column=1, row=12, sticky=W)
+    nutrients_dose_min_input.insert(END, 0)
+    nutrients_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    nutrients_dose_best_input.grid(column=2, row=12, sticky=W)
+    nutrients_dose_best_input.insert(END, 0)
+    nutrients_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nutrients_dose_max_input.grid(column=3, row=12, sticky=W)
+    nutrients_dose_max_input.insert(END, 0)
+    Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=12, sticky=W)
+
+    Label(tab5, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=13,
+                                                                                            sticky=E)
+    sodium_carbonate_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sodium_carbonate_dose_min_input.grid(column=1, row=13, sticky=W)
+    sodium_carbonate_dose_min_input.insert(END, 0)
+    sodium_carbonate_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    sodium_carbonate_dose_best_input.grid(column=2, row=13, sticky=W)
+    sodium_carbonate_dose_best_input.insert(END, 0)
+    sodium_carbonate_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sodium_carbonate_dose_max_input.grid(column=3, row=13, sticky=W)
+    sodium_carbonate_dose_max_input.insert(END, 0)
+    Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=13, sticky=W)
+
+    Label(tab5, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
+    gac_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    gac_dose_min_input.grid(column=1, row=14, sticky=W)
+    gac_dose_min_input.insert(END, 0)
+    gac_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    gac_dose_best_input.grid(column=2, row=14, sticky=W)
+    gac_dose_best_input.insert(END, 0)
+    gac_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    gac_dose_max_input.grid(column=3, row=14, sticky=W)
+    gac_dose_max_input.insert(END, 0)
+    Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=14, sticky=W)
+
+    Label(tab5, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
+    inorganics_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    inorganics_dose_min_input.grid(column=1, row=15, sticky=W)
+    inorganics_dose_min_input.insert(END, 0)
+    inorganics_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    inorganics_dose_best_input.grid(column=2, row=15, sticky=W)
+    inorganics_dose_best_input.insert(END, 0)
+    inorganics_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    inorganics_dose_max_input.grid(column=3, row=15, sticky=W)
+    inorganics_dose_max_input.insert(END, 0)
+    Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=15, sticky=W)
+
+    Label(tab5, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=16, sticky=E)
+    organics_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    organics_dose_min_input.grid(column=1, row=16, sticky=W)
+    organics_dose_min_input.insert(END, 0)
+    organics_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    organics_dose_best_input.grid(column=2, row=16, sticky=W)
+    organics_dose_best_input.insert(END, 0)
+    organics_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    organics_dose_max_input.grid(column=3, row=16, sticky=W)
+    organics_dose_max_input.insert(END, 0)
+    Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=16, sticky=W)
+
+    Label(tab6, text='Enter electricity consumption and chemical dosages for the new process.').grid(column=0, row=1, columnspan=4)
+
+    Label(tab6, text='Electricity Consumption', font=('Arial', 10)).grid(column=0, row=2, columnspan=4)
+    Label(tab6, text='Min', font=('Arial', 10)).grid(column=1, row=3)
+    Label(tab6, text='Best', font=('Arial', 10)).grid(column=2, row=3)
+    Label(tab6, text='Max', font=('Arial', 10)).grid(column=3, row=3)
+    Label(tab6, text='Unit Electricity Consumption:', font=('Arial', 10)).grid(column=0, row=4, sticky=E)
+    new_elec_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_elec_min_input.grid(column=1, row=4, sticky=W)
-    new_elec_best_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_elec_min_input.insert(END, 0)
+    new_elec_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_elec_best_input.grid(column=2, row=4, sticky=W)
-    new_elec_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_elec_best_input.insert(END, 0)
+    new_elec_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_elec_max_input.grid(column=3, row=4, sticky=W)
-    Label(tab4, text='kWh/m\N{SUPERSCRIPT THREE} of water', font=('Arial', 10)).grid(column=4, row=4, sticky=W)
+    new_elec_max_input.insert(END, 0)
+    Label(tab6, text='kWh/m\N{SUPERSCRIPT THREE} of water', font=('Arial', 10)).grid(column=4, row=4, sticky=W)
 
-    Label(tab4, text='Chemical Consumption', font=('Arial', 10)).grid(column=0, row=5, columnspan=4)
-    Label(tab4, text='Min', font=('Arial', 10)).grid(column=1, row=6)
-    Label(tab4, text='Best', font=('Arial', 10)).grid(column=2, row=6)
-    Label(tab4, text='Max', font=('Arial', 10)).grid(column=3, row=6)
+    Label(tab6, text='Chemical Consumption', font=('Arial', 10)).grid(column=0, row=5, columnspan=4)
+    Label(tab6, text='Min', font=('Arial', 10)).grid(column=1, row=6)
+    Label(tab6, text='Best', font=('Arial', 10)).grid(column=2, row=6)
+    Label(tab6, text='Max', font=('Arial', 10)).grid(column=3, row=6)
 
-    Label(tab4, text='CaOH:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
-    new_caoh_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    Label(tab6, text='CaOH:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
+    new_caoh_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_caoh_dose_min_input.grid(column=1, row=7, sticky=W)
-    new_caoh_dose_best_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_caoh_dose_min_input.insert(END, 0)
+    new_caoh_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_caoh_dose_best_input.grid(column=2, row=7, sticky=W)
-    new_caoh_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_caoh_dose_best_input.insert(END, 0)
+    new_caoh_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_caoh_dose_max_input.grid(column=3, row=7, sticky=W)
-    Label(tab4, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=7, sticky=W)
+    new_caoh_dose_max_input.insert(END, 0)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=7, sticky=W)
 
-    Label(tab4, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
-    new_fecl3_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    Label(tab6, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
+    new_fecl3_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_fecl3_dose_min_input.grid(column=1, row=8, sticky=W)
-    new_fecl3_dose_best_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_min_input.insert(END, 0)
+    new_fecl3_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_fecl3_dose_best_input.grid(column=2, row=8, sticky=W)
-    new_fecl3_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_best_input.insert(END, 0)
+    new_fecl3_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_fecl3_dose_max_input.grid(column=3, row=8, sticky=W)
-    Label(tab4, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=8, sticky=W)
+    new_fecl3_dose_max_input.insert(END, 0)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=8, sticky=W)
 
-    Label(tab4, text='HCl:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
-    new_hcl_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    Label(tab6, text='HCl:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
+    new_hcl_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_hcl_dose_min_input.grid(column=1, row=9, sticky=W)
-    new_hcl_dose_best_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_min_input.insert(END, 0)
+    new_hcl_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_hcl_dose_best_input.grid(column=2, row=9, sticky=W)
-    new_hcl_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_best_input.insert(END, 0)
+    new_hcl_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_hcl_dose_max_input.grid(column=3, row=9, sticky=W)
-    Label(tab4, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=9, sticky=W)
+    new_hcl_dose_max_input.insert(END, 0)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=9, sticky=W)
 
-    Label(tab4, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
-    new_nutrients_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    Label(tab6, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
+    new_nutrients_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_nutrients_dose_min_input.grid(column=1, row=10, sticky=W)
-    new_nutrients_dose_best_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_min_input.insert(END, 0)
+    new_nutrients_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_nutrients_dose_best_input.grid(column=2, row=10, sticky=W)
-    new_nutrients_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_best_input.insert(END, 0)
+    new_nutrients_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_nutrients_dose_max_input.grid(column=3, row=10, sticky=W)
-    Label(tab4, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=10, sticky=W)
+    new_nutrients_dose_max_input.insert(END, 0)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=10, sticky=W)
 
-    Label(tab4, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
-    new_sodium_carbonate_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    Label(tab6, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
+    new_sodium_carbonate_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_sodium_carbonate_dose_min_input.grid(column=1, row=11, sticky=W)
-    new_sodium_carbonate_dose_best_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_min_input.insert(END, 0)
+    new_sodium_carbonate_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_sodium_carbonate_dose_best_input.grid(column=2, row=11, sticky=W)
-    new_sodium_carbonate_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_best_input.insert(END, 0)
+    new_sodium_carbonate_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_sodium_carbonate_dose_max_input.grid(column=3, row=11, sticky=W)
-    Label(tab4, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=11, sticky=W)
+    new_sodium_carbonate_dose_max_input.insert(END, 0)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=11, sticky=W)
 
-    Label(tab4, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
-    new_gac_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    Label(tab6, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
+    new_gac_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_gac_dose_min_input.grid(column=1, row=12, sticky=W)
-    new_gac_dose_best_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_min_input.insert(END, 0)
+    new_gac_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_gac_dose_best_input.grid(column=2, row=12, sticky=W)
-    new_gac_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_best_input.insert(END, 0)
+    new_gac_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_gac_dose_max_input.grid(column=3, row=12, sticky=W)
-    Label(tab4, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=12, sticky=W)
+    new_gac_dose_max_input.insert(END, 0)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=12, sticky=W)
 
-    Label(tab4, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
-    new_inorganics_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    Label(tab6, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
+    new_inorganics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_inorganics_dose_min_input.grid(column=1, row=13, sticky=W)
-    new_inorganics_dose_best_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_min_input.insert(END, 0)
+    new_inorganics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_inorganics_dose_best_input.grid(column=2, row=13, sticky=W)
-    new_inorganics_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_best_input.insert(END, 0)
+    new_inorganics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_inorganics_dose_max_input.grid(column=3, row=13, sticky=W)
-    Label(tab4, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=13, sticky=W)
+    new_inorganics_dose_max_input.insert(END, 0)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=13, sticky=W)
 
-    Label(tab4, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
-    new_organics_dose_min_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    Label(tab6, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
+    new_organics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_organics_dose_min_input.grid(column=1, row=14, sticky=W)
-    new_organics_dose_best_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_organics_dose_min_input.insert(END, 0)
+    new_organics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_organics_dose_best_input.grid(column=2, row=14, sticky=W)
-    new_organics_dose_max_input = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_organics_dose_best_input.insert(END, 0)
+    new_organics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_organics_dose_max_input.grid(column=3, row=14, sticky=W)
-    Label(tab4, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=14, sticky=W)
+    new_organics_dose_max_input.insert(END, 0)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=14, sticky=W)
 
-    Label(tab5, text='Results', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=8)
-    Label(tab5, text='Embedded Air Emissions [g/m\N{SUPERSCRIPT THREE}]', font=('Arial', 10)).grid(column=3, row=1, columnspan=4)
-    Label(tab5, text='Annual Air Damages [$/yr]', font=('Arial', 10)).grid(column=7, row=1, columnspan=3)
-    Label(tab5, text='Required Dose', font=('Arial', 10)).grid(column=1, row=2, columnspan=2)
-    Label(tab5, text='NOx', font=('Arial', 10)).grid(column=3, row=2)
-    Label(tab5, text='SO\N{SUBSCRIPT TWO}', font=('Arial', 10)).grid(column=4, row=2)
-    Label(tab5, text='PM2.5', font=('Arial', 10)).grid(column=5, row=2)
-    Label(tab5, text='CO\N{SUBSCRIPT TWO}', font=('Arial', 10)).grid(column=6, row=2)
-    Label(tab5, text='Health', font=('Arial', 10)).grid(column=7, row=2)
-    Label(tab5, text='Climate', font=('Arial', 10)).grid(column=8, row=2)
-    Label(tab5, text='Total', font=('Arial', 10, 'italic')).grid(column=9, row=2)
-    Label(tab5, text='Electricity', font=('Arial', 10, 'italic')).grid(column=0, row=3)
-    Label(tab5, text='(25th-75th)', font=('Arial', 10, 'italic')).grid(column=0, row=4)
-    Label(tab5, text='Chemicals', font=('Arial', 10, 'italic')).grid(column=0, row=5)
-    Label(tab5, text='(25th-75th)', font=('Arial', 10, 'italic')).grid(column=0, row=6)
-    Label(tab5, text='CaOH', font=('Arial', 10)).grid(column=0, row=7)
-    Label(tab5, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=8)
-    Label(tab5, text='FeCl\N{SUBSCRIPT THREE}', font=('Arial', 10)).grid(column=0, row=9)
-    Label(tab5, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=10)
-    Label(tab5, text='HCl', font=('Arial', 10)).grid(column=0, row=11)
-    Label(tab5, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=12)
-    Label(tab5, text='Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}', font=('Arial', 10)).grid(column=0, row=13)
-    Label(tab5, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=14)
-    Label(tab5, text='Activated Carbon', font=('Arial', 10)).grid(column=0, row=15)
-    Label(tab5, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=16)
-    Label(tab5, text='Assorted Inorganics', font=('Arial', 10)).grid(column=0, row=17)
-    Label(tab5, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=18)
-    Label(tab5, text='Associated Organics', font=('Arial', 10)).grid(column=0, row=19)
-    Label(tab5, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=20)
-    # Label(tab5, text=np.median())
-    Label(tab5, text='kWh/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=2, row=3, rowspan=2)
-    Label(tab5, text='mg/L', font=('Arial', 10)).grid(column=2, row=7, rowspan=2)
-    Label(tab5, text='mg/L', font=('Arial', 10)).grid(column=2, row=9, rowspan=2)
-    Label(tab5, text='mg/L', font=('Arial', 10)).grid(column=2, row=11, rowspan=2)
-    Label(tab5, text='mg/L', font=('Arial', 10)).grid(column=2, row=13, rowspan=2)
-    Label(tab5, text='mg/L', font=('Arial', 10)).grid(column=2, row=15, rowspan=2)
-    Label(tab5, text='mg/L', font=('Arial', 10)).grid(column=2, row=17, rowspan=2)
-    Label(tab5, text='mg/L', font=('Arial', 10)).grid(column=2, row=19, rowspan=2)
+    Label(tab7, text='Results', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=8)
+    Label(tab7, text='Embedded Air Emissions [g/m\N{SUPERSCRIPT THREE}]', font=('Arial', 10)).grid(column=3, row=1, columnspan=4)
+    Label(tab7, text='Annual Air Damages [$/yr]', font=('Arial', 10)).grid(column=7, row=1, columnspan=3)
+    Label(tab7, text='Required Dose', font=('Arial', 10)).grid(column=1, row=2, columnspan=2)
+    Label(tab7, text='NOx', font=('Arial', 10)).grid(column=3, row=2)
+    Label(tab7, text='SO\N{SUBSCRIPT TWO}', font=('Arial', 10)).grid(column=4, row=2)
+    Label(tab7, text='PM2.5', font=('Arial', 10)).grid(column=5, row=2)
+    Label(tab7, text='CO\N{SUBSCRIPT TWO}', font=('Arial', 10)).grid(column=6, row=2)
+    Label(tab7, text='Health', font=('Arial', 10)).grid(column=7, row=2)
+    Label(tab7, text='Climate', font=('Arial', 10)).grid(column=8, row=2)
+    Label(tab7, text='Total', font=('Arial', 10, 'italic')).grid(column=9, row=2)
+    Label(tab7, text='Energy', font=('Arial', 10, 'italic')).grid(column=0, row=3)
+    Label(tab7, text='25th-75th', font=('Arial', 10, 'italic')).grid(column=0, row=4)
+    Label(tab7, text='Electricity', font=('Arial', 10)).grid(column=0, row=5)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=6)
+    Label(tab7, text='Thermal', font=('Arial', 10)).grid(column=0, row=7)
+    Label(tab7, text='25th-75th', font=('Arial', 10)).grid(column=0, row=8)
+    Label(tab7, text='Chemicals', font=('Arial', 10, 'italic')).grid(column=0, row=9)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10, 'italic')).grid(column=0, row=10)
+    Label(tab7, text='CaOH', font=('Arial', 10)).grid(column=0, row=11)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=12)
+    Label(tab7, text='FeCl\N{SUBSCRIPT THREE}', font=('Arial', 10)).grid(column=0, row=13)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=14)
+    Label(tab7, text='HCl', font=('Arial', 10)).grid(column=0, row=15)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=16)
+    Label(tab7, text='Nutrients', font=('Arial', 10)).grid(column=0, row=17)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=18)
+    Label(tab7, text='Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}', font=('Arial', 10)).grid(column=0, row=19)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=20)
+    Label(tab7, text='Activated Carbon', font=('Arial', 10)).grid(column=0, row=21)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=22)
+    Label(tab7, text='Assorted Inorganics', font=('Arial', 10)).grid(column=0, row=23)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=24)
+    Label(tab7, text='Associated Organics', font=('Arial', 10)).grid(column=0, row=25)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=26)
+
+    Label(tab7, text='kWh/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=2, row=5, rowspan=2)
+    Label(tab7, text='MJ/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=2, row=7, rowspan=2)
+    Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=11, rowspan=2)
+    Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=13, rowspan=2)
+    Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=15, rowspan=2)
+    Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=17, rowspan=2)
+    Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=19, rowspan=2)
+    Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=21, rowspan=2)
+    Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=23, rowspan=2)
+    Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=25, rowspan=2)
 
     def round_sig(x, sig=2):
-        try:
-            return round(x, sig - int(np.floor(np.log10(abs(x)))) - 1)
 
-        except ValueError:
+        if x == 0:
             return 0
+
+        else:
+            try:
+                return round(x, sig - int(np.floor(np.log10(abs(x)))) - 1)
+
+            except ValueError:
+                return 0
 
     def gather_inputs():
         '''This function collects the model inputs and stores them into a dictionary.'''
-        basic_info={'system type': system_type.get(), 'system size': system_size_input.get(),
+        basic_info={'system type': system_type.get(), 'system size': float(system_size_input.get()),
                       'inflation year': year_for_inflation.get(), 'vsl': vsl.get(), 'scc': scc.get(),
-                     'mc runs': model_runs.get()}
+                     'mc runs': int(model_runs.get())}
 
         geography_info = {'electricity state': grid_state.get(), 'chemicals state': chem_state.get()}
 
         if system_type.get() == 'Drinking Water System':
-             baseline_treatment_process_info = {'flocculation': flocculation.get(),
-                                           'no. of flocculation units': flocculation_installed.get(),
+            baseline_treatment_process_info = {'source water': source_water.get(),
+                                            'flocculation': flocculation.get(),
+                                           'no. of flocculation units': int(flocculation_installed.get()),
                                            'coagulation': coagulation.get(),
-                                           'no. of coagulation units': coagulation_installed.get(),
+                                           'no. of coagulation units': int(coagulation_installed.get()),
                                            'sedimentation': sedimentation.get(),
-                                           'no. of sedimentation units': sedimentation_installed.get(),
+                                           'no. of sedimentation units': int(sedimentation_installed.get()),
                                            'filtration': filtration.get(),
+                                           'no. of filtration units': int(filtration_installed.get()),
                                            'primary disinfection': primary_disinfection.get(),
                                            'secondary disinfection': secondary_disinfection.get(),
                                            'fluoridation': fluoridation.get(),
                                            'softening': softening.get(),
                                            'pH adjustment': ph_adjustment.get(),
-                                           'no. of pH adjustment units': ph_adjustment_installed.get(),
+                                           'no. of pH adjustment units': int(ph_adjustment_installed.get()),
                                            'gac': granular_activated_carbon.get(),
-                                           'no. of gac units': granular_activated_carbon_installed.get(),
+                                           'no. of gac units': int(granular_activated_carbon_installed.get()),
                                            'ro': reverse_osmosis.get(),
-                                           'no. or ro units': reverse_osmosis_installed.get(),
+                                           'no. of ro units': int(reverse_osmosis_installed.get()),
                                            'corrosion control': corrosion_control.get(),
                                            'aerated grit': FALSE,
                                            'no. of aerated grit units': 0,
@@ -1148,6 +1645,8 @@ def main():
                                            'no. of grit removal units': 0,
                                            'screening': FALSE,
                                            'no. of screening units': 0,
+                                           'wastewater sedimentation': FALSE,
+                                           'no. of wastewater sedimentation units': 0,
                                            'secondary treatment': FALSE,
                                            'nitrification denitrification': FALSE,
                                            'no. of nitrification denitrification units': 0,
@@ -1155,6 +1654,8 @@ def main():
                                            'no. of phosphorous removal units': 0,
                                            'disinfection': FALSE,
                                            'dechlorination': FALSE,
+                                           'wastewater ro': FALSE,
+                                           'no. of wastewater ro units': 0,
                                            'digestion': FALSE,
                                            'dewatering': FALSE,
                                            'softening process': FALSE,
@@ -1186,16 +1687,18 @@ def main():
                                            'organics dose best input': 0,
                                            'organics dose max input': 0,
                                            'inorganics dose min input': 0,
-                                           'inorganics_dose_best_input': 0,
-                                           'inorganics_dose_max_input': 0}
+                                           'inorganics dose best input': 0,
+                                           'inorganics dose max input': 0}
         elif system_type.get() == 'Municipal Wastewater System':
-             baseline_treatment_process_info = {'flocculation': FALSE,
+             baseline_treatment_process_info = {'source water': 'municipal wastewater',
+                                           'flocculation': FALSE,
                                            'no. of flocculation units': 0,
                                            'coagulation': FALSE,
                                            'no. of coagulation units': 0,
                                            'sedimentation': FALSE,
                                            'no. of sedimentation units': 0,
                                            'filtration': FALSE,
+                                           'no. of filtration units': 0,
                                            'primary disinfection': FALSE,
                                            'secondary disinfection': FALSE,
                                            'fluoridation': FALSE,
@@ -1205,22 +1708,26 @@ def main():
                                            'gac': FALSE,
                                            'no. of gac units': 0,
                                            'ro': FALSE,
-                                           'no. or ro units': 0,
+                                           'no. of ro units': 0,
                                            'corrosion control': FALSE,
                                            'aerated grit': aerated_grit.get(),
-                                           'no. of aerated grit units': aerated_grit_installed.get(),
+                                           'no. of aerated grit units': int(aerated_grit_installed.get()),
                                            'grinding': grinding.get(),
                                            'grit removal': grit_removal.get(),
-                                           'no. of grit removal units': grit_removal_installed.get(),
+                                           'no. of grit removal units': int(grit_removal_installed.get()),
                                            'screening': screening.get(),
-                                           'no. of screening units': screening_installed.get(),
+                                           'no. of screening units': int(screening_installed.get()),
+                                           'wastewater sedimentation': wastewater_sedimentation.get(),
+                                           'no. of wastewater sedimentation units': int(wastewater_sedimentation_installed.get()),
                                            'secondary treatment': secondary_treatment.get(),
                                            'nitrification denitrification': nitrification_denitrification.get(),
-                                           'no. of nitrification denitrification units': nitrification_denitrification_installed.get(),
+                                           'no. of nitrification denitrification units': int(nitrification_denitrification_installed.get()),
                                            'phosphorous removal': phosphorous_removal.get(),
-                                           'no. of phosphorous removal units': phosphorous_removal_installed.get(),
+                                           'no. of phosphorous removal units': int(phosphorous_removal_installed.get()),
                                            'disinfection': disinfection.get(),
                                            'dechlorination': dechlorination.get(),
+                                           'wastewater ro': wastewater_reverse_osmosis.get(),
+                                           'no. of wastewater ro units': int(wastewater_reverse_osmosis_installed.get()),
                                            'digestion': digestion.get(),
                                            'dewatering': dewatering.get(),
                                            'softening process': FALSE,
@@ -1252,16 +1759,18 @@ def main():
                                            'organics dose best input': 0,
                                            'organics dose max input': 0,
                                            'inorganics dose min input': 0,
-                                           'inorganics_dose_best_input': 0,
-                                           'inorganics_dose_max_input': 0}
+                                           'inorganics dose best input': 0,
+                                           'inorganics dose max input': 0}
         elif system_type.get() == 'Industrial Wastewater System':
-             baseline_treatment_process_info = {'flocculation': FALSE,
+             baseline_treatment_process_info = {'source water': 'industrial wastewater',
+                                           'flocculation': FALSE,
                                            'no. of flocculation units': 0,
                                            'coagulation': FALSE,
                                            'no. of coagulation units': 0,
                                            'sedimentation': FALSE,
                                            'no. of sedimentation units': 0,
                                            'filtration': FALSE,
+                                           'no. of filtration units': 0,
                                            'primary disinfection': FALSE,
                                            'secondary disinfection': FALSE,
                                            'fluoridation': FALSE,
@@ -1271,7 +1780,7 @@ def main():
                                            'gac': FALSE,
                                            'no. of gac units': 0,
                                            'ro': FALSE,
-                                           'no. or ro units': 0,
+                                           'no. of ro units': 0,
                                            'corrosion control': FALSE,
                                            'aerated grit': FALSE,
                                            'no. of aerated grit units': 0,
@@ -1280,6 +1789,8 @@ def main():
                                            'no. of grit removal units': 0,
                                            'screening': FALSE,
                                            'no. of screening units': 0,
+                                           'wastewater sedimentation': FALSE,
+                                           'no. of wastewater sedimentation units': 0,
                                            'secondary treatment': FALSE,
                                            'nitrification denitrification': FALSE,
                                            'no. of nitrification denitrification units': 0,
@@ -1287,104 +1798,150 @@ def main():
                                            'no. of phosphorous removal units': 0,
                                            'disinfection': FALSE,
                                            'dechlorination': FALSE,
+                                           'wastewater ro': FALSE,
+                                           'no. of wastewater ro units': 0,
                                            'digestion': FALSE,
                                            'dewatering': FALSE,
                                            'softening process': softening_process.get(),
                                            'chemical addition input': chemical_addition_input.get(),
                                            'bio treatment': bio_treatment.get(),
-                                           'no. of bio treatment units': bio_treatment_installed.get(),
+                                           'no. of bio treatment units': int(bio_treatment_installed.get()),
                                            'volume reduction': volume_reduction.get(),
-                                           'no. of volume reduction units': volume_reduction_installed.get(),
+                                           'no. of volume reduction units': int(volume_reduction_installed.get()),
                                            'crystallization': crystallization.get(),
-                                           'caoh dose min input': caoh_dose_min_input.get(),
-                                           'caoh dose best input': caoh_dose_best_input.get(),
-                                           'caoh dose max input': caoh_dose_max_input.get(),
-                                           'fecl3 dose min input': fecl3_dose_min_input.get(),
-                                           'fecl3 dose best input': fecl3_dose_best_input.get(),
-                                           'fecl3 dose max input': fecl3_dose_max_input.get(),
-                                           'hcl dose min input': hcl_dose_min_input.get(),
-                                           'hcl dose best input': hcl_dose_best_input.get(),
-                                           'hcl dose max input': hcl_dose_max_input.get(),
-                                           'nutrients dose min input': nutrients_dose_min_input.get(),
-                                           'nutrients dose best input': nutrients_dose_best_input.get(),
-                                           'nutrients dose max input': nutrients_dose_max_input.get(),
-                                           'sodium carbonate dose min input': sodium_carbonate_dose_min_input.get(),
-                                           'sodium carbonate dose best input': sodium_carbonate_dose_best_input.get(),
-                                           'sodium carbonate dose max input': sodium_carbonate_dose_max_input.get(),
-                                           'gac dose min input': gac_dose_min_input.get(),
-                                           'gac dose best input': gac_dose_best_input.get(),
-                                           'gac dose max input': gac_dose_max_input.get(),
-                                           'organics dose min input': organics_dose_min_input.get(),
-                                           'organics dose best input': organics_dose_best_input.get(),
-                                           'organics dose max input': organics_dose_max_input.get(),
-                                           'inorganics dose min input': inorganics_dose_min_input.get(),
-                                           'inorganics_dose_best_input': inorganics_dose_best_input.get(),
-                                           'inorganics_dose_max_input': inorganics_dose_max_input.get()}
+                                           'caoh dose min input': float(caoh_dose_min_input.get()),
+                                           'caoh dose best input': float(caoh_dose_best_input.get()),
+                                           'caoh dose max input': float(caoh_dose_max_input.get()),
+                                           'fecl3 dose min input': float(fecl3_dose_min_input.get()),
+                                           'fecl3 dose best input': float(fecl3_dose_best_input.get()),
+                                           'fecl3 dose max input': float(fecl3_dose_max_input.get()),
+                                           'hcl dose min input': float(hcl_dose_min_input.get()),
+                                           'hcl dose best input': float(hcl_dose_best_input.get()),
+                                           'hcl dose max input': float(hcl_dose_max_input.get()),
+                                           'nutrients dose min input': float(nutrients_dose_min_input.get()),
+                                           'nutrients dose best input': float(nutrients_dose_best_input.get()),
+                                           'nutrients dose max input': float(nutrients_dose_max_input.get()),
+                                           'sodium carbonate dose min input': float(sodium_carbonate_dose_min_input.get()),
+                                           'sodium carbonate dose best input': float(sodium_carbonate_dose_best_input.get()),
+                                           'sodium carbonate dose max input': float(sodium_carbonate_dose_max_input.get()),
+                                           'gac dose min input': float(gac_dose_min_input.get()),
+                                           'gac dose best input': float(gac_dose_best_input.get()),
+                                           'gac dose max input': float(gac_dose_max_input.get()),
+                                           'organics dose min input': float(organics_dose_min_input.get()),
+                                           'organics dose best input': float(organics_dose_best_input.get()),
+                                           'organics dose max input': float(organics_dose_max_input.get()),
+                                           'inorganics dose min input': float(inorganics_dose_min_input.get()),
+                                           'inorganics dose best input': float(inorganics_dose_best_input.get()),
+                                           'inorganics dose max input': float(inorganics_dose_max_input.get())}
 
-        new_process_info = {'new electricity min input': new_elec_min_input.get(),
-                             'new electricity best input': new_elec_best_input.get(),
-                             'new electricity max input': new_elec_max_input.get(),
-                             'new caoh dose min input': new_caoh_dose_min_input.get(),
-                             'new caoh dose best input': new_caoh_dose_best_input.get(),
-                             'new caoh dose max input': new_caoh_dose_max_input.get(),
-                             'new fecl3 dose min input': new_fecl3_dose_min_input.get(),
-                             'new fecl3 dose best input': new_fecl3_dose_best_input.get(),
-                             'new fecl3 dose max input': new_fecl3_dose_max_input.get(),
-                             'new hcl dose min input': new_hcl_dose_min_input.get(),
-                             'new hcl dose best input': new_hcl_dose_best_input.get(),
-                             'new hcl dose max input': new_hcl_dose_max_input.get(),
-                             'new nutrients dose min input': new_nutrients_dose_min_input.get(),
-                             'new nutrients dose best input': new_nutrients_dose_best_input.get(),
-                             'new nutrients dose max input': new_nutrients_dose_max_input.get(),
-                             'new sodium carbonate dose min input': new_sodium_carbonate_dose_min_input.get(),
-                             'new sodium carbonate dose best input': new_sodium_carbonate_dose_best_input.get(),
-                             'new sodium carbonate dose max input': new_sodium_carbonate_dose_max_input.get(),
-                             'new gac dose min input': new_gac_dose_min_input.get(),
-                             'new gac dose best input': new_gac_dose_best_input.get(),
-                             'new gac dose max input': new_gac_dose_max_input.get(),
-                             'new organics dose min input': new_organics_dose_min_input.get(),
-                             'new organics dose best input': new_organics_dose_best_input.get(),
-                             'new organics dose max input': new_organics_dose_max_input.get(),
-                             'new inorganics dose min input': new_inorganics_dose_min_input.get(),
-                             'new inorganics dose best input': new_inorganics_dose_best_input.get(),
-                             'new inorganics dosemax input': new_inorganics_dose_max_input.get()}
+        new_process_info = {'new electricity min input': float(new_elec_min_input.get()),
+                             'new electricity best input': float(new_elec_best_input.get()),
+                             'new electricity max input': float(new_elec_max_input.get()),
+                             'new caoh dose min input': float(new_caoh_dose_min_input.get()),
+                             'new caoh dose best input': float(new_caoh_dose_best_input.get()),
+                             'new caoh dose max input': float(new_caoh_dose_max_input.get()),
+                             'new fecl3 dose min input': float(new_fecl3_dose_min_input.get()),
+                             'new fecl3 dose best input': float(new_fecl3_dose_best_input.get()),
+                             'new fecl3 dose max input': float(new_fecl3_dose_max_input.get()),
+                             'new hcl dose min input': float(new_hcl_dose_min_input.get()),
+                             'new hcl dose best input': float(new_hcl_dose_best_input.get()),
+                             'new hcl dose max input': float(new_hcl_dose_max_input.get()),
+                             'new nutrients dose min input': float(new_nutrients_dose_min_input.get()),
+                             'new nutrients dose best input': float(new_nutrients_dose_best_input.get()),
+                             'new nutrients dose max input': float(new_nutrients_dose_max_input.get()),
+                             'new sodium carbonate dose min input': float(new_sodium_carbonate_dose_min_input.get()),
+                             'new sodium carbonate dose best input': float(new_sodium_carbonate_dose_best_input.get()),
+                             'new sodium carbonate dose max input': float(new_sodium_carbonate_dose_max_input.get()),
+                             'new gac dose min input': float(new_gac_dose_min_input.get()),
+                             'new gac dose best input': float(new_gac_dose_best_input.get()),
+                             'new gac dose max input': float(new_gac_dose_max_input.get()),
+                             'new organics dose min input': float(new_organics_dose_min_input.get()),
+                             'new organics dose best input': float(new_organics_dose_best_input.get()),
+                             'new organics dose max input': float(new_organics_dose_max_input.get()),
+                             'new inorganics dose min input': float(new_inorganics_dose_min_input.get()),
+                             'new inorganics dose best input': float(new_inorganics_dose_best_input.get()),
+                             'new inorganics dose max input': float(new_inorganics_dose_max_input.get())}
 
         return basic_info, geography_info, baseline_treatment_process_info, new_process_info
 
 
     def calculate_results():
-        global system_size_input, year_for_inflation, vsl, scc, model_runs,\
-            grid_state, chem_state, \
-            flocculation, flocculation_installed, coagulation, coagulation_installed, sedimentation, \
-            sedimentation_installed, filtration, primary_disinfection, secondary_disinfection, fluoridation, softening, \
-            ph_adjustment, ph_adjustment_installed, granular_activated_carbon, granular_activated_carbon_installed, \
-            reverse_osmosis, reverse_osmosis_installed, corrosion_control, aerated_grit, aerated_grit_installed, \
-            grinding, grit_removal, grit_removal_installed, screening, screening_installed, secondary_treatment, \
-            nitrification_denitrification, nitrification_denitrification_installed, phosphorous_removal, \
-            phosphorous_removal_installed, disinfection, dechlorination, \
-            digestion, dewatering, softening_process, chemical_addition_input, bio_treatment, bio_treatment_installed, \
-            volume_reduction, volume_reduction_installed, crystallization, caoh_dose_min_input, caoh_dose_best_input, \
-            caoh_dose_max_input, fecl3_dose_min_input, fecl3_dose_best_input, fecl3_dose_max_input, hcl_dose_min_input, \
-            hcl_dose_best_input, hcl_dose_max_input, nutrients_dose_min_input, nutrients_dose_best_input, \
-            nutrients_dose_max_input, sodium_carbonate_dose_min_input, sodium_carbonate_dose_best_input, \
-            sodium_carbonate_dose_max_input, gac_dose_min_input, gac_dose_best_input, gac_dose_max_input, \
-            organics_dose_min_input, organics_dose_best_input, organics_dose_max_input, inorganics_dose_min_input, \
-            inorganics_dose_best_input, inorganics_dose_max_input, new_elec_min_input, new_elec_best_input, \
-            new_elec_max_input, new_caoh_dose_min_input, new_caoh_dose_best_input, new_caoh_dose_max_input, \
-            new_fecl3_dose_min_input, new_fecl3_dose_best_input, new_fecl3_dose_max_input, new_hcl_dose_min_input, \
-            new_hcl_dose_best_input, new_hcl_dose_max_input, new_nutrients_dose_min_input, new_nutrients_dose_best_input, \
-            new_nutrients_dose_max_input, new_sodium_carbonate_dose_min_input, new_sodium_carbonate_dose_best_input, \
-            new_sodium_carbonate_dose_max_input, new_gac_dose_min_input, new_gac_dose_best_input, new_gac_dose_max_input, \
-            new_organics_dose_min_input, new_organics_dose_best_input, new_organics_dose_max_input, \
-            new_inorganics_dose_min_input, new_inorganics_dose_best_input, new_inorganics_dose_max_input
 
         basic_info, geography_info, baseline_treatment_process_info, new_process_info = gather_inputs()
 
-        print(basic_info)
-        print(geography_info)
-        print(baseline_treatment_process_info)
-        print(new_process_info)
-        print("Calculating")
+        # Calculate and report electricity consumption.
+        electricity_consumption_estimates = calculate_electricity_consumption(basic_info,
+                                                                              baseline_treatment_process_info,
+                                                                              new_process_info)
+
+        med_elec = round_sig(np.median(electricity_consumption_estimates))
+        elec_25 = round_sig(np.percentile(electricity_consumption_estimates, 25))
+        elec_75 = round_sig(np.percentile(electricity_consumption_estimates, 75))
+        elec_range = str(elec_25) + '-' + str(elec_75)
+        Label(tab7, text=med_elec, font=('Arial', 10)).grid(column=1, row=5)
+        Label(tab7, text=elec_range, font=('Arial', 10)).grid(column=1, row=6)
+
+        # Calculate and report chemical consumption.
+        total_caoh_consumption, total_fecl3_consumption, total_hcl_consumption, total_nutrients_consumption, \
+        total_soda_ash_consumption, total_gac_consumption, total_inorganics_consumption, \
+        total_organics_consumption = calculate_chemical_consumption(basic_info, baseline_treatment_process_info,
+                                                                    new_process_info)
+
+        med_caoh = round_sig(np.median(total_caoh_consumption))
+        caoh_25 = round_sig(np.percentile(total_caoh_consumption, 25))
+        caoh_75 = round_sig(np.percentile(total_caoh_consumption, 75))
+        caoh_range = str(caoh_25) + '-' + str(caoh_75)
+        Label(tab7, text=med_caoh, font=('Arial', 10,)).grid(column=1, row=11)
+        Label(tab7, text=caoh_range, font=('Arial', 10,)).grid(column=1, row=12)
+
+        med_fecl3 = round_sig(np.median(total_fecl3_consumption))
+        fecl3_25 = round_sig(np.percentile(total_fecl3_consumption, 25))
+        fecl3_75 = round_sig(np.percentile(total_fecl3_consumption, 75))
+        fecl3_range = str(fecl3_25) + '-' + str(fecl3_75)
+        Label(tab7, text=med_fecl3, font=('Arial', 10,)).grid(column=1, row=13)
+        Label(tab7, text=fecl3_range, font=('Arial', 10,)).grid(column=1, row=14)
+
+        med_hcl = round_sig(np.median(total_hcl_consumption))
+        hcl_25 = round_sig(np.percentile(total_hcl_consumption, 25))
+        hcl_75 = round_sig(np.percentile(total_hcl_consumption, 75))
+        hcl_range = str(hcl_25) + '-' + str(hcl_75)
+        Label(tab7, text=med_hcl, font=('Arial', 10,)).grid(column=1, row=15)
+        Label(tab7, text=hcl_range, font=('Arial', 10,)).grid(column=1, row=16)
+
+        med_nutrients = round_sig(np.median(total_nutrients_consumption))
+        nutrients_25 = round_sig(np.percentile(total_nutrients_consumption, 25))
+        nutrients_75 = round_sig(np.percentile(total_nutrients_consumption, 75))
+        nutrients_range = str(nutrients_25) + '-' + str(nutrients_75)
+        Label(tab7, text=med_nutrients, font=('Arial', 10,)).grid(column=1, row=17)
+        Label(tab7, text=nutrients_range, font=('Arial', 10,)).grid(column=1, row=18)
+
+        med_soda_ash = round_sig(np.median(total_soda_ash_consumption))
+        soda_ash_25 = round_sig(np.percentile(total_soda_ash_consumption, 25))
+        soda_ash_75 = round_sig(np.percentile(total_soda_ash_consumption, 75))
+        soda_ash_range = str(soda_ash_25) + '-' + str(soda_ash_75)
+        Label(tab7, text=med_soda_ash, font=('Arial', 10,)).grid(column=1, row=19)
+        Label(tab7, text=soda_ash_range, font=('Arial', 10,)).grid(column=1, row=20)
+
+        med_gac = round_sig(np.median(total_gac_consumption))
+        gac_25 = round_sig(np.percentile(total_gac_consumption, 25))
+        gac_75 = round_sig(np.percentile(total_gac_consumption, 75))
+        gac_range = str(gac_25) + '-' + str(gac_75)
+        Label(tab7, text=med_gac, font=('Arial', 10,)).grid(column=1, row=21)
+        Label(tab7, text=gac_range, font=('Arial', 10,)).grid(column=1, row=22)
+
+        med_inorganics = round_sig(np.median(total_inorganics_consumption))
+        inorganics_25 = round_sig(np.percentile(total_inorganics_consumption, 25))
+        inorganics_75 = round_sig(np.percentile(total_inorganics_consumption, 75))
+        inorganics_range = str(inorganics_25) + '-' + str(inorganics_75)
+        Label(tab7, text=med_inorganics, font=('Arial', 10,)).grid(column=1, row=23)
+        Label(tab7, text=inorganics_range, font=('Arial', 10,)).grid(column=1, row=24)
+
+        med_organics = round_sig(np.median(total_organics_consumption))
+        organics_25 = round_sig(np.percentile(total_organics_consumption, 25))
+        organics_75 = round_sig(np.percentile(total_organics_consumption, 75))
+        organics_range = str(organics_25) + '-' + str(organics_75)
+        Label(tab7, text=med_organics, font=('Arial', 10,)).grid(column=1, row=25)
+        Label(tab7, text=organics_range, font=('Arial', 10,)).grid(column=1, row=26)
 
     # Create the menu.
     menu = Menu(root)
