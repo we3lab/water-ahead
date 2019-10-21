@@ -992,7 +992,7 @@ def main():
     tab2 = note.add_tab(text='Geography')  # Create a tab to ask about the system geography (i.e., where is it located  or will you be using nationwide averages?)
     tab3 = note.add_tab(text='Drinking Water System')
     tab4 = note.add_tab(text='Municipal Wastewater System')
-    tab5 = note.add_tab(text='Industrial Wasteawter System')
+    tab5 = note.add_tab(text='Industrial Wastewater System')
     tab6 = note.add_tab(text='New Treatment Process')
     tab7 = note.add_tab(text='Results')
 
