@@ -137,6 +137,7 @@ def main():
         return combined_func
 
     def calculate_electricity_consumption(basic_info_dict, baseline_process_dict, new_process_dict):
+        # TODO Update to use reported recovery factors.
         source_water = baseline_process_dict['source water']
         flocculation = baseline_process_dict['flocculation']
         flocculation_installed = baseline_process_dict['no. of flocculation units']
@@ -571,6 +572,7 @@ def main():
         return total_electricity_consumption
 
     def calculate_chemical_consumption(basic_info_dict, baseline_process_dict, new_process_dict):
+        # TODO Update to use reported recovery factors.
         source_water = baseline_process_dict['source water']
         coagulation = baseline_process_dict['coagulation']
         coagulation_installed = baseline_process_dict['no. of coagulation units']
@@ -1096,6 +1098,7 @@ def main():
                                                                                               sticky=W)
 
     Label(tab3, text='Number of Processes Installed', font=('Arial', 10, 'bold')).grid(column=2, row=1)
+    Label(tab3, text='Recovery [%]', font=('Arial', 10, 'bold')).grid(column=3, row=1)
     Label(tab3, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=3, sticky=E)
 
     flocculation = BooleanVar(root)
@@ -1105,11 +1108,19 @@ def main():
     flocculation_installed.grid(column=2, row=2)
     flocculation_installed.insert(END, 0)
 
+    flocculation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    flocculation_recovery.grid(column=3, row=2)
+    flocculation_recovery.insert(END, 100)
+
     coagulation = BooleanVar(root)
     coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation).grid(column=1, row=3, sticky=W)
     coagulation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
     coagulation_installed.grid(column=2, row=3)
     coagulation_installed.insert(END, 0)
+
+    coagulation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    coagulation_recovery.grid(column=3, row=3)
+    coagulation_recovery.insert(END, 100)
 
     sedimentation = BooleanVar(root)
     sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation).grid(column=1, row=4,
@@ -1117,6 +1128,10 @@ def main():
     sedimentation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
     sedimentation_installed.grid(column=2, row=4)
     sedimentation_installed.insert(END, 0)
+
+    sedimentation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sedimentation_recovery.grid(column=3, row=4)
+    sedimentation_recovery.insert(END, 100)
 
     Label(tab3, text='Filtration:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
     filtration = StringVar(root)
@@ -1128,12 +1143,20 @@ def main():
     filtration_installed.grid(column=2, row=5)
     filtration_installed.insert(END, 0)
 
+    filtration_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    filtration_recovery.grid(column=3, row=5)
+    filtration_recovery.insert(END, 100)
+
     Label(tab3, text='Primary Disinfection:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
     primary_disinfection = StringVar(root)
     primary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'Iodine', 'Ozonation', 'UV Disinfection', 'None']
     primary_disinfection.set('Hypochlorite')
     primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection, *primary_disinfection_choices).grid(
         column=1, row=6, sticky=W)
+
+    primary_disinfection_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    primary_disinfection_recovery.grid(column=3, row=6)
+    primary_disinfection_recovery.insert(END, 100)
 
     Label(tab3, text='Secondary Disinfection:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
     secondary_disinfection = StringVar(root)
@@ -1142,15 +1165,27 @@ def main():
     secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection,
                                                    *secondary_disinfection_choices).grid(column=1, row=7, sticky=W)
 
+    secondary_disinfection_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    secondary_disinfection_recovery.grid(column=3, row=7)
+    secondary_disinfection_recovery.insert(END, 100)
+
     Label(tab3, text='Advanced Processes:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
 
     fluoridation = BooleanVar(root)
     fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation).grid(column=1, row=8,
                                                                                              sticky=W)
 
+    fluoridation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    fluoridation_recovery.grid(column=3, row=8)
+    fluoridation_recovery.insert(END, 100)
+
     softening = BooleanVar(root)
     softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening).grid(column=1, row=9,
                                                                                              sticky=W)
+
+    softening_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    softening_recovery.grid(column=3, row=9)
+    softening_recovery.insert(END, 100)
 
     ph_adjustment = BooleanVar(root)
     ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment).grid(column=1, row=10,
@@ -1158,6 +1193,10 @@ def main():
     ph_adjustment_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
     ph_adjustment_installed.grid(column=2, row=10)
     ph_adjustment_installed.insert(END, 0)
+
+    ph_adjustment_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ph_adjustment_recovery.grid(column=3, row=10)
+    ph_adjustment_recovery.insert(END, 100)
 
     granular_activated_carbon = BooleanVar(root)
     granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
@@ -1167,6 +1206,10 @@ def main():
     granular_activated_carbon_installed.grid(column=2, row=11)
     granular_activated_carbon_installed.insert(END, 0)
 
+    granular_activated_carbon_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    granular_activated_carbon_recovery.grid(column=3, row=11)
+    granular_activated_carbon_recovery.insert(END, 100)
+
     reverse_osmosis = BooleanVar(root)
     reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis).grid(column=1,
                                                                                                       row=12,
@@ -1174,6 +1217,10 @@ def main():
     reverse_osmosis_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
     reverse_osmosis_installed.grid(column=2, row=12)
     reverse_osmosis_installed.insert(END, 0)
+
+    reverse_osmosis_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    reverse_osmosis_recovery.grid(column=3, row=12)
+    reverse_osmosis_recovery.insert(END, 60)
 
     Label(tab3, text='Corrosion Control:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
     corrosion_control = StringVar(root)
@@ -1185,9 +1232,14 @@ def main():
                                                                                                         row=13,
                                                                                                         sticky=W)
 
+    corrosion_control_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    corrosion_control_recovery.grid(column=3, row=13)
+    corrosion_control_recovery.insert(END, 100)
+
     Label(tab4, text='Municipal Wastewater System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=2)
     Label(tab4, text='Treatment Train', font=('Arial', 10, 'bold')).grid(column=0, row=1, columnspan=2)
     Label(tab4, text='Number of Processes Installed', font=('Arial', 10, 'bold')).grid(column=2, row=1)
+    Label(tab4, text='Recovery [%]', font=('Arial', 10, 'bold')).grid(column=3, row=1)
 
     Label(tab4, text='Preliminary Treatment:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
 
@@ -1198,14 +1250,26 @@ def main():
     aerated_grit_installed.grid(column=2, row=2)
     aerated_grit_installed.insert(END, 0)
 
+    aerated_grit_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    aerated_grit_recovery.grid(column=3, row=2)
+    aerated_grit_recovery.insert(END, 100)
+
     grinding = BooleanVar(root)
     grinding_button = Checkbutton(tab4, text='Grinding', variable=grinding).grid(column=1, row=3, sticky=W)
+
+    grinding_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    grinding_recovery.grid(column=3, row=3)
+    grinding_recovery.insert(END, 100)
 
     filtration = BooleanVar(root)
     filtration_button = Checkbutton(tab4, text='Filtration', variable=filtration).grid(column=1, row=4, sticky=W)
     filtration_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
     filtration_installed.grid(column=2, row=4)
     filtration_installed.insert(END, 0)
+
+    filtration_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    filtration_recovery.grid(column=3, row=4)
+    filtration_recovery.insert(END, 100)
 
     grit_removal = BooleanVar(root)
     grit_removal_button = Checkbutton(tab4, text='Grit Removal', variable=grit_removal).grid(column=1, row=5,
@@ -1214,11 +1278,19 @@ def main():
     grit_removal_installed.grid(column=2, row=5)
     grit_removal_installed.insert(END, 0)
 
+    grit_removal_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    grit_removal_recovery.grid(column=3, row=5)
+    grit_removal_recovery.insert(END, 100)
+
     screening = BooleanVar(root)
     screening_button = Checkbutton(tab4, text='Screening', variable=screening).grid(column=1, row=6, sticky=W)
     screening_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
     screening_installed.grid(column=2, row=6)
     screening_installed.insert(END, 0)
+
+    screening_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    screening_recovery.grid(column=3, row=6)
+    screening_recovery.insert(END, 100)
 
     Label(tab4, text='Primary Treatment:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
 
@@ -1229,6 +1301,10 @@ def main():
     wastewater_sedimentation_installed.grid(column=2, row=7)
     wastewater_sedimentation_installed.insert(END, 0)
 
+    wastewater_sedimentation_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_sedimentation_recovery.grid(column=3, row=7)
+    wastewater_sedimentation_recovery.insert(END, 100)
+
     Label(tab4, text='Secondary Treatment:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
     secondary_treatment = StringVar(root)
     secondary_treatment_choices = ['Activated Sludge and Clarification', 'Lagoon', 'Stabilization Pond',
@@ -1236,6 +1312,10 @@ def main():
     secondary_treatment.set('Activated Sludge and Clarification')
     secondary_treatment_popup_menu = OptionMenu(tab4, secondary_treatment, *secondary_treatment_choices).grid(
         column=1, row=8, sticky=W)
+
+    secondary_treatment_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    secondary_treatment_recovery.grid(column=3, row=8)
+    secondary_treatment_recovery.insert(END, 95)
 
     Label(tab4, text='Tertiary Treatment:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
 
@@ -1247,12 +1327,20 @@ def main():
     nitrification_denitrification_installed.grid(column=2, row=9)
     nitrification_denitrification_installed.insert(END, 0)
 
+    nitrification_denitrification_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nitrification_denitrification_recovery.grid(column=3, row=9)
+    nitrification_denitrification_recovery.insert(END, 100)
+
     phosphorous_removal = BooleanVar(root)
     phosphorous_removal_button = Checkbutton(tab4, text='Phosphorous Removal', variable=phosphorous_removal).grid(
         column=1, row=10, sticky=W)
     phosphorous_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
     phosphorous_removal_installed.grid(column=2, row=10)
     phosphorous_removal_installed.insert(END, 0)
+
+    phosphorous_removal_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    phosphorous_removal_recovery.grid(column=3, row=10)
+    phosphorous_removal_recovery.insert(END, 100)
 
     wastewater_reverse_osmosis = BooleanVar(root)
     wastewater_reverse_osmosis_button = Checkbutton(tab4, text='Reverse Osmosis', variable=wastewater_reverse_osmosis).grid(column=1,
@@ -1262,15 +1350,27 @@ def main():
     wastewater_reverse_osmosis_installed.grid(column=2, row=11)
     wastewater_reverse_osmosis_installed.insert(END, 0)
 
+    wastewater_reverse_osmosis_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_reverse_osmosis_recovery.grid(column=3, row=11)
+    wastewater_reverse_osmosis_recovery.insert(END, 80)
+
     Label(tab4, text='Disinfection:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
     disinfection = StringVar(root)
     disinfection_choices = ['Hypochlorite', 'Ultraviolet', 'Ozone', 'None']
     disinfection.set('Hypochlorite')
     disinfection_popup_menu = OptionMenu(tab4, disinfection, *disinfection_choices).grid(column=1, row=12, sticky=W)
 
+    disinfection_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    disinfection_recovery.grid(column=3, row=12)
+    disinfection_recovery.insert(END, 100)
+
     dechlorination = BooleanVar(root)
     dechlorination_button = Checkbutton(tab4, text='Dechlorination', variable=dechlorination).grid(column=1, row=13,
                                                                                                    sticky=W)
+
+    dechlorination_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    dechlorination_recovery.grid(column=3, row=13)
+    dechlorination_recovery.insert(END, 100)
 
     Label(tab4, text='Digestion:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
     digestion = StringVar(root)
@@ -1279,26 +1379,43 @@ def main():
     digestion.set('Aerobic Digestion')
     digestion_popup_menu = OptionMenu(tab4, digestion, *digestion_choices).grid(column=1, row=14, sticky=W)
 
+    digestion_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    digestion_recovery.grid(column=3, row=14)
+    digestion_recovery.insert(END, 100)
+
     Label(tab4, text='Solids Dewatering:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
     dewatering = StringVar(root)
     dewatering_choices = ['Gravity Thickening', 'Mechanical Dewatering', 'Polymer Dewatering', 'None']
     dewatering.set('Mechanical Dewatering')
     dewatering_popup_menu = OptionMenu(tab4, dewatering, *dewatering_choices).grid(column=1, row=15, sticky=W)
 
+    dewatering_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    dewatering_recovery.grid(column=3, row=15)
+    dewatering_recovery.insert(END, 100)
+
     Label(tab5, text='Industrial Wastewater System', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=5)
     Label(tab5, text='Treatment Train', font=('Arial', 10, 'bold')).grid(column=0, row=1, columnspan=2)
     Label(tab5, text='Number of Processes Installed', font=('Arial', 10, 'bold')).grid(column=2, row=1,
                                                                                        columnspan=3)
+    Label(tab5, text='Recovery [%]', font=('Arial', 10, 'bold')).grid(column=5, row=1)
 
     Label(tab5, text='Soda Ash Softening:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
     softening_process = BooleanVar(root)
     softening_process_button = Checkbutton(tab5, text='', variable=softening_process).grid(column=1, row=2,
                                                                                            sticky=W)
 
+    softening_process_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    softening_process_recovery.grid(column=5, row=2)
+    softening_process_recovery.insert(END, 100)
+
     Label(tab5, text='Number of Chemical Addition Reactors:', font=('Arial', 10)).grid(column=0, row=3, sticky=E)
     chemical_addition_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
     chemical_addition_input.grid(column=1, row=3, sticky=W)
     chemical_addition_input.insert(END, 0)
+
+    chemical_addition_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    chemical_addition_recovery.grid(column=5, row=3)
+    chemical_addition_recovery.insert(END, 100)
 
     Label(tab5, text='Biological Treatment Process:', font=('Arial', 10)).grid(column=0, row=4, sticky=E)
     bio_treatment = StringVar(root)
@@ -1310,6 +1427,10 @@ def main():
     bio_treatment_installed = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
     bio_treatment_installed.grid(column=2, row=4, columnspan=3)
     bio_treatment_installed.insert(END, 0)
+
+    bio_treatment_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    bio_treatment_recovery.grid(column=5, row=4)
+    bio_treatment_recovery.insert(END, 100)
 
     Label(tab5, text='Volume Reduction Process:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
     volume_reduction = StringVar(root)
@@ -1325,9 +1446,17 @@ def main():
     volume_reduction_installed.grid(column=2, row=5, columnspan=3)
     volume_reduction_installed.insert(END, 0)
 
+    volume_reduction_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    volume_reduction_recovery.grid(column=5, row=5)
+    volume_reduction_recovery.insert(END, 65)
+
     Label(tab5, text='Crystallization:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
     crystallization = BooleanVar(root)
     crystallization_button = Checkbutton(tab5, text='', variable=crystallization).grid(column=1, row=6, sticky=W)
+
+    crystallization_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    crystallization_recovery.grid(column=5, row=6)
+    crystallization_recovery.insert(END, 95)
 
     Label(tab5, text='Chemical Consumption', font=('Arial', 10, 'bold')).grid(column=0, row=7, columnspan=5)
     Label(tab5, text='Min', font=('Arial', 10)).grid(column=1, row=8)
@@ -1621,50 +1750,80 @@ def main():
             baseline_treatment_process_info = {'source water': source_water.get(),
                                             'flocculation': flocculation.get(),
                                            'no. of flocculation units': int(flocculation_installed.get()),
+                                               'flocculation recovery': flocculation_recovery.get() / 100,
                                            'coagulation': coagulation.get(),
                                            'no. of coagulation units': int(coagulation_installed.get()),
+                                               'coagulation recovery': coagulation_recovery.get() / 100,
                                            'sedimentation': sedimentation.get(),
                                            'no. of sedimentation units': int(sedimentation_installed.get()),
+                                               'sedimentation recovery': sedimentation_recovery.get() / 100,
                                            'filtration': filtration.get(),
                                            'no. of filtration units': int(filtration_installed.get()),
+                                               'filtration recovery': filtration_recovery.get() / 100,
                                            'primary disinfection': primary_disinfection.get(),
+                                               'primary disinfection recovery': primary_disinfection_recovery.get() / 100,
                                            'secondary disinfection': secondary_disinfection.get(),
+                                               'secondary disinfection recovery': secondary_disinfection_recovery.get() / 100,
                                            'fluoridation': fluoridation.get(),
+                                               'fluoridation recovery': fluoridation_recovery.get() / 100,
                                            'softening': softening.get(),
+                                               'softening recovery': softening_recovery.get() / 100,
                                            'pH adjustment': ph_adjustment.get(),
                                            'no. of pH adjustment units': int(ph_adjustment_installed.get()),
+                                               'pH adjustment recovery': ph_adjustment_recovery.get() / 100,
                                            'gac': granular_activated_carbon.get(),
                                            'no. of gac units': int(granular_activated_carbon_installed.get()),
+                                               'gac recovery': granular_activated_carbon_recovery.get() / 100,
                                            'ro': reverse_osmosis.get(),
                                            'no. of ro units': int(reverse_osmosis_installed.get()),
+                                               'ro recovery': reverse_osmosis_recovery.get() / 100,
                                            'corrosion control': corrosion_control.get(),
+                                               'corrosion control recovery': corrosion_control_recovery.get() / 100,
                                            'aerated grit': FALSE,
                                            'no. of aerated grit units': 0,
+                                               'aerated grit recovery': 0,
                                            'grinding': FALSE,
+                                               'grinding recovery': 0,
                                            'grit removal': FALSE,
                                            'no. of grit removal units': 0,
+                                               'grit removal recovery': 0,
                                            'screening': FALSE,
+                                               'screening recovery': 0,
                                            'no. of screening units': 0,
                                            'wastewater sedimentation': FALSE,
                                            'no. of wastewater sedimentation units': 0,
+                                               'wastewater sedimentation recovery': 0,
                                            'secondary treatment': FALSE,
+                                               'secondary treatment recovery': 0,
                                            'nitrification denitrification': FALSE,
                                            'no. of nitrification denitrification units': 0,
+                                               'nitrification denitrification recovery': 0,
                                            'phosphorous removal': FALSE,
                                            'no. of phosphorous removal units': 0,
+                                               'phosphorous removal recovery': 0,
                                            'disinfection': FALSE,
+                                               'disinfection removal recovery': 0,
                                            'dechlorination': FALSE,
+                                               'dechlorination recovery': 0,
                                            'wastewater ro': FALSE,
                                            'no. of wastewater ro units': 0,
+                                               'wasteawter ro recovery': 0,
                                            'digestion': FALSE,
+                                               'digestion recovery': 0,
                                            'dewatering': FALSE,
+                                               'dewatering recovery': 0,
                                            'softening process': FALSE,
+                                               'softening recovery': 0,
                                            'chemical addition input': FALSE,
+                                               'chemical addition recovery': 0,
                                            'bio treatment': FALSE,
+                                               'bio treatment recovery': 0,
                                            'no. of bio treatment units': 0,
                                            'volume reduction': FALSE,
                                            'no. of volume reduction units': 0,
+                                               'volume recovery recovery': 0,
                                            'crystallization': FALSE,
+                                               'crystallization recovery': 0,
                                            'caoh dose min input': 0,
                                            'caoh dose best input': 0,
                                            'caoh dose max input': 0,
@@ -1693,50 +1852,80 @@ def main():
              baseline_treatment_process_info = {'source water': 'municipal wastewater',
                                            'flocculation': FALSE,
                                            'no. of flocculation units': 0,
+                                                'flocculation recovery': 0,
                                            'coagulation': FALSE,
                                            'no. of coagulation units': 0,
+                                                'coagulation recovery': 0,
                                            'sedimentation': FALSE,
                                            'no. of sedimentation units': 0,
+                                                'sedimentation recovery': 0,
                                            'filtration': FALSE,
                                            'no. of filtration units': 0,
+                                                'filtration recovery': 0,
                                            'primary disinfection': FALSE,
-                                           'secondary disinfection': FALSE,
+                                                'primary disinfection recovery': 0,
+                                                'secondary disinfection': FALSE,
+                                                'secondary disinfection recovery': 0,
                                            'fluoridation': FALSE,
+                                                'fluoridation recovery': 0,
                                            'softening': FALSE,
+                                                'softening recovery': 0,
                                            'pH adjustment': FALSE,
                                            'no. of pH adjustment units': FALSE,
+                                                'pH adjustment recovery': 0,
                                            'gac': FALSE,
                                            'no. of gac units': 0,
+                                                'gac recovery': 0,
                                            'ro': FALSE,
                                            'no. of ro units': 0,
+                                                'ro recovery': 0,
                                            'corrosion control': FALSE,
+                                                'corrosion control recovery': 0,
                                            'aerated grit': aerated_grit.get(),
                                            'no. of aerated grit units': int(aerated_grit_installed.get()),
+                                                'aerated grit recovery': aerated_grit_recovery.get()/100,
                                            'grinding': grinding.get(),
+                                                'grinding recovery': grinding_recovery.get()/100,
                                            'grit removal': grit_removal.get(),
                                            'no. of grit removal units': int(grit_removal_installed.get()),
+                                                'grit removal recovery': grit_removal_recovery.get()/100,
                                            'screening': screening.get(),
                                            'no. of screening units': int(screening_installed.get()),
+                                                'screening recovery': screening_recovery.get()/100,
                                            'wastewater sedimentation': wastewater_sedimentation.get(),
                                            'no. of wastewater sedimentation units': int(wastewater_sedimentation_installed.get()),
+                                                'wastewater sedimentation recovery': wastewater_sedimentation_recovery.get()/100,
                                            'secondary treatment': secondary_treatment.get(),
+                                                'secondary treatment recovery': secondary_treatment_recovery.get()/100,
                                            'nitrification denitrification': nitrification_denitrification.get(),
                                            'no. of nitrification denitrification units': int(nitrification_denitrification_installed.get()),
+                                                'nitrificaiton denitrification recovery': nitrification_denitrification_recovery.get()/100,
                                            'phosphorous removal': phosphorous_removal.get(),
                                            'no. of phosphorous removal units': int(phosphorous_removal_installed.get()),
+                                                'phosphorous removal recovery': phosphorous_removal_recovery.get()/100,
                                            'disinfection': disinfection.get(),
+                                                'disinfection recovery': disinfection_recovery.get()/100,
                                            'dechlorination': dechlorination.get(),
+                                                'dechlorination': dechlorination_recovery.get()/100,
                                            'wastewater ro': wastewater_reverse_osmosis.get(),
                                            'no. of wastewater ro units': int(wastewater_reverse_osmosis_installed.get()),
+                                                'wasteawter ro recovery': wastewater_reverse_osmosis_recovery.get()/100,
                                            'digestion': digestion.get(),
+                                                'digestion recovery': digestion_recovery.get()/100,
                                            'dewatering': dewatering.get(),
+                                                'dewatering recovery': dewatering_recovery.get()/100,
                                            'softening process': FALSE,
+                                                'softening process recovery': 0,
                                            'chemical addition input': FALSE,
+                                                'chemical addition recovery': 0,
                                            'bio treatment': FALSE,
+                                                'bio treatment recovery': 0,
                                            'no. of bio treatment units': 0,
                                            'volume reduction': FALSE,
                                            'no. of volume reduction units': 0,
+                                                'volume reduction recovery': 0,
                                            'crystallization': FALSE,
+                                                'crystallization recovery': 0,
                                            'caoh dose min input': 0,
                                            'caoh dose best input': 0,
                                            'caoh dose max input': 0,
@@ -1765,50 +1954,80 @@ def main():
              baseline_treatment_process_info = {'source water': 'industrial wastewater',
                                            'flocculation': FALSE,
                                            'no. of flocculation units': 0,
+                                                'flocculation recovery': 0,
                                            'coagulation': FALSE,
                                            'no. of coagulation units': 0,
+                                                'coagulation recovery': 0,
                                            'sedimentation': FALSE,
                                            'no. of sedimentation units': 0,
+                                                'sedimentation recovery': 0,
                                            'filtration': FALSE,
                                            'no. of filtration units': 0,
+                                                'filtration recovery': 0,
                                            'primary disinfection': FALSE,
+                                                'primary disinfection recovery': 0,
                                            'secondary disinfection': FALSE,
+                                                'secondary disinfection recovery': 0,
                                            'fluoridation': FALSE,
+                                                'fluoridation recovery': 0,
                                            'softening': FALSE,
+                                                'softening recovery': 0,
                                            'pH adjustment': FALSE,
                                            'no. of pH adjustment units': 0,
+                                                'pH adjustment recovery': 0,
                                            'gac': FALSE,
                                            'no. of gac units': 0,
+                                                'gac recovery': 0,
                                            'ro': FALSE,
                                            'no. of ro units': 0,
+                                                'ro recovery': 0,
                                            'corrosion control': FALSE,
+                                                'corrosion control recovery': 0,
                                            'aerated grit': FALSE,
                                            'no. of aerated grit units': 0,
+                                                'aerated grit recovery': 0,
                                            'grinding': FALSE,
+                                                'grinding recovery': 0,
                                            'grit removal': FALSE,
                                            'no. of grit removal units': 0,
+                                                'grit removal recovery': 0,
                                            'screening': FALSE,
                                            'no. of screening units': 0,
+                                                'screening recovery': 0,
                                            'wastewater sedimentation': FALSE,
                                            'no. of wastewater sedimentation units': 0,
+                                                'wasteawter sedimentation recovery': 0,
                                            'secondary treatment': FALSE,
+                                                'secondary treatment recovery': 0,
                                            'nitrification denitrification': FALSE,
                                            'no. of nitrification denitrification units': 0,
+                                                'nitrification denitrifcation recovery': 0,
                                            'phosphorous removal': FALSE,
                                            'no. of phosphorous removal units': 0,
+                                                'phosphorous removal recovery': 0,
                                            'disinfection': FALSE,
+                                                'disinfection removal recovery': 0,
                                            'dechlorination': FALSE,
+                                                'dechlorination recovery': 0,
                                            'wastewater ro': FALSE,
                                            'no. of wastewater ro units': 0,
+                                                'wastewater ro recovery': 0,
                                            'digestion': FALSE,
+                                                'digestion recovery': 0,
                                            'dewatering': FALSE,
+                                                'dewatering recovery': 0,
                                            'softening process': softening_process.get(),
+                                                'softening process recovery': softening_process_recovery.get()/100,
                                            'chemical addition input': chemical_addition_input.get(),
+                                                'chemical addition process recovery': chemical_addition_recovery.get()/100,
                                            'bio treatment': bio_treatment.get(),
                                            'no. of bio treatment units': int(bio_treatment_installed.get()),
+                                                'bio treatment recovery': bio_treatment_recovery.get()/100,
                                            'volume reduction': volume_reduction.get(),
                                            'no. of volume reduction units': int(volume_reduction_installed.get()),
+                                                'volume reduction recovery': volume_reduction_recovery.get()/100,
                                            'crystallization': crystallization.get(),
+                                                'crystallization recovery': crystallization_recovery.get()/100,
                                            'caoh dose min input': float(caoh_dose_min_input.get()),
                                            'caoh dose best input': float(caoh_dose_best_input.get()),
                                            'caoh dose max input': float(caoh_dose_max_input.get()),
