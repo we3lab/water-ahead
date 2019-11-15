@@ -33,4 +33,5 @@ unit_organics_consumption_dictionary = {'uf membrane cleaning': {'min': 3.5, 'ma
                                         'permagnate corrosion': {'min': 0.008, 'max': 0.012},
                                         'ro membrane cleaning': {'min': 3.5, 'max': 4.5},
                                         'dewatering polymer': {'min': 0.27, 'max': 11.37},
-                                        'volume concentrator antiscalants': {'min': 0.25, 'max': 0.5}}
+                                        'volume concentrator antiscalants': {'min': 0.25, 'max': 0.5},
+                                        'membrane distillation cleaning': {'min': 3.5, 'max': 4.5}}

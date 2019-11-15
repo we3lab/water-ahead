@@ -4,7 +4,7 @@ unit_elec_consumption_dictionary = {#  For municipal wastewater treatment proces
                                     'filtration_wastewater': {'min': 0.005, 'max': 0.014},
                                     'grit_removal': {'min': 0.01, 'max': 0.02},
                                     'screening': {'min': 0, 'max': 0},
-                                    'sedimentation': {'min': 0.008, 'max': 0.01},
+                                    'wastewater sedimentation': {'min': 0.008, 'max': 0.01},
                                     'activated_sludge': {'min': 0.33, 'max': 0.60},
                                     'aeration': {'min': 0.008, 'max': 0.01},
                                     'clarification': {'min': 0.01, 'max': 0.01},
@@ -54,8 +54,8 @@ unit_elec_consumption_dictionary = {#  For municipal wastewater treatment proces
                                     'sodium_sulfite_addition': {'min': 0.008, 'max': 0.022},
                                     'sulfur_dioxide_addition': {'min': 0.008, 'max': 0.022},
                                     'granular_activated_carbon': {'min': 0.029, 'max': 0.029},
-                                    'reverse_osmosis_brackish': {'min': 0.7989, 'max': 0.7989},
-                                    'reverse_osmosis_seawater': {'min': 2.5, 'max': 4},
+                                    'reverse_osmosis_brackish': {'min': 0.7989, 'max': 2.5},
+                                    'reverse_osmosis_seawater': {'min': 2.5, 'max': 6},
 
                                     #  For industrial wastewater treatment.
                                     'lime_soda_ash_softening_industrial': {'min': 0.0085, 'max': 0.023},
@@ -66,14 +66,11 @@ unit_elec_consumption_dictionary = {#  For municipal wastewater treatment proces
                                     'lagoon_industrial': {'min': 0.09, 'max': 0.29},
                                     'stabilization_industrial': {'min': 0.008, 'max': 0.01},
                                     'trickling_filter_industrial': {'min': 0.201, 'max': 0.441},
-                                    # TODO Add Mechanical vapor compression electricity consumption
-                                    'mechanical_vapor_compression': {'min': 0, 'max': 0},
-                                    # TODO Add Thermal vapor compression electricity consumption.
-                                    'thermal_vapor_compression': {'min': 0, 'max': 0},
+                                    'mechanical_vapor_compression': {'min': 7, 'max': 12}, #Al-Karaghouli et al. 2013
+                                    'thermal_vapor_compression': {'min': 1.6, 'max': 1.8},  #Al-Karaghouli et al. 2013
                                     'reverse_osmosis_industrial': {'min': 2.5, 'max': 4},
-                                    # TODO Add forward osmosis, MED, MSF, MD electricity consumption.
-                                    'forward_osmosis': {'min': 0, 'max': 0},
-                                    'multiple_effect_distillation': {'min': 0, 'max': 0},
-                                    'multistage_flash_distillation': {'min': 0, 'max': 0},
+                                    'forward_osmosis': {'min': 2, 'max': 2.5},
+                                    'multiple_effect_distillation': {'min': 2, 'max': 2.5},  #Al-Karaghouli et al. 2013
+                                    'multistage_flash_distillation': {'min': 2.5, 'max': 5},  #Al-Karaghouli et al. 2013
                                     'membrane_distillation': {'min': 0, 'max': 0},
                                     'crystallization': {'min': 52, 'max': 66}}

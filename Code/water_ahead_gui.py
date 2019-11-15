@@ -11,6 +11,7 @@ import numpy as np
 
 from chem_manufacturing_distribution_dictionary import chem_manufacturing_share_dict
 from unit_elec_consumption import unit_elec_consumption_dictionary
+from unit_therm_consumption import unit_therm_consumption_dictionary
 from unit_chem_consumption import unit_caoh_consumption_dictionary, unit_fecl3_consumption_dictionary, \
     unit_hcl_consumption_dictionary,unit_nutrients_consumption_dictionary, \
     unit_sodium_carbonate_consumption_dictionary, unit_gac_consumption_dictionary, \
@@ -137,262 +138,320 @@ def main():
         return combined_func
 
     def calculate_electricity_consumption(basic_info_dict, baseline_process_dict, new_process_dict):
-        # TODO Update to use reported recovery factors.
         source_water = baseline_process_dict['source water']
         flocculation = baseline_process_dict['flocculation']
         flocculation_installed = baseline_process_dict['no. of flocculation units']
+        flocculation_recovery = baseline_process_dict['flocculation recovery']
         coagulation = baseline_process_dict['coagulation']
         coagulation_installed = baseline_process_dict['no. of coagulation units']
+        coagulation_recovery = baseline_process_dict['coagulation recovery']
         sedimentation = baseline_process_dict['sedimentation']
         sedimentation_installed = baseline_process_dict['no. of sedimentation units']
+        sedimentation_recovery = baseline_process_dict['sedimentation recovery']
         filtration = baseline_process_dict['filtration']
+        filtration_recovery = baseline_process_dict['filtration recovery']
         primary_disinfection = baseline_process_dict['primary disinfection']
+        primary_disinfection_recovery = baseline_process_dict['primary disinfection recovery']
         secondary_disinfection = baseline_process_dict['secondary disinfection']
+        secondary_disinfection_recovery = baseline_process_dict['secondary disinfection recovery']
         fluoridation = baseline_process_dict['fluoridation']
+        fluoridation_recovery = baseline_process_dict['fluoridation recovery']
         softening = baseline_process_dict['softening']
+        softening_recovery = baseline_process_dict['softening recovery']
         ph_adjustment = baseline_process_dict['pH adjustment']
         ph_adjustment_installed = baseline_process_dict['no. of pH adjustment units']
+        ph_adjustment_recovery = baseline_process_dict['pH adjustment recovery']
         granular_activated_carbon = baseline_process_dict['gac']
         granular_activated_carbon_installed = baseline_process_dict['no. of gac units']
+        granular_activated_carbon_recovery = baseline_process_dict['gac recovery']
         reverse_osmosis = baseline_process_dict['ro']
         reverse_osmosis_installed = baseline_process_dict['no. of ro units']
+        reverse_osmosis_recovery = baseline_process_dict['ro recovery']
         corrosion_control = baseline_process_dict['corrosion control']
+        corrosion_control_recovery = baseline_process_dict['corrosion control recovery']
         aerated_grit = baseline_process_dict['aerated grit']
         aerated_grit_installed = baseline_process_dict['no. of aerated grit units']
+        aerated_grit_recovery = baseline_process_dict['aerated grit recovery']
         grinding = baseline_process_dict['grinding']
         grit_removal = baseline_process_dict['grit removal']
         grit_removal_installed = baseline_process_dict['no. of grit removal units']
+        grit_removal_recovery = baseline_process_dict['grit removal recovery']
         screening = baseline_process_dict['screening']
         screening_installed = baseline_process_dict['no. of screening units']
+        screening_recovery = baseline_process_dict['screening recovery']
         wastewater_sedimentation = baseline_process_dict['wastewater sedimentation']
         wastewater_sedimentation_installed = baseline_process_dict['no. of wastewater sedimentation units']
+        wastewater_sedimentation_recovery = baseline_process_dict['wastewater sedimentation recovery']
         secondary_treatment = baseline_process_dict['secondary treatment']
+        secondary_treatment_recovery = baseline_process_dict['secondary treatment recovery']
         nitrification_denitrification = baseline_process_dict['nitrification denitrification']
         nitrification_denitrification_installed = baseline_process_dict['no. of nitrification denitrification units']
+        nitrification_denitrification_recovery = baseline_process_dict['nitrification denitrification recovery']
         phosphorous_removal = baseline_process_dict['phosphorous removal']
         phosphorous_removal_installed = baseline_process_dict['no. of phosphorous removal units']
+        phosphorous_recovery = baseline_process_dict['phosphorous removal recovery']
         wastewater_reverse_osmosis = baseline_process_dict['wastewater ro']
-        wastewater_reverse_osmosis_installed = baseline_process_dict['no. of ro units']
+        wastewater_reverse_osmosis_installed = baseline_process_dict['no. of wastewater ro units']
+        wastewater_reverse_osmosis_recovery = baseline_process_dict['wastewater ro recovery']
         disinfection = baseline_process_dict['disinfection']
+        disinfection_recovery = baseline_process_dict['disinfection recovery']
         dechlorination = baseline_process_dict['dechlorination']
+        dechlorination_recovery = baseline_process_dict['dechlorination recovery']
         digestion = baseline_process_dict['digestion']
+        digestion_recovery = baseline_process_dict['digestion recovery']
         dewatering = baseline_process_dict['dewatering']
+        dewatering_recovery = baseline_process_dict['dewatering recovery']
         softening_process = baseline_process_dict['softening process']
+        softening_process_recovery = baseline_process_dict['softening process recovery']
         chemical_addition_input = baseline_process_dict['chemical addition input']
+        chemcial_addition_recovery = baseline_process_dict['chemical addition recovery']
         bio_treatment = baseline_process_dict['bio treatment']
         bio_treatment_installed = baseline_process_dict['no. of bio treatment units']
+        bio_treatment_recovery = baseline_process_dict['bio treatment recovery']
         volume_reduction = baseline_process_dict['volume reduction']
         volume_reduction_installed = baseline_process_dict['no. of volume reduction units']
+        volume_reduction_recovery = baseline_process_dict['volume reduction recovery']
         crystallization = baseline_process_dict['crystallization']
+        crystallization_recovery = baseline_process_dict['crystallization recovery']
+        new_process_recovery = new_process_dict['new recovery']
         new_elec_min_input = new_process_dict['new electricity min input']
         new_elec_best_input = new_process_dict['new electricity best input']
         new_elec_max_input = new_process_dict['new electricity max input']
         runs = basic_info_dict['mc runs']
         system_type = basic_info_dict['system type']
 
-        if (reverse_osmosis == 1) and (system_type == 'Drinking Water System'):
-            if source_water == 'Seawater':
-                volume_scale_factor = 1/0.5
-            else:
-                volume_scale_factor = 1/0.85
-        else:
-            volume_scale_factor = 1
-
-        if system_type == 'Municipal Wastewater System':
-            if secondary_treatment == 'None':
-                tertiary_treatment_scale_factor = 1
-                solids_processing_scale_factor = 0
-            else:
-                tertiary_treatment_scale_factor = 0.95
-                solids_processing_scale_factor = 0.05
-
-        if system_type == 'Industrial Wastewater System':
-            if volume_reduction == 'None':
-                crystallization_scale_factor = 1
-            else:
-                crystallization_scale_factor = 0.67
-
         if flocculation == 1:
+            flocculation_fraction = flocculation_recovery
             flocculation_electricity = np.random.uniform(unit_elec_consumption_dictionary['flocculation']['min'],
                                                             unit_elec_consumption_dictionary['flocculation']['max'],
-                                                            (runs, flocculation_installed)) * volume_scale_factor
+                                                            (runs, flocculation_installed)) * flocculation_fraction
         else:
             flocculation_electricity = np.zeros(runs)
+            flocculation_fraction = 1
         if coagulation == 1:
-            coagulation_electricity = np.random.uniform(unit_elec_consumption_dictionary['coagulation']['min'],
+                coagulation_fraction = flocculation_fraction * coagulation_recovery
+                coagulation_electricity = np.random.uniform(unit_elec_consumption_dictionary['coagulation']['min'],
                                                             unit_elec_consumption_dictionary['coagulation']['max'],
-                                                            (runs, coagulation_installed)) * volume_scale_factor
+                                                            (runs,
+                                                             coagulation_installed)) * coagulation_fraction
         else:
-            coagulation_electricity  = np.zeros(runs)
-        if sedimentation == 1:
-            sedimentation_electricity = np.random.uniform(unit_elec_consumption_dictionary['sedimentation']['min'],
-                                                           unit_elec_consumption_dictionary['sedimentation']['max'],
-                                                           (runs, sedimentation_installed)) * volume_scale_factor
-        else:
-            sedimentation_electricity  = np.zeros(runs)
-
-        if filtration == 'Generic':
-            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['generic_filtration']['min'],
-                                                       unit_elec_consumption_dictionary['generic_filtration']['max'],
-                                                       (runs,1)) * volume_scale_factor
-        elif filtration == 'Cartridge':
-                filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['cartridge_filtration']['min'],
-                    unit_elec_consumption_dictionary['cartridge_filtration']['max'], (runs, 1)) * volume_scale_factor
-        elif filtration == 'Diatomaceous Earth':
-                filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['diatomaceous_filtration']['min'],
-                    unit_elec_consumption_dictionary['diatomaceous_filtration']['max'], (runs, 1)) * volume_scale_factor
-        elif filtration == 'Greensand':
-                filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['greensand_filtration']['min'],
-                    unit_elec_consumption_dictionary['greensand_filtration']['max'], (runs, 1)) * volume_scale_factor
-        elif filtration == 'Pressurized Sand':
-                filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['pressurized_sand_filtration']['min'],
-                    unit_elec_consumption_dictionary['pressurized_sand_filtration']['max'], (runs, 1)) * volume_scale_factor
-        elif filtration == 'Rapid Sand':
-            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['rapid_sand_filtration']['min'],
-                                                       unit_elec_consumption_dictionary['rapid_sand_filtration']['max'],
-                                                       (runs, 1)) * volume_scale_factor
-        elif filtration == 'Slow Sand':
-            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['slow_sand_filtration']['min'],
-                unit_elec_consumption_dictionary['slow_sand_filtration']['max'], (runs, 1)) * volume_scale_factor
-        elif filtration == 'Ultrafiltration Membrane':
-            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['ultrafiltration']['min'],
-                                                       unit_elec_consumption_dictionary['ultrafiltration']['max'],
-                                                       (runs, 1)) * volume_scale_factor
-        else:
-            filtration_electricity  = np.zeros(runs)
-
-        if (primary_disinfection == 'Hypochlorite') and (source_water == "Fresh Surface Water"):
-            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_surface']['min'],
-                                                       unit_elec_consumption_dictionary['hypochlorination_surface']['max'],
-                                                       (runs, 1))
-        elif primary_disinfection == 'Hypochlorite' and (source_water == "Fresh Groundwater"):
-            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_groundwater']['min'],
-                    unit_elec_consumption_dictionary['hypochlorination_groundwater']['max'], (runs, 1))
-        elif primary_disinfection == 'Hypochlorite' and (source_water == "Brackish Groundwater"):
-            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_groundwater']['min'],
-                    unit_elec_consumption_dictionary['hypochlorination_groundwater']['max'], (runs, 1))
-        elif primary_disinfection == 'Hypochlorite' and (source_water == "Seawater"):
-            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_surface']['min'],
-                    unit_elec_consumption_dictionary['hypochlorination_surface']['max'], (runs, 1))
-        elif primary_disinfection == 'Chloramine':
-            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['chloramination']['min'],
-                    unit_elec_consumption_dictionary['chloramination']['max'], (runs, 1))
-        elif primary_disinfection == 'Iodine':
-            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['iodine_addition']['min'],
-                                                       unit_elec_consumption_dictionary['iodine_addition']['max'],
-                                                       (runs, 1))
-        elif primary_disinfection == 'Ozonation':
-            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['ozonation']['min'],
-                unit_elec_consumption_dictionary['ozonation']['max'], (runs, 1))
-        elif filtration == 'UV Disinfection':
-            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['uv_disinfection_drinking']['min'],
-                                                       unit_elec_consumption_dictionary['uv_disinfection_drinking']['max'],
-                                                       (runs, 1))
-        else:
-            primary_disinfection_electricity = np.zeros(runs)
-
-        if (secondary_disinfection == 'Hypochlorite') and (source_water == "Fresh Surface Water"):
-            secondary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_surface']['min'],
-                                                       unit_elec_consumption_dictionary['hypochlorination_surface']['max'],
-                                                       (runs, 1))
-        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Fresh Groundwater"):
-            secondary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_groundwater']['min'],
-                    unit_elec_consumption_dictionary['hypochlorination_groundwater']['max'], (runs, 1))
-        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Brackish Groundwater"):
-            secondary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_groundwater']['min'],
-                    unit_elec_consumption_dictionary['hypochlorination_groundwater']['max'], (runs, 1))
-        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Seawater"):
-            secondary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_surface']['min'],
-                    unit_elec_consumption_dictionary['hypochlorination_surface']['max'], (runs, 1))
-        elif secondary_disinfection == 'Chloramine':
-            secondary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['chloramination']['min'],
-                    unit_elec_consumption_dictionary['chloramination']['max'], (runs, 1))
-        else:
-            secondary_disinfection_electricity = np.zeros(runs)
-
-        if fluoridation == 1:
-            fluoridation_electricity = np.random.uniform(unit_elec_consumption_dictionary['fluoridation']['min'],
-                                                           unit_elec_consumption_dictionary['fluoridation']['max'],
-                                                           (runs, 1))
-        else:
-            fluoridation_electricity  = np.zeros(runs)
-
+                coagulation_electricity = np.zeros(runs)
+                coagulation_fraction = flocculation_fraction
         if softening == 1:
+            softening_fraction = coagulation_fraction * softening_recovery
             softening_electricity = np.random.uniform(unit_elec_consumption_dictionary['lime_soda_ash_softening']['min'],
                                                            unit_elec_consumption_dictionary['lime_soda_ash_softening']['max'],
-                                                           (runs, 1)) * volume_scale_factor
+                                                           (runs, 1)) * softening_fraction
         else:
+            softening_fraction = coagulation_fraction
             softening_electricity = np.zeros(runs)
 
         if ph_adjustment == 1:
+            ph_adjustment_fraction = softening_fraction * ph_adjustment_recovery
             ph_adjustment_electricity = np.random.uniform(unit_elec_consumption_dictionary['pH_adjustment']['min'],
                                                            unit_elec_consumption_dictionary['pH_adjustment']['max'],
-                                                           (runs, ph_adjustment_installed))
+                                                           (runs, ph_adjustment_installed)) * ph_adjustment_fraction
         else:
+            ph_adjustment_fraction = softening_fraction
             ph_adjustment_electricity  = np.zeros(runs)
-
+        if sedimentation == 1:
+            sedimentation_fraction = ph_adjustment_fraction * sedimentation_recovery
+            sedimentation_electricity = np.random.uniform(unit_elec_consumption_dictionary['sedimentation']['min'],
+                                                           unit_elec_consumption_dictionary['sedimentation']['max'],
+                                                           (runs, sedimentation_installed)) * sedimentation_fraction
+        else:
+            sedimentation_electricity  = np.zeros(runs)
+            sedimentation_fraction = ph_adjustment_fraction
         if granular_activated_carbon == 1:
+            granular_activated_carbon_fraction = sedimentation_fraction * granular_activated_carbon_recovery
             granular_activated_carbon_electricity = np.random.uniform(unit_elec_consumption_dictionary['granular_activated_carbon']['min'],
                                                            unit_elec_consumption_dictionary['granular_activated_carbon']['max'],
-                                                           (runs, granular_activated_carbon_installed)) * volume_scale_factor
+                                                           (runs, granular_activated_carbon_installed)) * granular_activated_carbon_fraction
         else:
+            granular_activated_carbon_fraction = sedimentation_fraction
             granular_activated_carbon_electricity  = np.zeros(runs)
-
+        if filtration == 'Generic':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['generic_filtration']['min'],
+                                                       unit_elec_consumption_dictionary['generic_filtration']['max'],
+                                                       (runs, 1)) * filtration_fraction
+        elif filtration == 'Cartridge':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['cartridge_filtration']['min'],
+                                                       unit_elec_consumption_dictionary['cartridge_filtration']['max'],
+                                                       (runs, 1)) * filtration_fraction
+        elif filtration == 'Diatomaceous Earth':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+            filtration_electricity = np.random.uniform(
+                unit_elec_consumption_dictionary['diatomaceous_filtration']['min'],
+                unit_elec_consumption_dictionary['diatomaceous_filtration']['max'], (runs, 1)) * filtration_fraction
+        elif filtration == 'Greensand':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['greensand_filtration']['min'],
+                    unit_elec_consumption_dictionary['greensand_filtration']['max'], (runs, 1)) * filtration_fraction
+        elif filtration == 'Pressurized Sand':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['pressurized_sand_filtration']['min'],
+                    unit_elec_consumption_dictionary['pressurized_sand_filtration']['max'], (runs, 1)) * filtration_fraction
+        elif filtration == 'Rapid Sand':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['rapid_sand_filtration']['min'],
+                                                       unit_elec_consumption_dictionary['rapid_sand_filtration']['max'],
+                                                       (runs, 1)) * filtration_fraction
+        elif filtration == 'Slow Sand':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['slow_sand_filtration']['min'],
+                unit_elec_consumption_dictionary['slow_sand_filtration']['max'], (runs, 1)) * filtration_fraction
+        elif filtration == 'Ultrafiltration Membrane':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+            filtration_electricity = np.random.uniform(unit_elec_consumption_dictionary['ultrafiltration']['min'],
+                                                       unit_elec_consumption_dictionary['ultrafiltration']['max'],
+                                                       (runs, 1)) * filtration_fraction
+        else:
+            filtration_electricity = np.zeros(runs)
+            filtration_fraction = granular_activated_carbon_fraction
         if (reverse_osmosis == 1) and (source_water == 'Brackish Groundwater'):
+            reverse_osmosis_fraction = filtration_fraction * reverse_osmosis_recovery
             reverse_osmosis_electricity = np.random.uniform(unit_elec_consumption_dictionary['reverse_osmosis_brackish']['min'],
                                                            unit_elec_consumption_dictionary['reverse_osmosis_brackish']['max'],
-                                                           (runs, reverse_osmosis_installed))
+                                                           (runs, reverse_osmosis_installed)) * reverse_osmosis_fraction
         elif (reverse_osmosis == 1) and (source_water == 'Seawater'):
+            reverse_osmosis_fraction = filtration_fraction * reverse_osmosis_recovery
             reverse_osmosis_electricity = np.random.uniform(unit_elec_consumption_dictionary['reverse_osmosis_seawater']['min'],
                 unit_elec_consumption_dictionary['reverse_osmosis_seawater']['max'],
-                (runs, reverse_osmosis_installed))
+                (runs, reverse_osmosis_installed)) * reverse_osmosis_recovery
         else:
+            reverse_osmosis_fraction = filtration_fraction
             reverse_osmosis_electricity = np.zeros(runs)
+        if (primary_disinfection == 'Hypochlorite') and (source_water == "Fresh Surface Water"):
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_surface']['min'],
+                                                       unit_elec_consumption_dictionary['hypochlorination_surface']['max'],
+                                                       (runs, 1)) * primary_disinfection_fraction
+        elif primary_disinfection == 'Hypochlorite' and (source_water == "Fresh Groundwater"):
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_groundwater']['min'],
+                    unit_elec_consumption_dictionary['hypochlorination_groundwater']['max'], (runs, 1))  * primary_disinfection_fraction
+        elif primary_disinfection == 'Hypochlorite' and (source_water == "Brackish Groundwater"):
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_groundwater']['min'],
+                    unit_elec_consumption_dictionary['hypochlorination_groundwater']['max'], (runs, 1))  * primary_disinfection_fraction
+        elif primary_disinfection == 'Hypochlorite' and (source_water == "Seawater"):
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_surface']['min'],
+                    unit_elec_consumption_dictionary['hypochlorination_surface']['max'], (runs, 1))  * primary_disinfection_fraction
+        elif primary_disinfection == 'Chloramine':
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['chloramination']['min'],
+                    unit_elec_consumption_dictionary['chloramination']['max'], (runs, 1))  * primary_disinfection_fraction
+        elif primary_disinfection == 'Iodine':
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['iodine_addition']['min'],
+                                                       unit_elec_consumption_dictionary['iodine_addition']['max'],
+                                                       (runs, 1))  * primary_disinfection_fraction
+        elif primary_disinfection == 'Ozonation':
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['ozonation']['min'],
+                unit_elec_consumption_dictionary['ozonation']['max'], (runs, 1))  * primary_disinfection_fraction
+        elif primary_disinfection == 'UV Disinfection':
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+            primary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['uv_disinfection_drinking']['min'],
+                                                       unit_elec_consumption_dictionary['uv_disinfection_drinking']['max'],
+                                                       (runs, 1))  * primary_disinfection_fraction
+        else:
+            primary_disinfection_fraction = reverse_osmosis_fraction
+            primary_disinfection_electricity = np.zeros(runs)
 
+        if (secondary_disinfection == 'Hypochlorite') and (source_water == "Fresh Surface Water"):
+            secondary_disinfection_fraction = primary_disinfection_fraction * secondary_disinfection_recovery
+            secondary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_surface']['min'],
+                                                       unit_elec_consumption_dictionary['hypochlorination_surface']['max'],
+                                                       (runs, 1)) * secondary_disinfection_fraction
+        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Fresh Groundwater"):
+            secondary_disinfection_fraction = primary_disinfection_fraction * secondary_disinfection_recovery
+            secondary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_groundwater']['min'],
+                    unit_elec_consumption_dictionary['hypochlorination_groundwater']['max'], (runs, 1)) * secondary_disinfection_fraction
+        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Brackish Groundwater"):
+            secondary_disinfection_fraction = primary_disinfection_fraction * secondary_disinfection_recovery
+            secondary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_groundwater']['min'],
+                    unit_elec_consumption_dictionary['hypochlorination_groundwater']['max'], (runs, 1)) * secondary_disinfection_fraction
+        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Seawater"):
+            secondary_disinfection_fraction = primary_disinfection_fraction * secondary_disinfection_recovery
+            secondary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_surface']['min'],
+                    unit_elec_consumption_dictionary['hypochlorination_surface']['max'], (runs, 1)) * secondary_disinfection_fraction
+        elif secondary_disinfection == 'Chloramine':
+            secondary_disinfection_fraction = primary_disinfection_fraction * secondary_disinfection_recovery
+            secondary_disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['chloramination']['min'],
+                    unit_elec_consumption_dictionary['chloramination']['max'], (runs, 1)) * secondary_disinfection_fraction
+        else:
+            secondary_disinfection_fraction = primary_disinfection_fraction
+            secondary_disinfection_electricity = np.zeros(runs)
+
+        if fluoridation == 1:
+            fluoridation_fraction = secondary_disinfection_fraction * fluoridation_recovery
+            fluoridation_electricity = np.random.uniform(unit_elec_consumption_dictionary['fluoridation']['min'],
+                                                           unit_elec_consumption_dictionary['fluoridation']['max'],
+                                                           (runs, 1)) * fluoridation_fraction
+        else:
+            fluoridation_fraction = secondary_disinfection_fraction
+            fluoridation_electricity = np.zeros(runs)
         if corrosion_control == 'None':
+            corrosion_control_fraction = fluoridation_fraction
             corrosion_control_electricity = np.zeros(runs)
         else:
+            corrosion_control_fraction = fluoridation_fraction * corrosion_control_recovery
             corrosion_control_electricity =np.random.uniform(unit_elec_consumption_dictionary['bimetallic_phosphate_addition']['min'],
                                                              unit_elec_consumption_dictionary['bimetallic_phosphate_addition']['max'],
-                                                             (runs,1))
+                                                             (runs,1)) * corrosion_control_recovery
 
         if aerated_grit == 1:
+            aerated_grit_fraction = aerated_grit_recovery
             aerated_grit_electricity = np.random.uniform(unit_elec_consumption_dictionary['aerated_grit']['min'],
                                                            unit_elec_consumption_dictionary['aerated_grit']['max'],
-                                                           (runs, aerated_grit_installed))
+                                                           (runs, aerated_grit_installed)) * aerated_grit_fraction
         else:
+            aerated_grit_fraction = 1
             aerated_grit_electricity  = np.zeros(runs)
 
         if grinding == 1:
+            grinding_fraction = 1
             grinding_electricity = np.random.uniform(unit_elec_consumption_dictionary['grinding']['min'],
                                                            unit_elec_consumption_dictionary['grinding']['max'],
-                                                           (runs, 1))
+                                                           (runs, 1)) * grinding_fraction
         else:
-            grinding_electricity  = np.zeros(runs)
+            grinding_fraction = aerated_grit_fraction
+            grinding_electricity = np.zeros(runs)
 
         if grit_removal == 1:
+            grit_removal_fraction = grinding_fraction * grit_removal_recovery
             grit_removal_electricity = np.random.uniform(unit_elec_consumption_dictionary['grit_removal']['min'],
                                                            unit_elec_consumption_dictionary['grit_removal']['max'],
-                                                           (runs, grit_removal_installed))
+                                                           (runs, grit_removal_installed)) * grit_removal_fraction
         else:
+            grit_removal_fraction = grinding_fraction
             grit_removal_electricity  = np.zeros(runs)
 
         if screening == 1:
+            screening_fraction = grinding_fraction * screening_recovery
             screening_electricity = np.random.uniform(unit_elec_consumption_dictionary['screening']['min'],
                                                            unit_elec_consumption_dictionary['screening']['max'],
-                                                           (runs, screening_installed))
+                                                           (runs, screening_installed)) * screening_fraction
         else:
+            screening_fraction = grit_removal_fraction
             screening_electricity  = np.zeros(runs)
 
         if wastewater_sedimentation == 1:
-            wastewater_sedimentation_electricity = np.random.uniform(unit_elec_consumption_dictionary['sedimentation']['min'],
-                                                           unit_elec_consumption_dictionary['sedimentation']['max'],
-                                                           (runs, wastewater_sedimentation_installed)) * volume_scale_factor
+            wastewater_sedimentation_fraction = grit_removal_fraction * wastewater_sedimentation_recovery
+            wastewater_sedimentation_electricity = np.random.uniform(unit_elec_consumption_dictionary['wastewater sedimentation']['min'],
+                                                           unit_elec_consumption_dictionary['wastewater sedimentation']['max'],
+                                                           (runs, wastewater_sedimentation_installed)) * wastewater_sedimentation_fraction
         else:
+            wastewater_sedimentation_fraction = grit_removal_fraction
             wastewater_sedimentation_electricity  = np.zeros(runs)
 
         if secondary_treatment == 'Activated Sludge and Clarification':
-            secondary_treatment_electricity = np.random.uniform(unit_elec_consumption_dictionary['activated_sludge']['min'],
+            secondary_treatment_fraction = wastewater_sedimentation_fraction * secondary_treatment_recovery
+            secondary_treatment_electricity = (np.random.uniform(unit_elec_consumption_dictionary['activated_sludge']['min'],
                                                        unit_elec_consumption_dictionary['activated_sludge']['max'],
                                                        (runs, 1)) + \
                                               np.random.uniform(unit_elec_consumption_dictionary['aeration']['min'],
@@ -400,100 +459,129 @@ def main():
                                                        (runs, 1)) + \
                                               np.random.uniform(unit_elec_consumption_dictionary['clarification']['min'],
                                                        unit_elec_consumption_dictionary['clarification']['max'],
-                                                       (runs, 1))
+                                                       (runs, 1))) * secondary_treatment_fraction
         elif secondary_treatment == 'Lagoon':
+            secondary_treatment_fraction = wastewater_sedimentation_fraction * secondary_treatment_recovery
             secondary_treatment_electricity = np.random.uniform(unit_elec_consumption_dictionary['lagoon']['min'],
-                    unit_elec_consumption_dictionary['lagoon']['max'], (runs, 1))
+                    unit_elec_consumption_dictionary['lagoon']['max'], (runs, 1)) * secondary_treatment_fraction
         elif secondary_treatment == 'Stabilization Pond':
+            secondary_treatment_fraction = wastewater_sedimentation_fraction * secondary_treatment_recovery
             secondary_treatment_electricity = np.random.uniform(unit_elec_consumption_dictionary['stabilization']['min'],
-                    unit_elec_consumption_dictionary['stabilization']['max'], (runs, 1))
+                    unit_elec_consumption_dictionary['stabilization']['max'], (runs, 1)) * secondary_treatment_fraction
         elif secondary_treatment == 'Trickling Filter':
+            secondary_treatment_fraction = wastewater_sedimentation_fraction * secondary_treatment_recovery
             secondary_treatment_electricity = np.random.uniform(unit_elec_consumption_dictionary['trickling_filter']['min'],
-                    unit_elec_consumption_dictionary['tricklking_filter']['max'], (runs, 1))
+                    unit_elec_consumption_dictionary['tricklking_filter']['max'], (runs, 1)) * secondary_treatment_fraction
         else:
+            secondary_treatment_fraction = wastewater_sedimentation_fraction
             secondary_treatment_electricity  = np.zeros(runs)
 
         if nitrification_denitrification == 1:
+            nitrification_denitrification_fraction = secondary_treatment_fraction * nitrification_denitrification_recovery
             nitrification_denitrification_electricity = np.random.uniform(unit_elec_consumption_dictionary['nitrification_denitrification']['min'],
                                                            unit_elec_consumption_dictionary['nitrification_denitrification']['max'],
-                                                           (runs, nitrification_denitrification_installed)) * tertiary_treatment_scale_factor
+                                                           (runs, nitrification_denitrification_installed)) * nitrification_denitrification_fraction
         else:
+            nitrification_denitrification_fraction = secondary_treatment_fraction
             nitrification_denitrification_electricity  = np.zeros(runs)
 
         if phosphorous_removal == 1:
+            phosphorous_removal_fraction = nitrification_denitrification_fraction * phosphorous_recovery
             phosphorous_removal_electricity = np.random.uniform(unit_elec_consumption_dictionary['phosphorous_removal']['min'],
                                                            unit_elec_consumption_dictionary['phosphorous_removal']['max'],
-                                                           (runs, phosphorous_removal_installed)) * tertiary_treatment_scale_factor
+                                                           (runs, phosphorous_removal_installed)) * phosphorous_removal_fraction
         else:
+            phosphorous_removal_fraction = nitrification_denitrification_fraction
             phosphorous_removal_electricity  = np.zeros(runs)
 
-        if disinfection == 'Hypochlorite':
-            disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_wastewater']['min'],
-                    unit_elec_consumption_dictionary['hypochlorination_wastewater']['max'], (runs, 1)) * tertiary_treatment_scale_factor
-        elif disinfection == 'Ultraviolet':
-            disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['uv_disinfection_wastewater']['min'],
-                    unit_elec_consumption_dictionary['uv_disinfection_wastewater']['max'], (runs, 1)) * tertiary_treatment_scale_factor
-        elif disinfection == 'Ozone':
-            disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['ozonation']['min'],
-                    unit_elec_consumption_dictionary['ozonation']['max'], (runs, 1)) * tertiary_treatment_scale_factor
-        else:
-            disinfection_electricity = np.zeros(runs)
-
         if wastewater_reverse_osmosis == 1:
+            wastewater_reverse_osmosis_fraction = wastewater_reverse_osmosis_recovery * phosphorous_removal_fraction
             wastewater_reverse_osmosis_electricity = np.random.uniform(unit_elec_consumption_dictionary['reverse_osmosis_brackish']['min'],
                                                                        unit_elec_consumption_dictionary['reverse_osmosis_brackish']['max'],
-                                                           (runs, wastewater_reverse_osmosis_installed))
+                                                           (runs, wastewater_reverse_osmosis_installed)) * wastewater_reverse_osmosis_fraction
         else:
+            wastewater_reverse_osmosis_fraction = phosphorous_removal_fraction
             wastewater_reverse_osmosis_electricity = np.zeros(runs)
 
+        if disinfection == 'Hypochlorite':
+            disinfection_fraction = wastewater_reverse_osmosis_fraction * disinfection_recovery
+            disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['hypochlorination_wastewater']['min'],
+                    unit_elec_consumption_dictionary['hypochlorination_wastewater']['max'], (runs, 1)) * disinfection_fraction
+        elif disinfection == 'Ultraviolet':
+            disinfection_fraction = wastewater_reverse_osmosis_fraction * disinfection_recovery
+            disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['uv_disinfection_wastewater']['min'],
+                    unit_elec_consumption_dictionary['uv_disinfection_wastewater']['max'], (runs, 1)) * disinfection_fraction
+        elif disinfection == 'Ozone':
+            disinfection_fraction = wastewater_reverse_osmosis_fraction * disinfection_recovery
+            disinfection_electricity = np.random.uniform(unit_elec_consumption_dictionary['ozonation']['min'],
+                    unit_elec_consumption_dictionary['ozonation']['max'], (runs, 1)) * disinfection_fraction
+        else:
+            disinfection_fraction = wastewater_reverse_osmosis_fraction
+            disinfection_electricity = np.zeros(runs)
+
         if dechlorination == 1:
+            dechlorination_fraction = disinfection_fraction * dechlorination_recovery
             dechlorination_electricity = np.random.uniform(unit_elec_consumption_dictionary['dechlorination']['min'],
                                                            unit_elec_consumption_dictionary['dechlorination']['max'],
-                                                           (runs, 1)) * tertiary_treatment_scale_factor
+                                                           (runs, 1)) * dechlorination_fraction
         else:
+            dechlorination_fraction = disinfection_fraction
             dechlorination_electricity  = np.zeros(runs)
 
         if digestion == 'Aerobic Digestion':
+            digestion_fraction = (wastewater_sedimentation_fraction - secondary_treatment_fraction) * digestion_recovery
             digestion_electricity = np.random.uniform(unit_elec_consumption_dictionary['aerobic_digestion']['min'],
-                    unit_elec_consumption_dictionary['aerobic_digestion']['max'], (runs, 1)) * solids_processing_scale_factor
+                    unit_elec_consumption_dictionary['aerobic_digestion']['max'], (runs, 1)) * digestion_fraction
         elif digestion == 'Anaerobic Digestion w/ Biogas Use':
+            digestion_fraction = (wastewater_sedimentation_fraction - secondary_treatment_fraction) * digestion_recovery
             digestion_electricity = np.random.uniform(unit_elec_consumption_dictionary['anaerobic_digestion']['min'],
-                    unit_elec_consumption_dictionary['anaerobic_digestion']['max'], (runs, 1)) * solids_processing_scale_factor
+                    unit_elec_consumption_dictionary['anaerobic_digestion']['max'], (runs, 1)) * digestion_fraction
         # TODO Add biogas recovery to below estimates.
         elif digestion == 'Anaerobic Digestion w/o Biogas Use':
+            digestion_fraction = (wastewater_sedimentation_fraction - secondary_treatment_fraction) * digestion_recovery
             digestion_electricity = np.random.uniform(unit_elec_consumption_dictionary['anaerobic_digestion']['min'],
-                    unit_elec_consumption_dictionary['anaerobic_digestion']['max'], (runs, 1)) * solids_processing_scale_factor
+                    unit_elec_consumption_dictionary['anaerobic_digestion']['max'], (runs, 1)) * digestion_fraction
         else:
+            digestion_fraction = (wastewater_sedimentation_fraction - secondary_treatment_fraction)
             digestion_electricity = np.zeros(runs)
 
         if dewatering == 'Gravity Thickening':
+            dewatering_fraction = digestion_fraction * dewatering_recovery
             dewatering_electricity = np.random.uniform(unit_elec_consumption_dictionary['gravity_thickening']['min'],
-                    unit_elec_consumption_dictionary['gravity_thickening']['max'], (runs, 1)) * solids_processing_scale_factor
+                    unit_elec_consumption_dictionary['gravity_thickening']['max'], (runs, 1)) * dewatering_fraction
         elif dewatering == 'Mechanical Dewatering':
+            dewatering_fraction = digestion_fraction * dewatering_recovery
             dewatering_electricity = np.random.uniform(unit_elec_consumption_dictionary['mechanical_dewatering']['min'],
-                    unit_elec_consumption_dictionary['mechanical_dewatering']['max'], (runs, 1)) * solids_processing_scale_factor
+                    unit_elec_consumption_dictionary['mechanical_dewatering']['max'], (runs, 1)) * dewatering_fraction
         elif dewatering == 'Polymer Dewatering':
+            dewatering_fraction = digestion_fraction * dewatering_recovery
             dewatering_electricity = np.random.uniform(unit_elec_consumption_dictionary['polymer_dewatering']['min'],
-                    unit_elec_consumption_dictionary['poiymer_dewatering']['max'], (runs, 1)) * solids_processing_scale_factor
+                    unit_elec_consumption_dictionary['poiymer_dewatering']['max'], (runs, 1)) * dewatering_fraction
         else:
+            dewatering_fraction = digestion_fraction * dewatering_recovery
             dewatering_electricity = np.zeros(runs)
 
         if softening_process == 1:
+            softening_process_fraction = softening_process_recovery
             softening_process_electricity = np.random.uniform(unit_elec_consumption_dictionary['lime_soda_ash_softening']['min'],
                                                            unit_elec_consumption_dictionary['lime_soda_ash_softening']['max'],
-                                                           (runs, 1))
+                                                           (runs, 1)) * softening_process_fraction
         else:
-            softening_process_electricity  = np.zeros(runs)
+            softening_process_fraction = 1
+            softening_process_electricity = np.zeros(runs)
 
         if chemical_addition_input == 1:
+            chemical_addition_fraction = softening_process_fraction * chemcial_addition_recovery
             chemical_addition_input_electricity = np.random.uniform(unit_elec_consumption_dictionary['chemical_addition']['min'],
                                                            unit_elec_consumption_dictionary['chemical_addition']['max'],
-                                                           (runs, 1))
+                                                           (runs, 1)) * chemical_addition_fraction
         else:
+            chemical_addition_fraction = softening_process_fraction
             chemical_addition_input_electricity  = np.zeros(runs)
 
         if bio_treatment == 'Activated Sludge and Clarification':
-            bio_treatment_electricity = np.random.uniform(unit_elec_consumption_dictionary['activated_sludge_industrial']['min'],
+            bio_treatment_fraction = chemical_addition_fraction * bio_treatment_recovery
+            bio_treatment_electricity = (np.random.uniform(unit_elec_consumption_dictionary['activated_sludge_industrial']['min'],
                                                        unit_elec_consumption_dictionary['activated_sludge_industrial']['max'],
                                                        (runs, bio_treatment_installed)) + \
                                               np.random.uniform(unit_elec_consumption_dictionary['aeration_industrial']['min'],
@@ -501,56 +589,69 @@ def main():
                                                        (runs, bio_treatment_installed)) + \
                                               np.random.uniform(unit_elec_consumption_dictionary['clarification_industrial']['min'],
                                                        unit_elec_consumption_dictionary['clarification_industrial']['max'],
-                                                       (runs, bio_treatment_installed))
+                                                       (runs, bio_treatment_installed))) * bio_treatment_fraction
         elif bio_treatment == 'Lagoon':
+            bio_treatment_fraction = chemical_addition_fraction * bio_treatment_recovery
             bio_treatment_electricity = np.random.uniform(unit_elec_consumption_dictionary['lagoon_industrial']['min'],
-                    unit_elec_consumption_dictionary['lagoon_industrial']['max'], (runs, bio_treatment_installed))
+                    unit_elec_consumption_dictionary['lagoon_industrial']['max'], (runs, bio_treatment_installed)) * bio_treatment_fraction
         elif bio_treatment == 'Stabilization Pond':
+            bio_treatment_fraction = chemical_addition_fraction * bio_treatment_recovery
             bio_treatment_electricity = np.random.uniform(unit_elec_consumption_dictionary['stabilization_industrial']['min'],
-                    unit_elec_consumption_dictionary['stabilization_industrial']['max'], (runs, bio_treatment_installed))
+                    unit_elec_consumption_dictionary['stabilization_industrial']['max'], (runs, bio_treatment_installed)) * bio_treatment_fraction
         elif bio_treatment == 'Trickling Filter':
+            bio_treatment_fraction = chemical_addition_fraction * bio_treatment_recovery
             bio_treatment_electricity = np.random.uniform(unit_elec_consumption_dictionary['trickling_filter_industrial']['min'],
-                    unit_elec_consumption_dictionary['tricklking_filter_industrial']['max'], (runs, bio_treatment_installed))
+                    unit_elec_consumption_dictionary['tricklking_filter_industrial']['max'], (runs, bio_treatment_installed)) * bio_treatment_fraction
         else:
+            bio_treatment_fraction = chemical_addition_fraction
             bio_treatment_electricity = np.zeros(runs)
 
 
         if volume_reduction == 'Mechanical Vapor Compression':
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
             volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['mechanical_vapor_compression']['min'],
                                                        unit_elec_consumption_dictionary['mechanical_vapor_compression']['max'],
-                                                       (runs, volume_reduction_installed))
+                                                       (runs, volume_reduction_installed)) * volume_reduction_fraction
         elif volume_reduction == 'Thermal Vapor Compression':
-                volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['thermal_vapor_compression']['min'],
-                    unit_elec_consumption_dictionary['thermal_vapor_compression']['max'], (runs, 1))
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['thermal_vapor_compression']['min'],
+                    unit_elec_consumption_dictionary['thermal_vapor_compression']['max'], (runs, 1)) * volume_reduction_fraction
         elif volume_reduction == 'Reverse Osmosis':
-                volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['reverse_osmosis_industrial']['min'],
-                    unit_elec_consumption_dictionary['reverse_osmosis_industrial']['max'], (runs, 1))
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['reverse_osmosis_industrial']['min'],
+                    unit_elec_consumption_dictionary['reverse_osmosis_industrial']['max'], (runs, 1)) * volume_reduction_fraction
         elif volume_reduction == 'Forward Osmosis':
-                volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['forward_osmosis']['min'],
-                    unit_elec_consumption_dictionary['forward_osmosis']['max'], (runs, 1))
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['forward_osmosis']['min'],
+                    unit_elec_consumption_dictionary['forward_osmosis']['max'], (runs, 1)) * volume_reduction_fraction
         elif volume_reduction == 'Multiple-Effect Distillation':
-                volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['multiple_effect_distillation']['min'],
-                    unit_elec_consumption_dictionary['multiple_effect_distillation']['max'], (runs, 1))
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['multiple_effect_distillation']['min'],
+                    unit_elec_consumption_dictionary['multiple_effect_distillation']['max'], (runs, 1)) * volume_reduction_fraction
         elif volume_reduction == 'Multi-Stage Flash Distillation':
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
             volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['multistage_flash_distillation']['min'],
                                                        unit_elec_consumption_dictionary['multistage_flash_distillation']['max'],
-                                                       (runs, 1))
+                                                       (runs, 1)) * volume_reduction_fraction
         elif volume_reduction == 'Membrane Distillation':
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
             volume_reduction_electricity = np.random.uniform(unit_elec_consumption_dictionary['membrane_distillation']['min'],
-                unit_elec_consumption_dictionary['membrane_distillation']['max'], (runs, 1))
+                unit_elec_consumption_dictionary['membrane_distillation']['max'], (runs, 1)) * volume_reduction_fraction
         else:
+            volume_reduction_fraction = bio_treatment_fraction
             volume_reduction_electricity = np.zeros(runs)
 
         if crystallization == 1:
+            crystallization_fraction = volume_reduction_fraction * crystallization_recovery
             crystallization_electricity = np.random.uniform(unit_elec_consumption_dictionary['crystallization']['min'],
                                                            unit_elec_consumption_dictionary['crystallization']['max'],
-                                                           (runs, 1))* crystallization_scale_factor
+                                                           (runs, 1)) * crystallization_fraction
         else:
             crystallization_electricity = np.zeros(runs)
 
         if new_elec_max_input > 0:
             new_process_electricity = np.random.triangular(new_elec_min_input, new_elec_best_input,
-                                                             new_elec_max_input, runs)
+                                                             new_elec_max_input, runs) * new_process_recovery
         else:
             new_process_electricity = np.zeros(runs)
 
@@ -570,6 +671,340 @@ def main():
                                         crystallization_electricity + new_process_electricity
 
         return total_electricity_consumption
+
+    def calculate_thermal_consumption(basic_info_dict, baseline_process_dict, new_process_dict):
+        source_water = baseline_process_dict['source water']
+        flocculation = baseline_process_dict['flocculation']
+        flocculation_installed = baseline_process_dict['no. of flocculation units']
+        flocculation_recovery = baseline_process_dict['flocculation recovery']
+        coagulation = baseline_process_dict['coagulation']
+        coagulation_installed = baseline_process_dict['no. of coagulation units']
+        coagulation_recovery = baseline_process_dict['coagulation recovery']
+        sedimentation = baseline_process_dict['sedimentation']
+        sedimentation_installed = baseline_process_dict['no. of sedimentation units']
+        sedimentation_recovery = baseline_process_dict['sedimentation recovery']
+        filtration = baseline_process_dict['filtration']
+        filtration_recovery = baseline_process_dict['filtration recovery']
+        primary_disinfection = baseline_process_dict['primary disinfection']
+        primary_disinfection_recovery = baseline_process_dict['primary disinfection recovery']
+        secondary_disinfection = baseline_process_dict['secondary disinfection']
+        secondary_disinfection_recovery = baseline_process_dict['secondary disinfection recovery']
+        fluoridation = baseline_process_dict['fluoridation']
+        fluoridation_recovery = baseline_process_dict['fluoridation recovery']
+        softening = baseline_process_dict['softening']
+        softening_recovery = baseline_process_dict['softening recovery']
+        ph_adjustment = baseline_process_dict['pH adjustment']
+        ph_adjustment_installed = baseline_process_dict['no. of pH adjustment units']
+        ph_adjustment_recovery = baseline_process_dict['pH adjustment recovery']
+        granular_activated_carbon = baseline_process_dict['gac']
+        granular_activated_carbon_installed = baseline_process_dict['no. of gac units']
+        granular_activated_carbon_recovery = baseline_process_dict['gac recovery']
+        reverse_osmosis = baseline_process_dict['ro']
+        reverse_osmosis_installed = baseline_process_dict['no. of ro units']
+        reverse_osmosis_recovery = baseline_process_dict['ro recovery']
+        corrosion_control = baseline_process_dict['corrosion control']
+        corrosion_control_recovery = baseline_process_dict['corrosion control recovery']
+        aerated_grit = baseline_process_dict['aerated grit']
+        aerated_grit_installed = baseline_process_dict['no. of aerated grit units']
+        aerated_grit_recovery = baseline_process_dict['aerated grit recovery']
+        grinding = baseline_process_dict['grinding']
+        grit_removal = baseline_process_dict['grit removal']
+        grit_removal_installed = baseline_process_dict['no. of grit removal units']
+        grit_removal_recovery = baseline_process_dict['grit removal recovery']
+        screening = baseline_process_dict['screening']
+        screening_installed = baseline_process_dict['no. of screening units']
+        screening_recovery = baseline_process_dict['screening recovery']
+        wastewater_sedimentation = baseline_process_dict['wastewater sedimentation']
+        wastewater_sedimentation_installed = baseline_process_dict['no. of wastewater sedimentation units']
+        wastewater_sedimentation_recovery = baseline_process_dict['wastewater sedimentation recovery']
+        secondary_treatment = baseline_process_dict['secondary treatment']
+        secondary_treatment_recovery = baseline_process_dict['secondary treatment recovery']
+        nitrification_denitrification = baseline_process_dict['nitrification denitrification']
+        nitrification_denitrification_installed = baseline_process_dict['no. of nitrification denitrification units']
+        nitrification_denitrification_recovery = baseline_process_dict['nitrification denitrification recovery']
+        phosphorous_removal = baseline_process_dict['phosphorous removal']
+        phosphorous_removal_installed = baseline_process_dict['no. of phosphorous removal units']
+        phosphorous_recovery = baseline_process_dict['phosphorous removal recovery']
+        wastewater_reverse_osmosis = baseline_process_dict['wastewater ro']
+        wastewater_reverse_osmosis_installed = baseline_process_dict['no. of wastewater ro units']
+        wastewater_reverse_osmosis_recovery = baseline_process_dict['wastewater ro recovery']
+        disinfection = baseline_process_dict['disinfection']
+        disinfection_recovery = baseline_process_dict['disinfection recovery']
+        dechlorination = baseline_process_dict['dechlorination']
+        dechlorination_recovery = baseline_process_dict['dechlorination recovery']
+        digestion = baseline_process_dict['digestion']
+        digestion_recovery = baseline_process_dict['digestion recovery']
+        dewatering = baseline_process_dict['dewatering']
+        dewatering_recovery = baseline_process_dict['dewatering recovery']
+        softening_process = baseline_process_dict['softening process']
+        softening_process_recovery = baseline_process_dict['softening process recovery']
+        chemical_addition_input = baseline_process_dict['chemical addition input']
+        chemcial_addition_recovery = baseline_process_dict['chemical addition recovery']
+        bio_treatment = baseline_process_dict['bio treatment']
+        bio_treatment_installed = baseline_process_dict['no. of bio treatment units']
+        bio_treatment_recovery = baseline_process_dict['bio treatment recovery']
+        volume_reduction = baseline_process_dict['volume reduction']
+        volume_reduction_installed = baseline_process_dict['no. of volume reduction units']
+        volume_reduction_recovery = baseline_process_dict['volume reduction recovery']
+        crystallization = baseline_process_dict['crystallization']
+        crystallization_recovery = baseline_process_dict['crystallization recovery']
+        new_process_recovery = new_process_dict['new recovery']
+        new_thermal_min_input = new_process_dict['new thermal min input']
+        new_thermal_best_input = new_process_dict['new thermal best input']
+        new_thermal_max_input = new_process_dict['new thermal max input']
+        runs = basic_info_dict['mc runs']
+        system_type = basic_info_dict['system type']
+
+        if flocculation == 1:
+            flocculation_fraction = flocculation_recovery
+        else:
+            flocculation_fraction = 1
+        if coagulation == 1:
+                coagulation_fraction = flocculation_fraction * coagulation_recovery
+        else:
+                coagulation_fraction = flocculation_fraction
+        if softening == 1:
+            softening_fraction = coagulation_fraction * softening_recovery
+        else:
+            softening_fraction = coagulation_fraction
+
+        if ph_adjustment == 1:
+            ph_adjustment_fraction = softening_fraction * ph_adjustment_recovery
+        else:
+            ph_adjustment_fraction = softening_fraction
+        if sedimentation == 1:
+            sedimentation_fraction = ph_adjustment_fraction * sedimentation_recovery
+        else:
+            sedimentation_fraction = ph_adjustment_fraction
+        if granular_activated_carbon == 1:
+            granular_activated_carbon_fraction = sedimentation_fraction * granular_activated_carbon_recovery
+        else:
+            granular_activated_carbon_fraction = sedimentation_fraction
+        if filtration == 'Generic':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+        elif filtration == 'Cartridge':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+        elif filtration == 'Diatomaceous Earth':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+        elif filtration == 'Greensand':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+        elif filtration == 'Pressurized Sand':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+        elif filtration == 'Rapid Sand':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+        elif filtration == 'Slow Sand':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+        elif filtration == 'Ultrafiltration Membrane':
+            filtration_fraction = granular_activated_carbon_fraction * filtration_recovery
+        else:
+            filtration_fraction = granular_activated_carbon_fraction
+        if (reverse_osmosis == 1) and (source_water == 'Brackish Groundwater'):
+            reverse_osmosis_fraction = filtration_fraction * reverse_osmosis_recovery
+        elif (reverse_osmosis == 1) and (source_water == 'Seawater'):
+            reverse_osmosis_fraction = filtration_fraction * reverse_osmosis_recovery
+        else:
+            reverse_osmosis_fraction = filtration_fraction
+        if (primary_disinfection == 'Hypochlorite') and (source_water == "Fresh Surface Water"):
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+        elif primary_disinfection == 'Hypochlorite' and (source_water == "Fresh Groundwater"):
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+        elif primary_disinfection == 'Hypochlorite' and (source_water == "Brackish Groundwater"):
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+        elif primary_disinfection == 'Hypochlorite' and (source_water == "Seawater"):
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+        elif primary_disinfection == 'Chloramine':
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+        elif primary_disinfection == 'Iodine':
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+        elif primary_disinfection == 'Ozonation':
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+        elif primary_disinfection == 'UV Disinfection':
+            primary_disinfection_fraction = reverse_osmosis_fraction * primary_disinfection_recovery
+        else:
+            primary_disinfection_fraction = reverse_osmosis_fraction
+
+        if (secondary_disinfection == 'Hypochlorite') and (source_water == "Fresh Surface Water"):
+            secondary_disinfection_fraction = primary_disinfection_fraction * secondary_disinfection_recovery
+        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Fresh Groundwater"):
+            secondary_disinfection_fraction = primary_disinfection_fraction * secondary_disinfection_recovery
+        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Brackish Groundwater"):
+            secondary_disinfection_fraction = primary_disinfection_fraction * secondary_disinfection_recovery
+        elif secondary_disinfection == 'Hypochlorite' and (source_water == "Seawater"):
+            secondary_disinfection_fraction = primary_disinfection_fraction * secondary_disinfection_recovery
+        elif secondary_disinfection == 'Chloramine':
+            secondary_disinfection_fraction = primary_disinfection_fraction * secondary_disinfection_recovery
+        else:
+            secondary_disinfection_fraction = primary_disinfection_fraction
+
+        if fluoridation == 1:
+            fluoridation_fraction = secondary_disinfection_fraction * fluoridation_recovery
+        else:
+            fluoridation_fraction = secondary_disinfection_fraction
+        if corrosion_control == 'None':
+            corrosion_control_fraction = fluoridation_fraction
+        else:
+            corrosion_control_fraction = fluoridation_fraction * corrosion_control_recovery
+
+        if aerated_grit == 1:
+            aerated_grit_fraction = aerated_grit_recovery
+        else:
+            aerated_grit_fraction = 1
+
+        if grinding == 1:
+            grinding_fraction = 1
+        else:
+            grinding_fraction = aerated_grit_fraction
+
+        if grit_removal == 1:
+            grit_removal_fraction = grinding_fraction * grit_removal_recovery
+        else:
+            grit_removal_fraction = grinding_fraction
+
+        if screening == 1:
+            screening_fraction = grinding_fraction * screening_recovery
+        else:
+            screening_fraction = grit_removal_fraction
+
+        if wastewater_sedimentation == 1:
+            wastewater_sedimentation_fraction = screening_fraction * wastewater_sedimentation_recovery
+        else:
+            wastewater_sedimentation_fraction = screening_fraction
+
+        if secondary_treatment == 'Activated Sludge and Clarification':
+            secondary_treatment_fraction = wastewater_sedimentation_fraction * secondary_treatment_recovery
+        elif secondary_treatment == 'Lagoon':
+            secondary_treatment_fraction = wastewater_sedimentation_fraction * secondary_treatment_recovery
+        elif secondary_treatment == 'Stabilization Pond':
+            secondary_treatment_fraction = wastewater_sedimentation_fraction * secondary_treatment_recovery
+        elif secondary_treatment == 'Trickling Filter':
+            secondary_treatment_fraction = wastewater_sedimentation_fraction * secondary_treatment_recovery
+        else:
+            secondary_treatment_fraction = wastewater_sedimentation_fraction
+
+        if nitrification_denitrification == 1:
+            nitrification_denitrification_fraction = secondary_treatment_fraction * nitrification_denitrification_recovery
+        else:
+            nitrification_denitrification_fraction = secondary_treatment_fraction
+
+        if phosphorous_removal == 1:
+            phosphorous_removal_fraction = nitrification_denitrification_fraction * phosphorous_removal_recovery
+        else:
+            phosphorous_removal_fraction = nitrification_denitrification_fraction
+
+
+        if wastewater_reverse_osmosis == 1:
+            wastewater_reverse_osmosis_fraction = wastewater_reverse_osmosis_recovery * phosphorous_removal_fraction
+        else:
+            wastewater_reverse_osmosis_fraction = phosphorous_removal_fraction
+
+        if disinfection == 'Hypochlorite':
+            disinfection_fraction = wastewater_reverse_osmosis_fraction * disinfection_recovery
+        elif disinfection == 'Ultraviolet':
+            disinfection_fraction = wastewater_reverse_osmosis_fraction * disinfection_recovery
+        elif disinfection == 'Ozone':
+            disinfection_fraction = wastewater_reverse_osmosis_fraction * disinfection_recovery
+        else:
+            disinfection_fraction = wastewater_reverse_osmosis_fraction
+
+        if dechlorination == 1:
+            dechlorination_fraction = disinfection_fraction * dechlorination_recovery
+        else:
+            dechlorination_fraction = disinfection_fraction
+
+        if digestion == 'Aerobic Digestion':
+            digestion_fraction = (wastewater_sedimentation_fraction - secondary_treatment_fraction) * digestion_recovery
+            digestion_thermal = np.random.uniform(unit_therm_consumption_dictionary['aerobic_digestion']['min'],
+                    unit_therm_consumption_dictionary['aerobic_digestion']['max'], (runs, 1)) * digestion_fraction
+        elif digestion == 'Anaerobic Digestion w/ Biogas Use':
+            digestion_fraction = (wastewater_sedimentation_fraction - secondary_treatment_fraction) * digestion_recovery
+            digestion_thermal = np.random.uniform(unit_therm_consumption_dictionary['anaerobic_digestion_with_biogas']['min'],
+                    unit_therm_consumption_dictionary['anaerobic_digestion_with_biogas']['max'], (runs, 1)) * digestion_fraction
+        # TODO Add biogas recovery to below estimates.
+        elif digestion == 'Anaerobic Digestion w/o Biogas Use':
+            digestion_fraction = (wastewater_sedimentation_fraction - secondary_treatment_fraction) * digestion_recovery
+            digestion_thermal = np.random.uniform(unit_therm_consumption_dictionary['anaerobic_digestion_without_biogas']['min'],
+                    unit_therm_consumption_dictionary['anaerobic_digestion_without_biogas']['max'], (runs, 1)) * digestion_fraction
+        else:
+            digestion_fraction = (wastewater_sedimentation_fraction - secondary_treatment_fraction)
+            digestion_thermal = np.zeros(runs)
+
+        if dewatering == 'Gravity Thickening':
+            dewatering_fraction = digestion_fraction * dewatering_recovery
+        elif dewatering == 'Mechanical Dewatering':
+            dewatering_fraction = digestion_fraction * dewatering_recovery
+        elif dewatering == 'Polymer Dewatering':
+            dewatering_fraction = digestion_fraction * dewatering_recovery
+        else:
+            dewatering_fraction = digestion_fraction * dewatering_recovery
+
+        if softening_process == 1:
+            softening_process_fraction = softening_process_recovery
+        else:
+            softening_process_fraction = 1
+
+        if chemical_addition_input == 1:
+            chemical_addition_fraction = softening_process_fraction * chemical_addition_recovery
+        else:
+            chemical_addition_fraction = softening_process_fraction
+
+        if bio_treatment == 'Activated Sludge and Clarification':
+            bio_treatment_fraction = chemical_addition_fraction * bio_treatment_recovery
+        elif bio_treatment == 'Lagoon':
+            bio_treatment_fraction = chemical_addition_fraction * bio_treatment_recovery
+        elif bio_treatment == 'Stabilization Pond':
+            bio_treatment_fraction = chemical_addition_fraction * bio_treatment_recovery
+        elif bio_treatment == 'Trickling Filter':
+            bio_treatment_fraction = chemical_addition_fraction * bio_treatment_recovery
+        else:
+            bio_treatment_fraction = chemical_addition_fraction
+            bio_treatment_electricity = np.zeros(runs)
+
+
+        if volume_reduction == 'Mechanical Vapor Compression':
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_thermal = np.zeros(runs)
+        elif volume_reduction == 'Thermal Vapor Compression':
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_thermal = np.random.uniform(unit_therm_consumption_dictionary['thermal_vapor_compression']['min'],
+                    unit_therm_consumption_dictionary['thermal_vapor_compression']['max'], (runs, 1)) * volume_reduction_fraction
+        elif volume_reduction == 'Reverse Osmosis':
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_thermal = np.zeros(runs)
+        elif volume_reduction == 'Forward Osmosis':
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_thermal = np.random.uniform(unit_therm_consumption_dictionary['forward_osmosis']['min'],
+                    unit_therm_consumption_dictionary['forward_osmosis']['max'], (runs, 1)) * volume_reduction_fraction
+        elif volume_reduction == 'Multiple-Effect Distillation':
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_thermal = np.random.uniform(unit_therm_consumption_dictionary['multiple_effect_distillation']['min'],
+                    unit_therm_consumption_dictionary['multiple_effect_distillation']['max'], (runs, 1)) * volume_reduction_fraction
+        elif volume_reduction == 'Multi-Stage Flash Distillation':
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_thermal = np.random.uniform(unit_therm_consumption_dictionary['multistage_flash_distillation']['min'],
+                                                       unit_therm_consumption_dictionary['multistage_flash_distillation']['max'],
+                                                       (runs, 1)) * volume_reduction_fraction
+        elif volume_reduction == 'Membrane Distillation':
+            volume_reduction_fraction = bio_treatment_fraction * volume_reduction_recovery
+            volume_reduction_thermal = np.random.uniform(unit_therm_consumption_dictionary['membrane_distillation']['min'],
+                unit_therm_consumption_dictionary['membrane_distillation']['max'], (runs, 1)) * volume_reduction_fraction
+        else:
+            volume_reduction_fraction = bio_treatment_fraction
+            volume_reduction_thermal = np.zeros(runs)
+
+        if crystallization == 1:
+            crystallization_fraction = volume_reduction_fraction * crystallization_recovery
+        else:
+            crystallization_thermal = np.zeros(runs)
+
+        if new_thermal_max_input > 0:
+            new_process_thermal = np.random.triangular(new_thermal_min_input, new_thermal_best_input,
+                                                             new_thermal_max_input, runs)
+        else:
+            new_process_thermal = np.zeros(runs)
+
+        total_thermal_consumption = digestion_thermal + volume_reduction_thermal + new_process_thermal
+
+        return total_thermal_consumption
 
     def calculate_chemical_consumption(basic_info_dict, baseline_process_dict, new_process_dict):
         # TODO Update to use reported recovery factors.
@@ -858,8 +1293,8 @@ def main():
         elif volume_reduction == 0:
             volume_reduction_organics = np.zeros(runs)
         else:
-            volume_reduction_organics = np.random.uniform(unit_organics_consumption_dictionary['membrane_distillation']['min'],
-                unit_organics_consumption_dictionary['membrane_distillation']['max'], (runs, 1))
+            volume_reduction_organics = np.random.uniform(unit_organics_consumption_dictionary['membrane distillation cleaning']['min'],
+                unit_organics_consumption_dictionary['membrane distillation cleaning']['max'], (runs, 1))
 
         if caoh_dose_max_input > 0:
             industrial_process_caoh = np.random.triangular(caoh_dose_min_input, caoh_dose_best_input,
@@ -1560,124 +1995,139 @@ def main():
     organics_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=16, sticky=W)
 
-    Label(tab6, text='Enter electricity consumption and chemical dosages for the new process.').grid(column=0, row=1, columnspan=4)
+    Label(tab6, text='Enter energy consumption and chemical dosages for the new process.').grid(column=0, row=1, columnspan=4)
 
-    Label(tab6, text='Electricity Consumption', font=('Arial', 10)).grid(column=0, row=2, columnspan=4)
-    Label(tab6, text='Min', font=('Arial', 10)).grid(column=1, row=3)
-    Label(tab6, text='Best', font=('Arial', 10)).grid(column=2, row=3)
-    Label(tab6, text='Max', font=('Arial', 10)).grid(column=3, row=3)
-    Label(tab6, text='Unit Electricity Consumption:', font=('Arial', 10)).grid(column=0, row=4, sticky=E)
+    Label(tab6, text='Recovery:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
+    new_recovery_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_recovery_input.grid(column=1, row=2, sticky=W)
+    new_recovery_input.insert(END, 95)
+
+    Label(tab6, text='Energy Consumption', font=('Arial', 10)).grid(column=0, row=3, columnspan=4)
+    Label(tab6, text='Min', font=('Arial', 10)).grid(column=1, row=4)
+    Label(tab6, text='Best', font=('Arial', 10)).grid(column=2, row=4)
+    Label(tab6, text='Max', font=('Arial', 10)).grid(column=3, row=4)
+    Label(tab6, text='Unit Electricity Consumption:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
     new_elec_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_elec_min_input.grid(column=1, row=4, sticky=W)
+    new_elec_min_input.grid(column=1, row=5, sticky=W)
     new_elec_min_input.insert(END, 0)
     new_elec_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_elec_best_input.grid(column=2, row=4, sticky=W)
+    new_elec_best_input.grid(column=2, row=5, sticky=W)
     new_elec_best_input.insert(END, 0)
     new_elec_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_elec_max_input.grid(column=3, row=4, sticky=W)
+    new_elec_max_input.grid(column=3, row=5, sticky=W)
     new_elec_max_input.insert(END, 0)
-    Label(tab6, text='kWh/m\N{SUPERSCRIPT THREE} of water', font=('Arial', 10)).grid(column=4, row=4, sticky=W)
+    Label(tab6, text='Unit Thermal Energy Consumption:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
+    new_therm_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_therm_min_input.grid(column=1, row=6, sticky=W)
+    new_therm_min_input.insert(END, 0)
+    new_therm_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_therm_best_input.grid(column=2, row=6, sticky=W)
+    new_therm_best_input.insert(END, 0)
+    new_therm_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_therm_max_input.grid(column=3, row=6, sticky=W)
+    new_therm_max_input.insert(END, 0)
+    Label(tab6, text='MJ/m\N{SUPERSCRIPT THREE} of water', font=('Arial', 10)).grid(column=4, row=6, sticky=W)
 
-    Label(tab6, text='Chemical Consumption', font=('Arial', 10)).grid(column=0, row=5, columnspan=4)
-    Label(tab6, text='Min', font=('Arial', 10)).grid(column=1, row=6)
-    Label(tab6, text='Best', font=('Arial', 10)).grid(column=2, row=6)
-    Label(tab6, text='Max', font=('Arial', 10)).grid(column=3, row=6)
+    Label(tab6, text='Chemical Consumption', font=('Arial', 10)).grid(column=0, row=7, columnspan=4)
+    Label(tab6, text='Min', font=('Arial', 10)).grid(column=1, row=8)
+    Label(tab6, text='Best', font=('Arial', 10)).grid(column=2, row=8)
+    Label(tab6, text='Max', font=('Arial', 10)).grid(column=3, row=8)
 
-    Label(tab6, text='CaOH:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
+    Label(tab6, text='CaOH:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
     new_caoh_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_caoh_dose_min_input.grid(column=1, row=7, sticky=W)
+    new_caoh_dose_min_input.grid(column=1, row=9, sticky=W)
     new_caoh_dose_min_input.insert(END, 0)
     new_caoh_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_caoh_dose_best_input.grid(column=2, row=7, sticky=W)
+    new_caoh_dose_best_input.grid(column=2, row=9, sticky=W)
     new_caoh_dose_best_input.insert(END, 0)
     new_caoh_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_caoh_dose_max_input.grid(column=3, row=7, sticky=W)
+    new_caoh_dose_max_input.grid(column=3, row=9, sticky=W)
     new_caoh_dose_max_input.insert(END, 0)
-    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=7, sticky=W)
-
-    Label(tab6, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=8, sticky=E)
-    new_fecl3_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_fecl3_dose_min_input.grid(column=1, row=8, sticky=W)
-    new_fecl3_dose_min_input.insert(END, 0)
-    new_fecl3_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_fecl3_dose_best_input.grid(column=2, row=8, sticky=W)
-    new_fecl3_dose_best_input.insert(END, 0)
-    new_fecl3_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_fecl3_dose_max_input.grid(column=3, row=8, sticky=W)
-    new_fecl3_dose_max_input.insert(END, 0)
-    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=8, sticky=W)
-
-    Label(tab6, text='HCl:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
-    new_hcl_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_hcl_dose_min_input.grid(column=1, row=9, sticky=W)
-    new_hcl_dose_min_input.insert(END, 0)
-    new_hcl_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_hcl_dose_best_input.grid(column=2, row=9, sticky=W)
-    new_hcl_dose_best_input.insert(END, 0)
-    new_hcl_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_hcl_dose_max_input.grid(column=3, row=9, sticky=W)
-    new_hcl_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=9, sticky=W)
 
-    Label(tab6, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
-    new_nutrients_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_nutrients_dose_min_input.grid(column=1, row=10, sticky=W)
-    new_nutrients_dose_min_input.insert(END, 0)
-    new_nutrients_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_nutrients_dose_best_input.grid(column=2, row=10, sticky=W)
-    new_nutrients_dose_best_input.insert(END, 0)
-    new_nutrients_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_nutrients_dose_max_input.grid(column=3, row=10, sticky=W)
-    new_nutrients_dose_max_input.insert(END, 0)
+    Label(tab6, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
+    new_fecl3_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_min_input.grid(column=1, row=10, sticky=W)
+    new_fecl3_dose_min_input.insert(END, 0)
+    new_fecl3_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_best_input.grid(column=2, row=10, sticky=W)
+    new_fecl3_dose_best_input.insert(END, 0)
+    new_fecl3_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_max_input.grid(column=3, row=10, sticky=W)
+    new_fecl3_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=10, sticky=W)
 
-    Label(tab6, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
-    new_sodium_carbonate_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_sodium_carbonate_dose_min_input.grid(column=1, row=11, sticky=W)
-    new_sodium_carbonate_dose_min_input.insert(END, 0)
-    new_sodium_carbonate_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_sodium_carbonate_dose_best_input.grid(column=2, row=11, sticky=W)
-    new_sodium_carbonate_dose_best_input.insert(END, 0)
-    new_sodium_carbonate_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_sodium_carbonate_dose_max_input.grid(column=3, row=11, sticky=W)
-    new_sodium_carbonate_dose_max_input.insert(END, 0)
+    Label(tab6, text='HCl:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
+    new_hcl_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_min_input.grid(column=1, row=11, sticky=W)
+    new_hcl_dose_min_input.insert(END, 0)
+    new_hcl_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_best_input.grid(column=2, row=11, sticky=W)
+    new_hcl_dose_best_input.insert(END, 0)
+    new_hcl_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_max_input.grid(column=3, row=11, sticky=W)
+    new_hcl_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=11, sticky=W)
 
-    Label(tab6, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
-    new_gac_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_gac_dose_min_input.grid(column=1, row=12, sticky=W)
-    new_gac_dose_min_input.insert(END, 0)
-    new_gac_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_gac_dose_best_input.grid(column=2, row=12, sticky=W)
-    new_gac_dose_best_input.insert(END, 0)
-    new_gac_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_gac_dose_max_input.grid(column=3, row=12, sticky=W)
-    new_gac_dose_max_input.insert(END, 0)
+    Label(tab6, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
+    new_nutrients_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_min_input.grid(column=1, row=12, sticky=W)
+    new_nutrients_dose_min_input.insert(END, 0)
+    new_nutrients_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_best_input.grid(column=2, row=12, sticky=W)
+    new_nutrients_dose_best_input.insert(END, 0)
+    new_nutrients_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_max_input.grid(column=3, row=12, sticky=W)
+    new_nutrients_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=12, sticky=W)
 
-    Label(tab6, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
-    new_inorganics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_inorganics_dose_min_input.grid(column=1, row=13, sticky=W)
-    new_inorganics_dose_min_input.insert(END, 0)
-    new_inorganics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_inorganics_dose_best_input.grid(column=2, row=13, sticky=W)
-    new_inorganics_dose_best_input.insert(END, 0)
-    new_inorganics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_inorganics_dose_max_input.grid(column=3, row=13, sticky=W)
-    new_inorganics_dose_max_input.insert(END, 0)
+    Label(tab6, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
+    new_sodium_carbonate_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_min_input.grid(column=1, row=13, sticky=W)
+    new_sodium_carbonate_dose_min_input.insert(END, 0)
+    new_sodium_carbonate_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_best_input.grid(column=2, row=13, sticky=W)
+    new_sodium_carbonate_dose_best_input.insert(END, 0)
+    new_sodium_carbonate_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_max_input.grid(column=3, row=13, sticky=W)
+    new_sodium_carbonate_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=13, sticky=W)
 
-    Label(tab6, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
+    Label(tab6, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
+    new_gac_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_min_input.grid(column=1, row=14, sticky=W)
+    new_gac_dose_min_input.insert(END, 0)
+    new_gac_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_best_input.grid(column=2, row=14, sticky=W)
+    new_gac_dose_best_input.insert(END, 0)
+    new_gac_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_max_input.grid(column=3, row=14, sticky=W)
+    new_gac_dose_max_input.insert(END, 0)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=14, sticky=W)
+
+    Label(tab6, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
+    new_inorganics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_min_input.grid(column=1, row=15, sticky=W)
+    new_inorganics_dose_min_input.insert(END, 0)
+    new_inorganics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_best_input.grid(column=2, row=15, sticky=W)
+    new_inorganics_dose_best_input.insert(END, 0)
+    new_inorganics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_max_input.grid(column=3, row=15, sticky=W)
+    new_inorganics_dose_max_input.insert(END, 0)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=15, sticky=W)
+
+    Label(tab6, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=16, sticky=E)
     new_organics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_organics_dose_min_input.grid(column=1, row=14, sticky=W)
+    new_organics_dose_min_input.grid(column=1, row=16, sticky=W)
     new_organics_dose_min_input.insert(END, 0)
     new_organics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_organics_dose_best_input.grid(column=2, row=14, sticky=W)
+    new_organics_dose_best_input.grid(column=2, row=16, sticky=W)
     new_organics_dose_best_input.insert(END, 0)
     new_organics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    new_organics_dose_max_input.grid(column=3, row=14, sticky=W)
+    new_organics_dose_max_input.grid(column=3, row=16, sticky=W)
     new_organics_dose_max_input.insert(END, 0)
-    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=14, sticky=W)
+    Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=16, sticky=W)
 
     Label(tab7, text='Results', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=8)
     Label(tab7, text='Embedded Air Emissions [g/m\N{SUPERSCRIPT THREE}]', font=('Arial', 10)).grid(column=3, row=1, columnspan=4)
@@ -1750,35 +2200,35 @@ def main():
             baseline_treatment_process_info = {'source water': source_water.get(),
                                             'flocculation': flocculation.get(),
                                            'no. of flocculation units': int(flocculation_installed.get()),
-                                               'flocculation recovery': flocculation_recovery.get() / 100,
+                                               'flocculation recovery': float(flocculation_recovery.get()) / 100,
                                            'coagulation': coagulation.get(),
                                            'no. of coagulation units': int(coagulation_installed.get()),
-                                               'coagulation recovery': coagulation_recovery.get() / 100,
+                                               'coagulation recovery': float(coagulation_recovery.get()) / 100,
                                            'sedimentation': sedimentation.get(),
                                            'no. of sedimentation units': int(sedimentation_installed.get()),
-                                               'sedimentation recovery': sedimentation_recovery.get() / 100,
+                                               'sedimentation recovery': float(sedimentation_recovery.get()) / 100,
                                            'filtration': filtration.get(),
                                            'no. of filtration units': int(filtration_installed.get()),
-                                               'filtration recovery': filtration_recovery.get() / 100,
+                                               'filtration recovery': float(filtration_recovery.get()) / 100,
                                            'primary disinfection': primary_disinfection.get(),
-                                               'primary disinfection recovery': primary_disinfection_recovery.get() / 100,
+                                               'primary disinfection recovery': float(primary_disinfection_recovery.get()) / 100,
                                            'secondary disinfection': secondary_disinfection.get(),
-                                               'secondary disinfection recovery': secondary_disinfection_recovery.get() / 100,
+                                               'secondary disinfection recovery': float(secondary_disinfection_recovery.get()) / 100,
                                            'fluoridation': fluoridation.get(),
-                                               'fluoridation recovery': fluoridation_recovery.get() / 100,
+                                               'fluoridation recovery': float(fluoridation_recovery.get()) / 100,
                                            'softening': softening.get(),
-                                               'softening recovery': softening_recovery.get() / 100,
+                                               'softening recovery': float(softening_recovery.get()) / 100,
                                            'pH adjustment': ph_adjustment.get(),
                                            'no. of pH adjustment units': int(ph_adjustment_installed.get()),
-                                               'pH adjustment recovery': ph_adjustment_recovery.get() / 100,
+                                               'pH adjustment recovery': float(ph_adjustment_recovery.get()) / 100,
                                            'gac': granular_activated_carbon.get(),
                                            'no. of gac units': int(granular_activated_carbon_installed.get()),
-                                               'gac recovery': granular_activated_carbon_recovery.get() / 100,
+                                               'gac recovery': float(granular_activated_carbon_recovery.get()) / 100,
                                            'ro': reverse_osmosis.get(),
                                            'no. of ro units': int(reverse_osmosis_installed.get()),
-                                               'ro recovery': reverse_osmosis_recovery.get() / 100,
+                                               'ro recovery': float(reverse_osmosis_recovery.get()) / 100,
                                            'corrosion control': corrosion_control.get(),
-                                               'corrosion control recovery': corrosion_control_recovery.get() / 100,
+                                               'corrosion control recovery': float(corrosion_control_recovery.get()) / 100,
                                            'aerated grit': FALSE,
                                            'no. of aerated grit units': 0,
                                                'aerated grit recovery': 0,
@@ -1802,18 +2252,18 @@ def main():
                                            'no. of phosphorous removal units': 0,
                                                'phosphorous removal recovery': 0,
                                            'disinfection': FALSE,
-                                               'disinfection removal recovery': 0,
+                                               'disinfection recovery': 0,
                                            'dechlorination': FALSE,
                                                'dechlorination recovery': 0,
                                            'wastewater ro': FALSE,
                                            'no. of wastewater ro units': 0,
-                                               'wasteawter ro recovery': 0,
+                                               'wastewater ro recovery': 0,
                                            'digestion': FALSE,
                                                'digestion recovery': 0,
                                            'dewatering': FALSE,
                                                'dewatering recovery': 0,
                                            'softening process': FALSE,
-                                               'softening recovery': 0,
+                                               'softening process recovery': 0,
                                            'chemical addition input': FALSE,
                                                'chemical addition recovery': 0,
                                            'bio treatment': FALSE,
@@ -1821,7 +2271,7 @@ def main():
                                            'no. of bio treatment units': 0,
                                            'volume reduction': FALSE,
                                            'no. of volume reduction units': 0,
-                                               'volume recovery recovery': 0,
+                                               'volume reduction recovery': 0,
                                            'crystallization': FALSE,
                                                'crystallization recovery': 0,
                                            'caoh dose min input': 0,
@@ -1883,37 +2333,37 @@ def main():
                                                 'corrosion control recovery': 0,
                                            'aerated grit': aerated_grit.get(),
                                            'no. of aerated grit units': int(aerated_grit_installed.get()),
-                                                'aerated grit recovery': aerated_grit_recovery.get()/100,
+                                                'aerated grit recovery': float(aerated_grit_recovery.get())/100,
                                            'grinding': grinding.get(),
-                                                'grinding recovery': grinding_recovery.get()/100,
+                                                'grinding recovery': float(grinding_recovery.get())/100,
                                            'grit removal': grit_removal.get(),
                                            'no. of grit removal units': int(grit_removal_installed.get()),
-                                                'grit removal recovery': grit_removal_recovery.get()/100,
+                                                'grit removal recovery': float(grit_removal_recovery.get())/100,
                                            'screening': screening.get(),
                                            'no. of screening units': int(screening_installed.get()),
-                                                'screening recovery': screening_recovery.get()/100,
+                                                'screening recovery': float(screening_recovery.get())/100,
                                            'wastewater sedimentation': wastewater_sedimentation.get(),
                                            'no. of wastewater sedimentation units': int(wastewater_sedimentation_installed.get()),
-                                                'wastewater sedimentation recovery': wastewater_sedimentation_recovery.get()/100,
+                                                'wastewater sedimentation recovery': float(wastewater_sedimentation_recovery.get())/100,
                                            'secondary treatment': secondary_treatment.get(),
-                                                'secondary treatment recovery': secondary_treatment_recovery.get()/100,
+                                                'secondary treatment recovery': float(secondary_treatment_recovery.get())/100,
                                            'nitrification denitrification': nitrification_denitrification.get(),
                                            'no. of nitrification denitrification units': int(nitrification_denitrification_installed.get()),
-                                                'nitrificaiton denitrification recovery': nitrification_denitrification_recovery.get()/100,
+                                                'nitrification denitrification recovery': float(nitrification_denitrification_recovery.get())/100,
                                            'phosphorous removal': phosphorous_removal.get(),
                                            'no. of phosphorous removal units': int(phosphorous_removal_installed.get()),
-                                                'phosphorous removal recovery': phosphorous_removal_recovery.get()/100,
+                                                'phosphorous removal recovery': float(phosphorous_removal_recovery.get())/100,
                                            'disinfection': disinfection.get(),
-                                                'disinfection recovery': disinfection_recovery.get()/100,
+                                                'disinfection recovery': float(disinfection_recovery.get())/100,
                                            'dechlorination': dechlorination.get(),
-                                                'dechlorination': dechlorination_recovery.get()/100,
+                                                'dechlorination recovery': float(dechlorination_recovery.get())/100,
                                            'wastewater ro': wastewater_reverse_osmosis.get(),
                                            'no. of wastewater ro units': int(wastewater_reverse_osmosis_installed.get()),
-                                                'wasteawter ro recovery': wastewater_reverse_osmosis_recovery.get()/100,
+                                                'wastewater ro recovery': float(wastewater_reverse_osmosis_recovery.get())/100,
                                            'digestion': digestion.get(),
-                                                'digestion recovery': digestion_recovery.get()/100,
+                                                'digestion recovery': float(digestion_recovery.get())/100,
                                            'dewatering': dewatering.get(),
-                                                'dewatering recovery': dewatering_recovery.get()/100,
+                                                'dewatering recovery': float(dewatering_recovery.get())/100,
                                            'softening process': FALSE,
                                                 'softening process recovery': 0,
                                            'chemical addition input': FALSE,
@@ -1996,17 +2446,17 @@ def main():
                                                 'screening recovery': 0,
                                            'wastewater sedimentation': FALSE,
                                            'no. of wastewater sedimentation units': 0,
-                                                'wasteawter sedimentation recovery': 0,
+                                                'wastewater sedimentation recovery': 0,
                                            'secondary treatment': FALSE,
                                                 'secondary treatment recovery': 0,
                                            'nitrification denitrification': FALSE,
                                            'no. of nitrification denitrification units': 0,
-                                                'nitrification denitrifcation recovery': 0,
+                                                'nitrification denitrification recovery': 0,
                                            'phosphorous removal': FALSE,
                                            'no. of phosphorous removal units': 0,
                                                 'phosphorous removal recovery': 0,
                                            'disinfection': FALSE,
-                                                'disinfection removal recovery': 0,
+                                                'disinfection recovery': 0,
                                            'dechlorination': FALSE,
                                                 'dechlorination recovery': 0,
                                            'wastewater ro': FALSE,
@@ -2017,17 +2467,17 @@ def main():
                                            'dewatering': FALSE,
                                                 'dewatering recovery': 0,
                                            'softening process': softening_process.get(),
-                                                'softening process recovery': softening_process_recovery.get()/100,
+                                                'softening process recovery': float(softening_process_recovery.get())/100,
                                            'chemical addition input': chemical_addition_input.get(),
-                                                'chemical addition process recovery': chemical_addition_recovery.get()/100,
+                                                'chemical addition recovery': float(chemical_addition_recovery.get())/100,
                                            'bio treatment': bio_treatment.get(),
                                            'no. of bio treatment units': int(bio_treatment_installed.get()),
-                                                'bio treatment recovery': bio_treatment_recovery.get()/100,
+                                                'bio treatment recovery': float(bio_treatment_recovery.get())/100,
                                            'volume reduction': volume_reduction.get(),
                                            'no. of volume reduction units': int(volume_reduction_installed.get()),
-                                                'volume reduction recovery': volume_reduction_recovery.get()/100,
+                                                'volume reduction recovery': float(volume_reduction_recovery.get())/100,
                                            'crystallization': crystallization.get(),
-                                                'crystallization recovery': crystallization_recovery.get()/100,
+                                                'crystallization recovery': float(crystallization_recovery.get())/100,
                                            'caoh dose min input': float(caoh_dose_min_input.get()),
                                            'caoh dose best input': float(caoh_dose_best_input.get()),
                                            'caoh dose max input': float(caoh_dose_max_input.get()),
@@ -2053,9 +2503,13 @@ def main():
                                            'inorganics dose best input': float(inorganics_dose_best_input.get()),
                                            'inorganics dose max input': float(inorganics_dose_max_input.get())}
 
-        new_process_info = {'new electricity min input': float(new_elec_min_input.get()),
+        new_process_info = {'new recovery': float(new_recovery_input.get())/100,
+                            'new electricity min input': float(new_elec_min_input.get()),
                              'new electricity best input': float(new_elec_best_input.get()),
                              'new electricity max input': float(new_elec_max_input.get()),
+                            'new thermal min input': float(new_therm_min_input.get()),
+                            'new thermal best input': float(new_therm_best_input.get()),
+                            'new thermal max input': float(new_therm_max_input.get()),
                              'new caoh dose min input': float(new_caoh_dose_min_input.get()),
                              'new caoh dose best input': float(new_caoh_dose_best_input.get()),
                              'new caoh dose max input': float(new_caoh_dose_max_input.get()),
@@ -2099,6 +2553,18 @@ def main():
         elec_range = str(elec_25) + '-' + str(elec_75)
         Label(tab7, text=med_elec, font=('Arial', 10)).grid(column=1, row=5)
         Label(tab7, text=elec_range, font=('Arial', 10)).grid(column=1, row=6)
+
+        #Calculate and report thermal energy consumption
+
+        thermal_consumption_estimates = calculate_thermal_consumption(basic_info, baseline_treatment_process_info,
+                                                                      new_process_info)
+
+        med_therm = round_sig(np.median(thermal_consumption_estimates))
+        therm_25 = round_sig(np.percentile(thermal_consumption_estimates, 25))
+        therm_75 = round_sig(np.percentile(thermal_consumption_estimates, 75))
+        therm_range = str(therm_25) + '-' + str(therm_75)
+        Label(tab7, text=med_therm, font=('Arial', 10)).grid(column=1, row=7)
+        Label(tab7, text=therm_range, font=('Arial', 10)).grid(column=1, row=8)
 
         # Calculate and report chemical consumption.
         total_caoh_consumption, total_fecl3_consumption, total_hcl_consumption, total_nutrients_consumption, \
