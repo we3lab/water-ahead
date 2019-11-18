@@ -25,7 +25,7 @@ To create the GUI using Python, run the water_ahead_GUI.py file located in the C
 We are currently in the process of developing a installer for the Graphical User Interface.  Stay tuned for updates on when the Installer will be available for download!
 
 ## Contributing
-Please read CONTRIBUTING.md for details of our code of conduct, and the process for submitting pull requests to us.
+Please read <a href="https://github.com/we3lab/water-ahead/blob/master/CONTRIBUTING.md"> CONTRIBUTING.md </a> for details of our code of conduct, and the process for submitting pull requests to us.
 
 ### Reporting a Bug
 To report a bug, create an issue in the GitHub Repository.  Please use the <a href="https://github.com/we3lab/water-ahead/issues/new?assignees=&labels=&template=bug_report.md&title="> Bug Report template </a>.
