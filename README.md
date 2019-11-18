@@ -3,13 +3,13 @@ The Water *A*ssociated *H*ealth and *E*nvironmental *A*ir *D*amages Tool is a mo
 <ul>
   <li> Criteria Air Pollutants </li>
     <ul>
-      <li> NO_x_ </li>
-      <li> SO_2_ </li>
-      <li> PM_2.5_ </li>
+      <li> NO<sub>x</sub> </li>
+      <li> SO<sub>2</sub> </li>
+      <li> PM<sub>2.5</sub> </li>
   </ul>
   <li> Greenhouse Gas Emissions </li>
     <ul>
-      <li> CO_2_ </li>
+      <li> CO<sub>2</sub> </li>
   </ul>
 </ul>
   
