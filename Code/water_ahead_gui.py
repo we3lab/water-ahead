@@ -1,20 +1,19 @@
 from tkinter import *
-from tkinter import ttk
-import tkinter.simpledialog
-import tkinter.messagebox
-import os
 import numpy as np
+import pandas as pd
+import pathlib
 
-# TODO Add thermal energy inputs
+fileDir = pathlib.Path(__file__).parents[1]
+
+
 # TODO Add embedded energy in chemicals
 # TODO Add cost tab
 
 from chem_manufacturing_distribution_dictionary import chem_manufacturing_share_dict
+from empty_state_dictionary import empty_state_dict
 from unit_elec_consumption import unit_elec_consumption_dictionary
 from unit_therm_consumption import unit_therm_consumption_dictionary
-from unit_chem_consumption import unit_caoh_consumption_dictionary, unit_fecl3_consumption_dictionary, \
-    unit_hcl_consumption_dictionary,unit_nutrients_consumption_dictionary, \
-    unit_sodium_carbonate_consumption_dictionary, unit_gac_consumption_dictionary, \
+from unit_chem_consumption import unit_sodium_carbonate_consumption_dictionary, unit_gac_consumption_dictionary, \
     unit_inorganics_consumption_dictionary, unit_organics_consumption_dictionary
 
 def menu_option_selected():
@@ -651,7 +650,7 @@ def main():
 
         if new_elec_max_input > 0:
             new_process_electricity = np.random.triangular(new_elec_min_input, new_elec_best_input,
-                                                             new_elec_max_input, runs) * new_process_recovery
+                                                             new_elec_max_input, size=(runs, 1)) * new_process_recovery
         else:
             new_process_electricity = np.zeros(runs)
 
@@ -671,6 +670,27 @@ def main():
                                         crystallization_electricity + new_process_electricity
 
         return total_electricity_consumption
+
+    def electricity_emissions(geography_info_dict, electricity_consumption_estimates, emissions_factor_dictionary):
+        if geography_info_dict['electricity state'] == 'US Average':
+            co2_ef = 1122.9 * 453.6 / 1000  # Value from 2014 eGRID.  Reported in lb/MWh converted to g/kWh
+            so2_ef = 0.9 * 453.6 / 1000  # Value from 2014 eGRID.  Reported in lb/MWh converted to g/kWh
+            nox_ef = 1.6 * 453.6 / 1000  # Value from 2014 eGRID.  Reported in lb/MWh converted to g/kWh
+            pm25_ef = (
+                                  182034.684 / 4093606000) * 2000 * 453.6 / 1000  # Value from 2014 EIA.  Reported in tons/MWh converted to g/kWh.
+        else:
+            co2_ef = float(emissions_factor_dictionary['co2'][geography_info_dict['electricity state']])
+            so2_ef = float(emissions_factor_dictionary['so2'][geography_info_dict['electricity state']])
+            nox_ef = float(emissions_factor_dictionary['nox'][geography_info_dict['electricity state']])
+            pm25_ef = float(emissions_factor_dictionary['pm25'][geography_info_dict['electricity state']])
+
+        co2_electricity_emissions = co2_ef * electricity_consumption_estimates
+        so2_electricity_emissions = so2_ef * electricity_consumption_estimates
+        nox_electricity_emissions = nox_ef * electricity_consumption_estimates
+        pm25_electricity_emissions = pm25_ef * electricity_consumption_estimates
+
+        return co2_electricity_emissions, so2_electricity_emissions, nox_electricity_emissions, \
+               pm25_electricity_emissions
 
     def calculate_thermal_consumption(basic_info_dict, baseline_process_dict, new_process_dict):
         source_water = baseline_process_dict['source water']
@@ -1006,8 +1026,16 @@ def main():
 
         return total_thermal_consumption
 
+    def thermal_emissions(thermal_consumption_estimates, emissions_factor_dictionary):
+        co2_thermal_emissions = emissions_factor_dictionary['co2'] * thermal_consumption_estimates
+        so2_thermal_emissions = emissions_factor_dictionary['so2'] * thermal_consumption_estimates
+        nox_thermal_emissions = emissions_factor_dictionary['nox'] * thermal_consumption_estimates
+        pm25_thermal_emissions = emissions_factor_dictionary['pm25'] * thermal_consumption_estimates
+
+        return co2_thermal_emissions, so2_thermal_emissions, nox_thermal_emissions, pm25_thermal_emissions
+
+
     def calculate_chemical_consumption(basic_info_dict, baseline_process_dict, new_process_dict):
-        # TODO Update to use reported recovery factors.
         source_water = baseline_process_dict['source water']
         coagulation = baseline_process_dict['coagulation']
         coagulation_installed = baseline_process_dict['no. of coagulation units']
@@ -1176,22 +1204,22 @@ def main():
             fluoridation_inorganics = np.zeros(runs)
 
         if softening == 1:
-            softening_soda_ash = np.random.uniform(unit_sodium_carbonate_consumption_dictionary['lime_soda_ash_softening']['min'],
-                                                           unit_sodium_carbonate_consumption_dictionary['lime_soda_ash_softening']['max'],
+            softening_soda_ash = np.random.uniform(unit_sodium_carbonate_consumption_dictionary['lime soda ash softening']['min'],
+                                                           unit_sodium_carbonate_consumption_dictionary['lime soda ash softening']['max'],
                                                            (runs, 1)) * volume_scale_factor
         else:
             softening_soda_ash = np.zeros(runs)
 
         if ph_adjustment == 1:
-            ph_adjustment_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['pH_adjustment']['min'],
-                                                           unit_inorganics_consumption_dictionary['pH_adjustment']['max'],
+            ph_adjustment_inorganics = np.random.uniform(unit_inorganics_consumption_dictionary['pH adjustment']['min'],
+                                                           unit_inorganics_consumption_dictionary['pH adjustment']['max'],
                                                            (runs, ph_adjustment_installed))
         else:
             ph_adjustment_inorganics = np.zeros(runs)
 
         if granular_activated_carbon == 1:
-            gac_granular_activated_carbon = np.random.uniform(unit_gac_consumption_dictionary['granular_activated_carbon']['min'],
-                                                           unit_gac_consumption_dictionary['granular_activated_carbon']['max'],
+            gac_granular_activated_carbon = np.random.uniform(unit_gac_consumption_dictionary['granular activated carbon']['min'],
+                                                           unit_gac_consumption_dictionary['granular activated carbon']['max'],
                                                            (runs, granular_activated_carbon_installed)) * volume_scale_factor
         else:
             gac_granular_activated_carbon = np.zeros(runs)
@@ -1419,7 +1447,119 @@ def main():
                total_soda_ash_consumption, total_gac_consumption, total_inorganics_consumption, \
                total_organics_consumption
 
-    #Create the notebook.
+    def chemical_emissions(geography_info, chemical_key, chemical_consumption_estimates,
+                           electricity_consumption_dictionary, electrical_emissions_dictionary,
+                           thermal_emissions_dictionary, direct_emission_dictionary):
+
+        if geography_info['chemicals state'] == 'US Average':
+            chem_manufacturing_distribution = chem_manufacturing_share_dict
+        else:
+            chem_manufacturing_distribution = empty_state_dict
+            state_key = geography_info['chemicals state']
+            chem_manufacturing_distribution[state_key] = 1
+
+        chem_manufacturing_distribution_dataframe = pd.DataFrame.from_dict(chem_manufacturing_distribution,
+                                                                           orient='index', columns=['Share'])
+        chem_manufacturing_distribution_dataframe.index.name = 'state'
+        chem_manufacturing_distribution_dataframe.reset_index()
+
+        state_co2_ef_dataframe = pd.DataFrame.from_dict(electrical_emissions_dictionary['co2'],
+                                                        orient='index', columns=['co2'], dtype=float)
+        state_co2_ef_dataframe.index.name = 'state'
+        state_co2_ef_dataframe.reset_index()
+        merged_co2_dataframe = pd.merge(chem_manufacturing_distribution_dataframe, state_co2_ef_dataframe, on='state')
+        j = 0
+        weighted_co2_emissions_factor = 0
+        while j <len(merged_co2_dataframe['Share']):
+            weighted_co2_emissions_factor += merged_co2_dataframe['Share'][j] * merged_co2_dataframe['co2'][j]
+            j += 1
+        co2_chem_elec_emissions = weighted_co2_emissions_factor * electricity_consumption_dictionary[chemical_key]
+
+        state_so2_ef_dataframe = pd.DataFrame.from_dict(electrical_emissions_dictionary['so2'],
+                                                        orient='index', columns=['so2'], dtype=float)
+        state_so2_ef_dataframe.index.name = 'state'
+        state_so2_ef_dataframe.reset_index()
+        merged_so2_dataframe = pd.merge(chem_manufacturing_distribution_dataframe, state_so2_ef_dataframe, on='state')
+        j = 0
+        weighted_so2_emissions_factor = 0
+        while j <len(merged_so2_dataframe['Share']):
+            weighted_so2_emissions_factor += merged_so2_dataframe['Share'][j] * merged_so2_dataframe['so2'][j]
+            j += 1
+        so2_chem_elec_emissions = weighted_so2_emissions_factor * electricity_consumption_dictionary[chemical_key]
+
+        state_nox_ef_dataframe = pd.DataFrame.from_dict(electrical_emissions_dictionary['nox'],
+                                                        orient='index', columns=['nox'], dtype=float)
+        state_nox_ef_dataframe.index.name = 'state'
+        state_nox_ef_dataframe.reset_index()
+        merged_nox_dataframe = pd.merge(chem_manufacturing_distribution_dataframe, state_nox_ef_dataframe, on='state')
+        j = 0
+        weighted_nox_emissions_factor = 0
+        while j <len(merged_nox_dataframe['Share']):
+            weighted_nox_emissions_factor += merged_nox_dataframe['Share'][j] * merged_nox_dataframe['nox'][j]
+            j += 1
+        nox_chem_elec_emissions = weighted_nox_emissions_factor * electricity_consumption_dictionary[chemical_key]
+
+        state_pm25_ef_dataframe = pd.DataFrame.from_dict(electrical_emissions_dictionary['pm25'],
+                                                        orient='index', columns=['pm25'], dtype=float)
+        state_pm25_ef_dataframe.index.name = 'state'
+        state_pm25_ef_dataframe.reset_index()
+        merged_pm25_dataframe = pd.merge(chem_manufacturing_distribution_dataframe, state_pm25_ef_dataframe, on='state')
+        j = 0
+        weighted_pm25_emissions_factor = 0
+        while j <len(merged_pm25_dataframe['Share']):
+            weighted_pm25_emissions_factor += merged_pm25_dataframe['Share'][j] * merged_pm25_dataframe['pm25'][j]
+            j += 1
+        pm25_chem_elec_emissions = weighted_pm25_emissions_factor * electricity_consumption_dictionary[chemical_key]
+
+        co2_chem_therm_emissions = thermal_emissions_dictionary[chemical_key]['co2']
+        so2_chem_therm_emissions = thermal_emissions_dictionary[chemical_key]['so2']
+        nox_chem_therm_emissions = thermal_emissions_dictionary[chemical_key]['nox']
+        pm25_chem_therm_emissions = thermal_emissions_dictionary[chemical_key]['pm25']
+
+        co2_chem_direct_emissions = direct_emission_dictionary[chemical_key]['co2']
+        so2_chem_direct_emissions = direct_emission_dictionary[chemical_key]['so2']
+        nox_chem_direct_emissions = direct_emission_dictionary[chemical_key]['nox']
+        pm25_chem_direct_emissions = direct_emission_dictionary[chemical_key]['pm25']
+
+        co2_chemical_emissions = chemical_consumption_estimates/1000 * (co2_chem_elec_emissions + co2_chem_therm_emissions + co2_chem_direct_emissions) #Divide by 1000 for the unit conversions
+        so2_chemical_emissions = chemical_consumption_estimates/1000 * (so2_chem_elec_emissions + so2_chem_therm_emissions + so2_chem_direct_emissions) #Divide by 1000 for the unit conversions
+        nox_chemical_emissions = chemical_consumption_estimates/1000 * (nox_chem_elec_emissions + nox_chem_therm_emissions + nox_chem_direct_emissions) #Divide by 1000 for the unit conversions
+        pm25_chemical_emissions = chemical_consumption_estimates/1000 * (pm25_chem_elec_emissions + pm25_chem_therm_emissions + pm25_chem_direct_emissions) #Divide by 1000 for the unit conversions
+
+        return co2_chemical_emissions, so2_chemical_emissions, nox_chemical_emissions, pm25_chemical_emissions, \
+               chem_manufacturing_distribution
+
+    def adjust_for_inflation(uninflated_cost, baseline_year, year_for_inflation):
+        inflation_dictionary = {'2000': 724060.77,
+                                '2001': 743754.56,
+                                '2002': 754648.99,
+                                '2003': 770571.62,
+                                '2004': 793617.54,
+                                '2005': 818758.54,
+                                '2006': 852698.89,
+                                '2007': 872807.50,
+                                '2008': 921685.79,
+                                '2009': 902356.55,
+                                '2010': 913502.39,
+                                '2011': 946650.80,
+                                '2012': 959983.91,
+                                '2013': 978806.14,
+                                '2014': 998307.17,
+                                '2015': 1000000.00,
+                                '2016': 1008271.39,
+                                '2017': 1025694.10,
+                                '2018': 1055947.10,
+                                '2019': 1075075.21}
+        inflated_cost = uninflated_cost * (inflation_dictionary[year_for_inflation]/inflation_dictionary[baseline_year])
+        return inflated_cost
+
+
+    def calculate_climate_damages(co2_unit_emissions, basic_info):
+        uninflated_climate_damages = co2_unit_emissions * 1/907184.73999999 * basic_info['system size'] * 365 * basic_info['scc']  #Unit conversions for grams per ton and days per year
+        inflated_climate_damages = adjust_for_inflation(uninflated_climate_damages, '2015', basic_info['inflation year'])
+        return inflated_climate_damages
+
+    # Create the notebook.
     root = Tk()
 
     root.title("Water AHEAD")
@@ -2141,7 +2281,7 @@ def main():
     Label(tab7, text='Climate', font=('Arial', 10)).grid(column=8, row=2)
     Label(tab7, text='Total', font=('Arial', 10, 'italic')).grid(column=9, row=2)
     Label(tab7, text='Energy', font=('Arial', 10, 'italic')).grid(column=0, row=3)
-    Label(tab7, text='25th-75th', font=('Arial', 10, 'italic')).grid(column=0, row=4)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10, 'italic')).grid(column=0, row=4)
     Label(tab7, text='Electricity', font=('Arial', 10)).grid(column=0, row=5)
     Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=6)
     Label(tab7, text='Thermal', font=('Arial', 10)).grid(column=0, row=7)
@@ -2187,6 +2327,172 @@ def main():
 
             except ValueError:
                 return 0
+
+    # Read in emissions data on the the average emissions factor per state and AP2 damages data.
+    # Start with the CO2, SO2, and NOx emissions.
+    average_state_efs = pd.read_csv(fileDir / 'Data' / '2014 State MEFs.csv', header=None)
+    average_state_list = average_state_efs.iloc[0].dropna()
+    co2_ef_list = average_state_efs.iloc[2]
+    co2_ef_list = co2_ef_list.iloc[1::2]
+    so2_ef_list = average_state_efs.iloc[4]
+    so2_ef_list = so2_ef_list.iloc[1::2]
+    nox_ef_list = average_state_efs.iloc[6]
+    nox_ef_list = nox_ef_list.iloc[1::2]
+    i = 0
+    average_state_list_cleaned = []
+    co2_ef_list_cleaned = []
+    so2_ef_list_cleaned = []
+    nox_ef_list_cleaned = []
+    while i < 95:
+        average_state_list_cleaned.append(average_state_list[i])
+        co2_ef_list_cleaned.append(co2_ef_list[i+1])
+        so2_ef_list_cleaned.append(so2_ef_list[i+1])
+        nox_ef_list_cleaned.append(nox_ef_list[i+1])
+        i += 2
+
+    state_mefs = [('state', average_state_list_cleaned), ('co2', co2_ef_list_cleaned), ('so2', so2_ef_list_cleaned),
+                  ('nox', nox_ef_list_cleaned)]
+    mefs = pd.DataFrame.from_items(state_mefs)
+
+    # Now read in and merge the PM2.5 emissions factors
+    state_pm25_efs = pd.read_csv(fileDir / 'Data' / 'State PM25.csv')
+    state_ef_data = pd.merge(mefs, state_pm25_efs, on='state')
+
+    # Now read in AP2 damages and calculate the state-level average damages.
+    county_level_ap2_damages = pd.read_csv(fileDir / 'Data' / 'AP2 Damages.csv')
+    county_level_ap2_damages.drop('fips', axis=1, inplace=True)
+    state_level_average_damages = county_level_ap2_damages.groupby('state').mean()
+    state_level_average_damages['state_fips'] = state_level_average_damages.index
+    state_fips_code_go_betweens = pd.read_csv(fileDir / 'Data' / 'state fips code go betweens.csv')
+    state_level_damages = pd.merge(state_level_average_damages, state_fips_code_go_betweens, on='state_fips')
+
+    # Finally create master list of EFs and Damage factors.
+    state_level_efs_and_damages = pd.merge(state_ef_data, state_level_damages, on='state')
+    state_level_efs_and_damages.drop('state_fips', axis=1, inplace=True)
+    state_level_dictionary = state_level_efs_and_damages.set_index('state').to_dict()
+
+    # And let's go ahead and create the dictionaries for the different chemicals and the emissions associated with
+    # generating them.
+    direct_chemical_emissions = {'caoh': {'nox': 0, 'so2': 0.15, 'pm25': 0.056, 'co2': 770},
+                                 'fecl3': {'nox': 0, 'so2': 0, 'pm25': 0, 'co2': 0},
+                                 'hcl': {'nox': 2.5, 'so2': 4.9, 'pm25': 0.067, 'co2': 2620},
+                                 'nutrients': {'nox': 0.03, 'so2': 8.2, 'pm25': 0.2, 'co2': 7.1},
+                                 'na2co3': {'nox': 0, 'so2': 0, 'pm25': 96.5, 'co2': 415},
+                                 'gac': {'nox': 0, 'so2': 0, 'pm25': 0, 'co2': 0},
+                                 'hypochlorite': {'nox': 0, 'so2': 0, 'pm25': 0, 'co2': 0},
+                                 'inorganics': {'nox': 0, 'so2': 0.15, 'pm25': 0.056, 'co2': 770},
+                                 'organics': {'nox': 0.12, 'so2': 0.098, 'pm25': 0.0076, 'co2': 170}}
+
+    thermal_energy_consumption = {'caoh': {'bit coal': 0.172, 'pet': 0.0000322, 'rfo': 0, 'natgas': 0.0021, 'diesel': 0.000945},
+                                  'fecl3': {'bit coal': 0,'pet': 0, 'rfo': 0, 'natgas': 0, 'diesel': 0},
+                                  'hcl': {'bit coal': 0.3181+0.0266,'pet': 0, 'rfo': 0, 'natgas': 0.29839, 'diesel': 0.02643},
+                                  'nutrients': {'bit coal': 0,'pet': 0, 'rfo': 0, 'natgas': 0, 'diesel': 0},
+                                  'na2co3': {'bit coal': 0.108,'pet': 0.000032, 'rfo': 0, 'natgas': 0.021, 'diesel': 0.00095},
+                                  'gac': {'bit coal': 0.36,'pet': 0, 'rfo': 0, 'natgas': 0.126, 'diesel': 0},
+                                  'hypochlorite': {'bit coal': 0.36, 'pet': 0, 'rfo': 0, 'natgas': 0.126, 'diesel': 0},
+                                  'inorganics': {'bit coal': 0.172,'pet': 0.000032, 'rfo': 0, 'natgas': 0.021, 'diesel': 0.00095},
+                                  'organics': {'bit coal': 0.00078,'pet': 0.00023, 'rfo': 0.024, 'natgas': 0.12, 'diesel': 0.00093}}
+
+
+    def caclulate_thermal_energy_emissions_for_chemical_manufacturing(energy_consumed_dictionary):
+        bit_coal_combustion_per_kg = {'co2': 2633, 'nox': 5.75, 'so2': 16.6, 'pm25': 0}  # [g/m^3] from NREL's LCI database
+        pet_combustion_per_L = {'co2': 1721, 'nox': 2.6, 'so2': 0, 'pm25': 0}  # [g/m^3] from NREL's LCI database
+        rfo_combustion_per_L = {'co2': 3263.2, 'nox': 7.03, 'so2': 5.12, 'pm25': 0}  # [g/m^3] from NREL's LCI database
+        ng_combustion_per_m3 = {'co2': 1960.9, 'nox': 1.6, 'so2': 0.0101, 'pm25': 0}  # [g/m^3] from NREL's LCI database
+        diesel_combustion_per_L = {'co2': 2730, 'nox': 2.87, 'so2': 0.599, 'pm25': 0}  # [g/m^3] from NREL's LCI database
+
+        fuel_co2 = (energy_consumed_dictionary['bit coal'] * bit_coal_combustion_per_kg['co2']) + \
+                   (energy_consumed_dictionary['pet'] * pet_combustion_per_L['co2']) + \
+                   (energy_consumed_dictionary['rfo'] * rfo_combustion_per_L['co2']) + \
+                   (energy_consumed_dictionary['natgas'] * ng_combustion_per_m3['co2']) + \
+                   (energy_consumed_dictionary['diesel'] * diesel_combustion_per_L['co2'])
+        fuel_nox = (energy_consumed_dictionary['bit coal'] * bit_coal_combustion_per_kg['nox']) + \
+                   (energy_consumed_dictionary['pet'] * pet_combustion_per_L['nox']) + \
+                   (energy_consumed_dictionary['rfo'] * rfo_combustion_per_L['nox']) + \
+                   (energy_consumed_dictionary['natgas'] * ng_combustion_per_m3['nox']) + \
+                   (energy_consumed_dictionary['diesel'] * diesel_combustion_per_L['nox'])
+        fuel_so2 = (energy_consumed_dictionary['bit coal'] * bit_coal_combustion_per_kg['so2']) + \
+                   (energy_consumed_dictionary['pet'] * pet_combustion_per_L['so2']) + \
+                   (energy_consumed_dictionary['rfo'] * rfo_combustion_per_L['so2']) + \
+                   (energy_consumed_dictionary['natgas'] * ng_combustion_per_m3['so2']) + \
+                   (energy_consumed_dictionary['diesel'] * diesel_combustion_per_L['so2'])
+        fuel_pm25 = (energy_consumed_dictionary['bit coal'] * bit_coal_combustion_per_kg['pm25']) + \
+                    (energy_consumed_dictionary['pet'] * pet_combustion_per_L['pm25']) + \
+                    (energy_consumed_dictionary['rfo'] * rfo_combustion_per_L['pm25']) + \
+                    (energy_consumed_dictionary['natgas'] * ng_combustion_per_m3['pm25']) + \
+                    (energy_consumed_dictionary['diesel'] * diesel_combustion_per_L['pm25'])
+        fuel_emissions_dictionary = {'co2': fuel_co2, 'nox': fuel_nox, 'so2': fuel_so2, 'pm25': fuel_pm25}
+
+        return fuel_emissions_dictionary
+
+    caoh_emissions_dictionary = caclulate_thermal_energy_emissions_for_chemical_manufacturing(
+        thermal_energy_consumption['caoh'])
+    fecl3_emissions_dictionary = caclulate_thermal_energy_emissions_for_chemical_manufacturing(
+        thermal_energy_consumption['fecl3'])
+    hcl_emissions_dictionary = caclulate_thermal_energy_emissions_for_chemical_manufacturing(
+        thermal_energy_consumption['hcl'])
+    nutrients_emissions_dictionary = caclulate_thermal_energy_emissions_for_chemical_manufacturing(
+        thermal_energy_consumption['nutrients'])
+    na2co3_emissions_dictionary = caclulate_thermal_energy_emissions_for_chemical_manufacturing(
+        thermal_energy_consumption['na2co3'])
+    gac_emissions_dictionary = caclulate_thermal_energy_emissions_for_chemical_manufacturing(
+        thermal_energy_consumption['gac'])
+    hypochlorite_emissions_dictionary = caclulate_thermal_energy_emissions_for_chemical_manufacturing(
+        thermal_energy_consumption['hypochlorite'])
+    inorganics_emissions_dictionary = caclulate_thermal_energy_emissions_for_chemical_manufacturing(
+        thermal_energy_consumption['inorganics'])
+    organics_emissions_dictionary = caclulate_thermal_energy_emissions_for_chemical_manufacturing(
+        thermal_energy_consumption['organics'])
+
+    thermal_chemical_emissions = {'caoh': {'co2': caoh_emissions_dictionary['co2'],
+                                           'nox': caoh_emissions_dictionary['nox'],
+                                           'so2': caoh_emissions_dictionary['so2'],
+                                           'pm25': caoh_emissions_dictionary['pm25']},
+                                  'fecl3': {'co2': fecl3_emissions_dictionary['co2'],
+                                           'nox': fecl3_emissions_dictionary['nox'],
+                                           'so2': fecl3_emissions_dictionary['so2'],
+                                           'pm25': fecl3_emissions_dictionary['pm25']},
+                                  'hcl': {'co2': hcl_emissions_dictionary['co2'],
+                                           'nox': hcl_emissions_dictionary['nox'],
+                                           'so2': hcl_emissions_dictionary['so2'],
+                                           'pm25': hcl_emissions_dictionary['pm25']},
+                                  'nutrients': {'co2': nutrients_emissions_dictionary['co2'],
+                                           'nox': nutrients_emissions_dictionary['nox'],
+                                           'so2': nutrients_emissions_dictionary['so2'],
+                                           'pm25': nutrients_emissions_dictionary['pm25']},
+                                  'na2co3':{'co2': na2co3_emissions_dictionary['co2'],
+                                           'nox': na2co3_emissions_dictionary['nox'],
+                                           'so2': na2co3_emissions_dictionary['so2'],
+                                           'pm25': na2co3_emissions_dictionary['pm25']},
+                                  'gac': {'co2': gac_emissions_dictionary['co2'],
+                                           'nox': gac_emissions_dictionary['nox'],
+                                           'so2': gac_emissions_dictionary['so2'],
+                                           'pm25': gac_emissions_dictionary['pm25']},
+                                  'hypochlorite': {'co2': hypochlorite_emissions_dictionary['co2'],
+                                           'nox': hypochlorite_emissions_dictionary['nox'],
+                                           'so2': hypochlorite_emissions_dictionary['so2'],
+                                           'pm25': hypochlorite_emissions_dictionary['pm25']},
+                                  'inorganics': {'co2': inorganics_emissions_dictionary['co2'],
+                                           'nox': inorganics_emissions_dictionary['nox'],
+                                           'so2': inorganics_emissions_dictionary['so2'],
+                                           'pm25': inorganics_emissions_dictionary['pm25']},
+                                  'organics': {'co2': organics_emissions_dictionary['co2'],
+                                           'nox': organics_emissions_dictionary['nox'],
+                                           'so2': organics_emissions_dictionary['so2'],
+                                           'pm25': organics_emissions_dictionary['pm25']}}
+
+    electrical_energy_consumption = {'caoh': 0.068, 'fecl3': 0, 'hcl': 0.10, 'nutrients': 0, 'na2co3': 8.5,'gac': 0.58,
+                                     'hypochlorite': 0.017, 'inorganics': 0.068, 'organics': 5.4}
+
+    # Now let's create dictionaries for thermal energy consumption.  For this, we assume that all thermal energy is
+    # provided via natural gas combustion.
+    ng_energy_density = 36.7 # [MJ/m^3] from NREL's LCI database
+    ng_combustion_per_m3 = {'co2': 1960.9, 'nox': 1.6, 'so2': 0.0101, 'pm25': 0}  # [g/m^3] from NREL's LCI database
+    ng_combustion_per_mj = {'co2': ng_combustion_per_m3['co2'] / ng_energy_density,
+                            'nox': ng_combustion_per_m3['nox'] / ng_energy_density,
+                            'so2': ng_combustion_per_m3['so2'] / ng_energy_density,
+                            'pm25': ng_combustion_per_m3['pm25'] / ng_energy_density}
+
 
     def gather_inputs():
         '''This function collects the model inputs and stores them into a dictionary.'''
@@ -2554,6 +2860,49 @@ def main():
         Label(tab7, text=med_elec, font=('Arial', 10)).grid(column=1, row=5)
         Label(tab7, text=elec_range, font=('Arial', 10)).grid(column=1, row=6)
 
+        # Calculate and report the electricity emissions.
+        co2_electricity_emissions, so2_electricity_emissions, nox_electricity_emissions, \
+        pm25_electricity_emissions = electricity_emissions(geography_info, electricity_consumption_estimates,
+                                                           state_level_dictionary)
+
+        med_elec_co2 = round_sig(np.median(co2_electricity_emissions))
+        elec_co2_25 = round_sig(np.percentile(co2_electricity_emissions, 25))
+        elec_co2_75 = round_sig(np.percentile(co2_electricity_emissions, 75))
+        elec_co2_range = str(elec_co2_25) + '-' + str(elec_co2_75)
+        Label(tab7, text=med_elec_co2, font=('Arial', 10)).grid(column=6, row=5)
+        Label(tab7, text=elec_co2_range, font=('Arial', 10)).grid(column=6, row=6)
+
+        med_elec_so2 = round_sig(np.median(so2_electricity_emissions))
+        elec_so2_25 = round_sig(np.percentile(so2_electricity_emissions, 25))
+        elec_so2_75 = round_sig(np.percentile(so2_electricity_emissions, 75))
+        elec_so2_range = str(elec_so2_25) + '-' + str(elec_so2_75)
+        Label(tab7, text=med_elec_so2, font=('Arial', 10)).grid(column=4, row=5)
+        Label(tab7, text=elec_so2_range, font=('Arial', 10)).grid(column=4, row=6)
+
+        med_elec_nox = round_sig(np.median(nox_electricity_emissions))
+        elec_nox_25 = round_sig(np.percentile(nox_electricity_emissions, 25))
+        elec_nox_75 = round_sig(np.percentile(nox_electricity_emissions, 75))
+        elec_nox_range = str(elec_nox_25) + '-' + str(elec_nox_75)
+        Label(tab7, text=med_elec_nox, font=('Arial', 10)).grid(column=3, row=5)
+        Label(tab7, text=elec_nox_range, font=('Arial', 10)).grid(column=3, row=6)
+
+        med_elec_pm25 = round_sig(np.median(pm25_electricity_emissions))
+        elec_pm25_25 = round_sig(np.percentile(pm25_electricity_emissions, 25))
+        elec_pm25_75 = round_sig(np.percentile(pm25_electricity_emissions, 75))
+        elec_pm25_range = str(elec_pm25_25) + '-' + str(elec_pm25_75)
+        Label(tab7, text=med_elec_pm25, font=('Arial', 10)).grid(column=5, row=5)
+        Label(tab7, text=elec_pm25_range, font=('Arial', 10)).grid(column=5, row=6)
+
+        # Calculate and report electrical energy emission damages.
+
+        elec_climate_damages = calculate_climate_damages(co2_electricity_emissions, basic_info)
+        med_elec_climate = round_sig(np.median(elec_climate_damages))
+        elec_climate_25 = round_sig(np.percentile(elec_climate_damages, 25))
+        elec_climate_75 = round_sig(np.percentile(elec_climate_damages, 75))
+        elec_climate_range = str(elec_climate_25) + '-' + str(elec_climate_75)
+        Label(tab7, text=med_elec_climate, font=('Arial', 10)).grid(column=8, row=5)
+        Label(tab7, text=elec_climate_range, font=('Arial', 10)).grid(column=8, row=6)
+
         #Calculate and report thermal energy consumption
 
         thermal_consumption_estimates = calculate_thermal_consumption(basic_info, baseline_treatment_process_info,
@@ -2566,11 +2915,218 @@ def main():
         Label(tab7, text=med_therm, font=('Arial', 10)).grid(column=1, row=7)
         Label(tab7, text=therm_range, font=('Arial', 10)).grid(column=1, row=8)
 
+        co2_thermal_emissions, so2_thermal_emissions, nox_thermal_emissions, pm25_thermal_emissions = \
+            thermal_emissions(thermal_consumption_estimates, ng_combustion_per_mj)
+
+        med_therm_co2 = round_sig(np.median(co2_thermal_emissions))
+        therm_co2_25 = round_sig(np.percentile(co2_thermal_emissions, 25))
+        therm_co2_75 = round_sig(np.percentile(co2_thermal_emissions, 75))
+        therm_co2_range = str(therm_co2_25) + '-' + str(therm_co2_75)
+        Label(tab7, text=med_therm_co2, font=('Arial', 10)).grid(column=6, row=7)
+        Label(tab7, text=therm_co2_range, font=('Arial', 10)).grid(column=6, row=8)
+
+        med_therm_so2 = round_sig(np.median(so2_thermal_emissions))
+        therm_so2_25 = round_sig(np.percentile(so2_thermal_emissions, 25))
+        therm_so2_75 = round_sig(np.percentile(so2_thermal_emissions, 75))
+        therm_so2_range = str(therm_so2_25) + '-' + str(therm_so2_75)
+        Label(tab7, text=med_therm_so2, font=('Arial', 10)).grid(column=4, row=7)
+        Label(tab7, text=therm_so2_range, font=('Arial', 10)).grid(column=4, row=8)
+
+        med_therm_nox = round_sig(np.median(nox_thermal_emissions))
+        therm_nox_25 = round_sig(np.percentile(nox_thermal_emissions, 25))
+        therm_nox_75 = round_sig(np.percentile(nox_thermal_emissions, 75))
+        therm_nox_range = str(therm_nox_25) + '-' + str(therm_nox_75)
+        Label(tab7, text=med_therm_nox, font=('Arial', 10)).grid(column=3, row=7)
+        Label(tab7, text=therm_nox_range, font=('Arial', 10)).grid(column=3, row=8)
+
+        med_therm_pm25 = round_sig(np.median(pm25_thermal_emissions))
+        therm_pm25_25 = round_sig(np.percentile(pm25_thermal_emissions, 25))
+        therm_pm25_75 = round_sig(np.percentile(pm25_thermal_emissions, 75))
+        therm_pm25_range = str(therm_pm25_25) + '-' + str(therm_pm25_75)
+        Label(tab7, text=med_therm_pm25, font=('Arial', 10)).grid(column=5, row=7)
+        Label(tab7, text=therm_pm25_range, font=('Arial', 10)).grid(column=5, row=8)
+
+        # Calculate and report thermal energy emission damages.
+
+        therm_climate_damages = calculate_climate_damages(co2_thermal_emissions, basic_info)
+        med_therm_climate = round_sig(np.median(therm_climate_damages))
+        therm_climate_25 = round_sig(np.percentile(therm_climate_damages, 25))
+        therm_climate_75 = round_sig(np.percentile(therm_climate_damages, 75))
+        therm_climate_range = str(therm_climate_25) + '-' + str(therm_climate_75)
+        Label(tab7, text=med_therm_climate, font=('Arial', 10)).grid(column=8, row=7)
+        Label(tab7, text=therm_climate_range, font=('Arial', 10)).grid(column=8, row=8)
+
+        # Calculate and report the total energy associated emissions.
+
+        med_energy_co2 = round_sig(np.median(co2_thermal_emissions + co2_electricity_emissions))
+        energy_co2_25 = round_sig(np.percentile(co2_thermal_emissions + co2_electricity_emissions, 25))
+        energy_co2_75 = round_sig(np.percentile(co2_thermal_emissions + co2_electricity_emissions, 75))
+        energy_co2_range = str(energy_co2_25) + '-' + str(energy_co2_75)
+        Label(tab7, text=med_energy_co2, font=('Arial', 10, 'italic')).grid(column=6, row=3)
+        Label(tab7, text=energy_co2_range, font=('Arial', 10, 'italic')).grid(column=6, row=4)
+
+        med_energy_so2 = round_sig(np.median(so2_thermal_emissions + so2_electricity_emissions))
+        energy_so2_25 = round_sig(np.percentile(so2_thermal_emissions + so2_electricity_emissions, 25))
+        energy_so2_75 = round_sig(np.percentile(so2_thermal_emissions + so2_electricity_emissions, 75))
+        energy_so2_range = str(energy_so2_25) + '-' + str(energy_so2_75)
+        Label(tab7, text=med_energy_so2, font=('Arial', 10, 'italic')).grid(column=4, row=3)
+        Label(tab7, text=energy_so2_range, font=('Arial', 10, 'italic')).grid(column=4, row=4)
+
+        med_energy_nox = round_sig(np.median(nox_thermal_emissions + nox_electricity_emissions))
+        energy_nox_25 = round_sig(np.percentile(nox_thermal_emissions + nox_electricity_emissions, 25))
+        energy_nox_75 = round_sig(np.percentile(nox_thermal_emissions + nox_electricity_emissions, 75))
+        energy_nox_range = str(energy_nox_25) + '-' + str(energy_nox_75)
+        Label(tab7, text=med_energy_nox, font=('Arial', 10, 'italic')).grid(column=3, row=3)
+        Label(tab7, text=energy_nox_range, font=('Arial', 10, 'italic')).grid(column=3, row=4)
+
+        med_energy_pm25 = round_sig(np.median(pm25_thermal_emissions + pm25_electricity_emissions))
+        energy_pm25_25 = round_sig(np.percentile(pm25_thermal_emissions + pm25_electricity_emissions, 25))
+        energy_pm25_75 = round_sig(np.percentile(pm25_thermal_emissions + pm25_electricity_emissions, 75))
+        energy_pm25_range = str(energy_pm25_25) + '-' + str(energy_pm25_75)
+        Label(tab7, text=med_energy_pm25, font=('Arial', 10, 'italic')).grid(column=5, row=3)
+        Label(tab7, text=energy_pm25_range, font=('Arial', 10, 'italic')).grid(column=5, row=4)
+
+        # Calculate and report total energy emission damages.
+
+        energy_climate_damages = calculate_climate_damages((co2_thermal_emissions + co2_electricity_emissions),
+                                                           basic_info)
+        med_energy_climate = round_sig(np.median(energy_climate_damages))
+        energy_climate_25 = round_sig(np.percentile(energy_climate_damages, 25))
+        energy_climate_75 = round_sig(np.percentile(energy_climate_damages, 75))
+        energy_climate_range = str(therm_climate_25) + '-' + str(therm_climate_75)
+        Label(tab7, text=med_energy_climate, font=('Arial', 10, 'italic')).grid(column=8, row=3)
+        Label(tab7, text=energy_climate_range, font=('Arial', 10, 'italic')).grid(column=8, row=4)
+
+
         # Calculate and report chemical consumption.
         total_caoh_consumption, total_fecl3_consumption, total_hcl_consumption, total_nutrients_consumption, \
         total_soda_ash_consumption, total_gac_consumption, total_inorganics_consumption, \
         total_organics_consumption = calculate_chemical_consumption(basic_info, baseline_treatment_process_info,
                                                                     new_process_info)
+
+        caoh_co2_chemical_emissions, caoh_so2_chemical_emissions, caoh_nox_chemical_emissions, \
+        caoh_pm25_chemical_emissions, caoh_chem_manufacturing_distribution = chemical_emissions(geography_info, 'caoh',
+                                                                                                total_caoh_consumption,
+                                                                                                electrical_energy_consumption,
+                                                                                                state_level_dictionary,
+                                                                                                thermal_chemical_emissions,
+                                                                                                direct_chemical_emissions)
+
+        fecl3_co2_chemical_emissions, fecl3_so2_chemical_emissions, fecl3_nox_chemical_emissions, \
+        fecl3_pm25_chemical_emissions, fecl3_chem_manufacturing_distribution = chemical_emissions(geography_info, 'fecl3',
+                                                                                                total_fecl3_consumption,
+                                                                                                electrical_energy_consumption,
+                                                                                                state_level_dictionary,
+                                                                                                thermal_chemical_emissions,
+                                                                                                direct_chemical_emissions)
+
+        hcl_co2_chemical_emissions, hcl_so2_chemical_emissions, hcl_nox_chemical_emissions, \
+        hcl_pm25_chemical_emissions, hcl_chem_manufacturing_distribution = chemical_emissions(geography_info, 'hcl',
+                                                                                                total_hcl_consumption,
+                                                                                                electrical_energy_consumption,
+                                                                                                state_level_dictionary,
+                                                                                                thermal_chemical_emissions,
+                                                                                                direct_chemical_emissions)
+
+        nutrients_co2_chemical_emissions, nutrients_so2_chemical_emissions, nutrients_nox_chemical_emissions, \
+        nutrients_pm25_chemical_emissions, nutrients_chem_manufacturing_distribution = chemical_emissions(geography_info, 'nutrients',
+                                                                                                total_nutrients_consumption,
+                                                                                                electrical_energy_consumption,
+                                                                                                state_level_dictionary,
+                                                                                                thermal_chemical_emissions,
+                                                                                                direct_chemical_emissions)
+
+        soda_ash_co2_chemical_emissions, soda_ash_so2_chemical_emissions, soda_ash_nox_chemical_emissions, \
+        soda_ash_pm25_chemical_emissions, soda_ash_chem_manufacturing_distribution = chemical_emissions(geography_info, 'na2co3',
+                                                                                                total_soda_ash_consumption,
+                                                                                                electrical_energy_consumption,
+                                                                                                state_level_dictionary,
+                                                                                                thermal_chemical_emissions,
+                                                                                                direct_chemical_emissions)
+
+        gac_co2_chemical_emissions, gac_so2_chemical_emissions, gac_nox_chemical_emissions, \
+        gac_pm25_chemical_emissions, gac_chem_manufacturing_distribution = chemical_emissions(geography_info, 'gac',
+                                                                                                total_gac_consumption,
+                                                                                                electrical_energy_consumption,
+                                                                                                state_level_dictionary,
+                                                                                                thermal_chemical_emissions,
+                                                                                                direct_chemical_emissions)
+
+        # hypochlorite_co2_chemical_emissions, hypochlorite_so2_chemical_emissions, hypochlorite_nox_chemical_emissions, \
+        # hypochlorite_pm25_chemical_emissions, hypochlorite_chem_manufacturing_distribution = chemical_emissions(geography_info, 'hypochlorite',
+        #                                                                                         total_inorganics_consumption,
+        #                                                                                         electrical_energy_consumption,
+        #                                                                                         state_level_dictionary,
+        #                                                                                         thermal_chemical_emissions,
+        #                                                                                         direct_chemical_emissions)
+
+        inorganics_co2_chemical_emissions, inorganics_so2_chemical_emissions, inorganics_nox_chemical_emissions, \
+        inorganics_pm25_chemical_emissions, inorganics_chem_manufacturing_distribution = chemical_emissions(geography_info, 'inorganics',
+                                                                                                total_inorganics_consumption,
+                                                                                                electrical_energy_consumption,
+                                                                                                state_level_dictionary,
+                                                                                                thermal_chemical_emissions,
+                                                                                                direct_chemical_emissions)
+
+        organics_co2_chemical_emissions, organics_so2_chemical_emissions, organics_nox_chemical_emissions, \
+        organics_pm25_chemical_emissions, organics_chem_manufacturing_distribution = chemical_emissions(geography_info, 'organics',
+                                                                                                total_organics_consumption,
+                                                                                                electrical_energy_consumption,
+                                                                                                state_level_dictionary,
+                                                                                                thermal_chemical_emissions,
+                                                                                                direct_chemical_emissions)
+
+        co2_chemical_emissions = caoh_co2_chemical_emissions + fecl3_co2_chemical_emissions + \
+                                 hcl_co2_chemical_emissions + nutrients_co2_chemical_emissions + \
+                                 nutrients_co2_chemical_emissions + soda_ash_co2_chemical_emissions + \
+                                 gac_co2_chemical_emissions + inorganics_co2_chemical_emissions + \
+                                 organics_co2_chemical_emissions
+
+        so2_chemical_emissions = caoh_so2_chemical_emissions + fecl3_so2_chemical_emissions + \
+                                 hcl_so2_chemical_emissions + nutrients_so2_chemical_emissions + \
+                                 nutrients_so2_chemical_emissions + soda_ash_so2_chemical_emissions + \
+                                 gac_so2_chemical_emissions + inorganics_so2_chemical_emissions + \
+                                 organics_so2_chemical_emissions
+
+        nox_chemical_emissions = caoh_nox_chemical_emissions + fecl3_nox_chemical_emissions + \
+                                 hcl_nox_chemical_emissions + nutrients_nox_chemical_emissions + \
+                                 nutrients_nox_chemical_emissions + soda_ash_nox_chemical_emissions + \
+                                 gac_nox_chemical_emissions + inorganics_nox_chemical_emissions + \
+                                 organics_nox_chemical_emissions
+
+        pm25_chemical_emissions = caoh_pm25_chemical_emissions + fecl3_pm25_chemical_emissions + \
+                                  hcl_pm25_chemical_emissions + nutrients_pm25_chemical_emissions + \
+                                  nutrients_co2_chemical_emissions + soda_ash_co2_chemical_emissions + \
+                                  gac_pm25_chemical_emissions + inorganics_pm25_chemical_emissions + \
+                                  organics_pm25_chemical_emissions
+
+        med_chem_co2 = round_sig(np.median(co2_chemical_emissions))
+        chem_co2_25 = round_sig(np.percentile(co2_chemical_emissions, 25))
+        chem_co2_75 = round_sig(np.percentile(co2_chemical_emissions, 75))
+        chem_co2_range = str(chem_co2_25) + '-' + str(chem_co2_75)
+        Label(tab7, text=med_chem_co2, font=('Arial', 10, 'italic')).grid(column=6, row=9)
+        Label(tab7, text=chem_co2_range, font=('Arial', 10, 'italic')).grid(column=6, row=10)
+
+        med_chem_so2 = round_sig(np.median(so2_chemical_emissions))
+        chem_so2_25 = round_sig(np.percentile(so2_chemical_emissions, 25))
+        chem_so2_75 = round_sig(np.percentile(so2_chemical_emissions, 75))
+        chem_so2_range = str(chem_so2_25) + '-' + str(chem_so2_75)
+        Label(tab7, text=med_chem_so2, font=('Arial', 10, 'italic')).grid(column=4, row=9)
+        Label(tab7, text=chem_so2_range, font=('Arial', 10, 'italic')).grid(column=4, row=10)
+
+        med_chem_nox = round_sig(np.median(nox_chemical_emissions))
+        chem_nox_25 = round_sig(np.percentile(nox_chemical_emissions, 25))
+        chem_nox_75 = round_sig(np.percentile(nox_chemical_emissions, 75))
+        chem_nox_range = str(chem_nox_25) + '-' + str(chem_nox_75)
+        Label(tab7, text=med_chem_nox, font=('Arial', 10, 'italic')).grid(column=3, row=9)
+        Label(tab7, text=chem_nox_range, font=('Arial', 10, 'italic')).grid(column=3, row=10)
+
+        med_chem_pm25 = round_sig(np.median(pm25_chemical_emissions))
+        chem_pm25_25 = round_sig(np.percentile(pm25_chemical_emissions, 25))
+        chem_pm25_75 = round_sig(np.percentile(pm25_chemical_emissions, 75))
+        chem_pm25_range = str(chem_pm25_25) + '-' + str(chem_pm25_75)
+        Label(tab7, text=med_chem_pm25, font=('Arial', 10, 'italic')).grid(column=5, row=9)
+        Label(tab7, text=chem_pm25_range, font=('Arial', 10, 'italic')).grid(column=5, row=10)
 
         med_caoh = round_sig(np.median(total_caoh_consumption))
         caoh_25 = round_sig(np.percentile(total_caoh_consumption, 25))
@@ -2579,12 +3135,68 @@ def main():
         Label(tab7, text=med_caoh, font=('Arial', 10,)).grid(column=1, row=11)
         Label(tab7, text=caoh_range, font=('Arial', 10,)).grid(column=1, row=12)
 
+        med_caoh_co2 = round_sig(np.median(caoh_co2_chemical_emissions))
+        caoh_co2_25 = round_sig(np.percentile(caoh_co2_chemical_emissions, 25))
+        caoh_co2_75 = round_sig(np.percentile(caoh_co2_chemical_emissions, 75))
+        caoh_co2_range = str(caoh_co2_25) + '-' + str(caoh_co2_75)
+        Label(tab7, text=med_caoh_co2, font=('Arial', 10)).grid(column=6, row=11)
+        Label(tab7, text=caoh_co2_range, font=('Arial', 10)).grid(column=6, row=12)
+
+        med_caoh_so2 = round_sig(np.median(caoh_so2_chemical_emissions))
+        caoh_so2_25 = round_sig(np.percentile(caoh_so2_chemical_emissions, 25))
+        caoh_so2_75 = round_sig(np.percentile(caoh_so2_chemical_emissions, 75))
+        caoh_so2_range = str(caoh_so2_25) + '-' + str(caoh_so2_75)
+        Label(tab7, text=med_caoh_so2, font=('Arial', 10)).grid(column=4, row=11)
+        Label(tab7, text=caoh_so2_range, font=('Arial', 10)).grid(column=4, row=12)
+
+        med_caoh_nox = round_sig(np.median(caoh_nox_chemical_emissions))
+        caoh_nox_25 = round_sig(np.percentile(caoh_nox_chemical_emissions, 25))
+        caoh_nox_75 = round_sig(np.percentile(caoh_nox_chemical_emissions, 75))
+        caoh_nox_range = str(caoh_nox_25) + '-' + str(caoh_nox_75)
+        Label(tab7, text=med_caoh_nox, font=('Arial', 10)).grid(column=3, row=11)
+        Label(tab7, text=caoh_nox_range, font=('Arial', 10)).grid(column=3, row=12)
+
+        med_caoh_pm25 = round_sig(np.median(caoh_pm25_chemical_emissions))
+        caoh_pm25_25 = round_sig(np.percentile(caoh_pm25_chemical_emissions, 25))
+        caoh_pm25_75 = round_sig(np.percentile(caoh_pm25_chemical_emissions, 75))
+        caoh_pm25_range = str(caoh_pm25_25) + '-' + str(caoh_pm25_75)
+        Label(tab7, text=med_caoh_pm25, font=('Arial', 10)).grid(column=5, row=11)
+        Label(tab7, text=caoh_pm25_range, font=('Arial', 10)).grid(column=5, row=12)
+
         med_fecl3 = round_sig(np.median(total_fecl3_consumption))
         fecl3_25 = round_sig(np.percentile(total_fecl3_consumption, 25))
         fecl3_75 = round_sig(np.percentile(total_fecl3_consumption, 75))
         fecl3_range = str(fecl3_25) + '-' + str(fecl3_75)
         Label(tab7, text=med_fecl3, font=('Arial', 10,)).grid(column=1, row=13)
         Label(tab7, text=fecl3_range, font=('Arial', 10,)).grid(column=1, row=14)
+
+        med_fecl3_co2 = round_sig(np.median(fecl3_co2_chemical_emissions))
+        fecl3_co2_25 = round_sig(np.percentile(fecl3_co2_chemical_emissions, 25))
+        fecl3_co2_75 = round_sig(np.percentile(fecl3_co2_chemical_emissions, 75))
+        fecl3_co2_range = str(fecl3_co2_25) + '-' + str(fecl3_co2_75)
+        Label(tab7, text=med_fecl3_co2, font=('Arial', 10)).grid(column=6, row=13)
+        Label(tab7, text=fecl3_co2_range, font=('Arial', 10)).grid(column=6, row=14)
+
+        med_fecl3_so2 = round_sig(np.median(fecl3_so2_chemical_emissions))
+        fecl3_so2_25 = round_sig(np.percentile(fecl3_so2_chemical_emissions, 25))
+        fecl3_so2_75 = round_sig(np.percentile(fecl3_so2_chemical_emissions, 75))
+        fecl3_so2_range = str(fecl3_so2_25) + '-' + str(fecl3_so2_75)
+        Label(tab7, text=med_fecl3_so2, font=('Arial', 10)).grid(column=4, row=13)
+        Label(tab7, text=fecl3_so2_range, font=('Arial', 10)).grid(column=4, row=14)
+
+        med_fecl3_nox = round_sig(np.median(fecl3_nox_chemical_emissions))
+        fecl3_nox_25 = round_sig(np.percentile(fecl3_nox_chemical_emissions, 25))
+        fecl3_nox_75 = round_sig(np.percentile(fecl3_nox_chemical_emissions, 75))
+        fecl3_nox_range = str(fecl3_nox_25) + '-' + str(fecl3_nox_75)
+        Label(tab7, text=med_fecl3_nox, font=('Arial', 10)).grid(column=3, row=13)
+        Label(tab7, text=fecl3_nox_range, font=('Arial', 10)).grid(column=3, row=14)
+
+        med_fecl3_pm25 = round_sig(np.median(fecl3_pm25_chemical_emissions))
+        fecl3_pm25_25 = round_sig(np.percentile(fecl3_pm25_chemical_emissions, 25))
+        fecl3_pm25_75 = round_sig(np.percentile(fecl3_pm25_chemical_emissions, 75))
+        fecl3_pm25_range = str(fecl3_pm25_25) + '-' + str(fecl3_pm25_75)
+        Label(tab7, text=med_fecl3_pm25, font=('Arial', 10)).grid(column=5, row=13)
+        Label(tab7, text=fecl3_pm25_range, font=('Arial', 10)).grid(column=5, row=14)
 
         med_hcl = round_sig(np.median(total_hcl_consumption))
         hcl_25 = round_sig(np.percentile(total_hcl_consumption, 25))
@@ -2593,12 +3205,68 @@ def main():
         Label(tab7, text=med_hcl, font=('Arial', 10,)).grid(column=1, row=15)
         Label(tab7, text=hcl_range, font=('Arial', 10,)).grid(column=1, row=16)
 
+        med_hcl_co2 = round_sig(np.median(hcl_co2_chemical_emissions))
+        hcl_co2_25 = round_sig(np.percentile(hcl_co2_chemical_emissions, 25))
+        hcl_co2_75 = round_sig(np.percentile(hcl_co2_chemical_emissions, 75))
+        hcl_co2_range = str(hcl_co2_25) + '-' + str(hcl_co2_75)
+        Label(tab7, text=med_hcl_co2, font=('Arial', 10)).grid(column=6, row=15)
+        Label(tab7, text=hcl_co2_range, font=('Arial', 10)).grid(column=6, row=16)
+
+        med_hcl_so2 = round_sig(np.median(hcl_so2_chemical_emissions))
+        hcl_so2_25 = round_sig(np.percentile(hcl_so2_chemical_emissions, 25))
+        hcl_so2_75 = round_sig(np.percentile(hcl_so2_chemical_emissions, 75))
+        hcl_so2_range = str(hcl_so2_25) + '-' + str(hcl_so2_75)
+        Label(tab7, text=med_hcl_so2, font=('Arial', 10)).grid(column=4, row=15)
+        Label(tab7, text=hcl_so2_range, font=('Arial', 10)).grid(column=4, row=16)
+
+        med_hcl_nox = round_sig(np.median(hcl_nox_chemical_emissions))
+        hcl_nox_25 = round_sig(np.percentile(hcl_nox_chemical_emissions, 25))
+        hcl_nox_75 = round_sig(np.percentile(hcl_nox_chemical_emissions, 75))
+        hcl_nox_range = str(hcl_nox_25) + '-' + str(hcl_nox_75)
+        Label(tab7, text=med_hcl_nox, font=('Arial', 10)).grid(column=3, row=15)
+        Label(tab7, text=hcl_nox_range, font=('Arial', 10)).grid(column=3, row=16)
+
+        med_hcl_pm25 = round_sig(np.median(hcl_pm25_chemical_emissions))
+        hcl_pm25_25 = round_sig(np.percentile(hcl_pm25_chemical_emissions, 25))
+        hcl_pm25_75 = round_sig(np.percentile(hcl_pm25_chemical_emissions, 75))
+        hcl_pm25_range = str(hcl_pm25_25) + '-' + str(hcl_pm25_75)
+        Label(tab7, text=med_hcl_pm25, font=('Arial', 10)).grid(column=5, row=15)
+        Label(tab7, text=hcl_pm25_range, font=('Arial', 10)).grid(column=5, row=16)
+
         med_nutrients = round_sig(np.median(total_nutrients_consumption))
         nutrients_25 = round_sig(np.percentile(total_nutrients_consumption, 25))
         nutrients_75 = round_sig(np.percentile(total_nutrients_consumption, 75))
         nutrients_range = str(nutrients_25) + '-' + str(nutrients_75)
         Label(tab7, text=med_nutrients, font=('Arial', 10,)).grid(column=1, row=17)
         Label(tab7, text=nutrients_range, font=('Arial', 10,)).grid(column=1, row=18)
+
+        med_nutrients_co2 = round_sig(np.median(nutrients_co2_chemical_emissions))
+        nutrients_co2_25 = round_sig(np.percentile(nutrients_co2_chemical_emissions, 25))
+        nutrients_co2_75 = round_sig(np.percentile(nutrients_co2_chemical_emissions, 75))
+        nutrients_co2_range = str(nutrients_co2_25) + '-' + str(nutrients_co2_75)
+        Label(tab7, text=med_nutrients_co2, font=('Arial', 10)).grid(column=6, row=17)
+        Label(tab7, text=nutrients_co2_range, font=('Arial', 10)).grid(column=6, row=18)
+
+        med_nutrients_so2 = round_sig(np.median(nutrients_so2_chemical_emissions))
+        nutrients_so2_25 = round_sig(np.percentile(nutrients_so2_chemical_emissions, 25))
+        nutrients_so2_75 = round_sig(np.percentile(nutrients_so2_chemical_emissions, 75))
+        nutrients_so2_range = str(nutrients_so2_25) + '-' + str(nutrients_so2_75)
+        Label(tab7, text=med_nutrients_so2, font=('Arial', 10)).grid(column=4, row=17)
+        Label(tab7, text=nutrients_so2_range, font=('Arial', 10)).grid(column=4, row=18)
+
+        med_nutrients_nox = round_sig(np.median(nutrients_nox_chemical_emissions))
+        nutrients_nox_25 = round_sig(np.percentile(nutrients_nox_chemical_emissions, 25))
+        nutrients_nox_75 = round_sig(np.percentile(nutrients_nox_chemical_emissions, 75))
+        nutrients_nox_range = str(nutrients_nox_25) + '-' + str(nutrients_nox_75)
+        Label(tab7, text=med_nutrients_nox, font=('Arial', 10)).grid(column=3, row=17)
+        Label(tab7, text=nutrients_nox_range, font=('Arial', 10)).grid(column=3, row=18)
+
+        med_nutrients_pm25 = round_sig(np.median(nutrients_pm25_chemical_emissions))
+        nutrients_pm25_25 = round_sig(np.percentile(nutrients_pm25_chemical_emissions, 25))
+        nutrients_pm25_75 = round_sig(np.percentile(nutrients_pm25_chemical_emissions, 75))
+        nutrients_pm25_range = str(nutrients_pm25_25) + '-' + str(nutrients_pm25_75)
+        Label(tab7, text=med_nutrients_pm25, font=('Arial', 10)).grid(column=5, row=17)
+        Label(tab7, text=nutrients_pm25_range, font=('Arial', 10)).grid(column=5, row=18)
 
         med_soda_ash = round_sig(np.median(total_soda_ash_consumption))
         soda_ash_25 = round_sig(np.percentile(total_soda_ash_consumption, 25))
@@ -2607,12 +3275,68 @@ def main():
         Label(tab7, text=med_soda_ash, font=('Arial', 10,)).grid(column=1, row=19)
         Label(tab7, text=soda_ash_range, font=('Arial', 10,)).grid(column=1, row=20)
 
+        med_soda_ash_co2 = round_sig(np.median(soda_ash_co2_chemical_emissions))
+        soda_ash_co2_25 = round_sig(np.percentile(soda_ash_co2_chemical_emissions, 25))
+        soda_ash_co2_75 = round_sig(np.percentile(soda_ash_co2_chemical_emissions, 75))
+        soda_ash_co2_range = str(soda_ash_co2_25) + '-' + str(soda_ash_co2_75)
+        Label(tab7, text=med_soda_ash_co2, font=('Arial', 10)).grid(column=6, row=19)
+        Label(tab7, text=soda_ash_co2_range, font=('Arial', 10)).grid(column=6, row=20)
+
+        med_soda_ash_so2 = round_sig(np.median(soda_ash_so2_chemical_emissions))
+        soda_ash_so2_25 = round_sig(np.percentile(soda_ash_so2_chemical_emissions, 25))
+        soda_ash_so2_75 = round_sig(np.percentile(soda_ash_so2_chemical_emissions, 75))
+        soda_ash_so2_range = str(soda_ash_so2_25) + '-' + str(soda_ash_so2_75)
+        Label(tab7, text=med_soda_ash_so2, font=('Arial', 10)).grid(column=4, row=19)
+        Label(tab7, text=soda_ash_so2_range, font=('Arial', 10)).grid(column=4, row=20)
+
+        med_soda_ash_nox = round_sig(np.median(soda_ash_nox_chemical_emissions))
+        soda_ash_nox_25 = round_sig(np.percentile(soda_ash_nox_chemical_emissions, 25))
+        soda_ash_nox_75 = round_sig(np.percentile(soda_ash_nox_chemical_emissions, 75))
+        soda_ash_nox_range = str(soda_ash_nox_25) + '-' + str(soda_ash_nox_75)
+        Label(tab7, text=med_soda_ash_nox, font=('Arial', 10)).grid(column=3, row=19)
+        Label(tab7, text=soda_ash_nox_range, font=('Arial', 10)).grid(column=3, row=20)
+
+        med_soda_ash_pm25 = round_sig(np.median(soda_ash_pm25_chemical_emissions))
+        soda_ash_pm25_25 = round_sig(np.percentile(soda_ash_pm25_chemical_emissions, 25))
+        soda_ash_pm25_75 = round_sig(np.percentile(soda_ash_pm25_chemical_emissions, 75))
+        soda_ash_pm25_range = str(soda_ash_pm25_25) + '-' + str(soda_ash_pm25_75)
+        Label(tab7, text=med_soda_ash_pm25, font=('Arial', 10)).grid(column=5, row=19)
+        Label(tab7, text=soda_ash_pm25_range, font=('Arial', 10)).grid(column=5, row=20)
+
         med_gac = round_sig(np.median(total_gac_consumption))
         gac_25 = round_sig(np.percentile(total_gac_consumption, 25))
         gac_75 = round_sig(np.percentile(total_gac_consumption, 75))
         gac_range = str(gac_25) + '-' + str(gac_75)
         Label(tab7, text=med_gac, font=('Arial', 10,)).grid(column=1, row=21)
         Label(tab7, text=gac_range, font=('Arial', 10,)).grid(column=1, row=22)
+
+        med_gac_co2 = round_sig(np.median(gac_co2_chemical_emissions))
+        gac_co2_25 = round_sig(np.percentile(gac_co2_chemical_emissions, 25))
+        gac_co2_75 = round_sig(np.percentile(gac_co2_chemical_emissions, 75))
+        gac_co2_range = str(gac_co2_25) + '-' + str(gac_co2_75)
+        Label(tab7, text=med_gac_co2, font=('Arial', 10)).grid(column=6, row=21)
+        Label(tab7, text=gac_co2_range, font=('Arial', 10)).grid(column=6, row=22)
+
+        med_gac_so2 = round_sig(np.median(gac_so2_chemical_emissions))
+        gac_so2_25 = round_sig(np.percentile(gac_so2_chemical_emissions, 25))
+        gac_so2_75 = round_sig(np.percentile(gac_so2_chemical_emissions, 75))
+        gac_so2_range = str(gac_so2_25) + '-' + str(gac_so2_75)
+        Label(tab7, text=med_gac_so2, font=('Arial', 10)).grid(column=4, row=21)
+        Label(tab7, text=gac_so2_range, font=('Arial', 10)).grid(column=4, row=22)
+
+        med_gac_nox = round_sig(np.median(gac_nox_chemical_emissions))
+        gac_nox_25 = round_sig(np.percentile(gac_nox_chemical_emissions, 25))
+        gac_nox_75 = round_sig(np.percentile(gac_nox_chemical_emissions, 75))
+        gac_nox_range = str(gac_nox_25) + '-' + str(gac_nox_75)
+        Label(tab7, text=med_gac_nox, font=('Arial', 10)).grid(column=3, row=21)
+        Label(tab7, text=gac_nox_range, font=('Arial', 10)).grid(column=3, row=22)
+
+        med_gac_pm25 = round_sig(np.median(gac_pm25_chemical_emissions))
+        gac_pm25_25 = round_sig(np.percentile(gac_pm25_chemical_emissions, 25))
+        gac_pm25_75 = round_sig(np.percentile(gac_pm25_chemical_emissions, 75))
+        gac_pm25_range = str(gac_pm25_25) + '-' + str(gac_pm25_75)
+        Label(tab7, text=med_gac_pm25, font=('Arial', 10)).grid(column=5, row=21)
+        Label(tab7, text=gac_pm25_range, font=('Arial', 10)).grid(column=5, row=22)
 
         med_inorganics = round_sig(np.median(total_inorganics_consumption))
         inorganics_25 = round_sig(np.percentile(total_inorganics_consumption, 25))
@@ -2621,12 +3345,142 @@ def main():
         Label(tab7, text=med_inorganics, font=('Arial', 10,)).grid(column=1, row=23)
         Label(tab7, text=inorganics_range, font=('Arial', 10,)).grid(column=1, row=24)
 
+        med_inorganics_co2 = round_sig(np.median(inorganics_co2_chemical_emissions))
+        inorganics_co2_25 = round_sig(np.percentile(inorganics_co2_chemical_emissions, 25))
+        inorganics_co2_75 = round_sig(np.percentile(inorganics_co2_chemical_emissions, 75))
+        inorganics_co2_range = str(inorganics_co2_25) + '-' + str(inorganics_co2_75)
+        Label(tab7, text=med_inorganics_co2, font=('Arial', 10)).grid(column=6, row=23)
+        Label(tab7, text=inorganics_co2_range, font=('Arial', 10)).grid(column=6, row=24)
+
+        med_inorganics_so2 = round_sig(np.median(inorganics_so2_chemical_emissions))
+        inorganics_so2_25 = round_sig(np.percentile(inorganics_so2_chemical_emissions, 25))
+        inorganics_so2_75 = round_sig(np.percentile(inorganics_so2_chemical_emissions, 75))
+        inorganics_so2_range = str(inorganics_so2_25) + '-' + str(inorganics_so2_75)
+        Label(tab7, text=med_inorganics_so2, font=('Arial', 10)).grid(column=4, row=23)
+        Label(tab7, text=inorganics_so2_range, font=('Arial', 10)).grid(column=4, row=24)
+
+        med_inorganics_nox = round_sig(np.median(inorganics_nox_chemical_emissions))
+        inorganics_nox_25 = round_sig(np.percentile(inorganics_nox_chemical_emissions, 25))
+        inorganics_nox_75 = round_sig(np.percentile(inorganics_nox_chemical_emissions, 75))
+        inorganics_nox_range = str(inorganics_nox_25) + '-' + str(inorganics_nox_75)
+        Label(tab7, text=med_inorganics_nox, font=('Arial', 10)).grid(column=3, row=23)
+        Label(tab7, text=inorganics_nox_range, font=('Arial', 10)).grid(column=3, row=24)
+
+        med_inorganics_pm25 = round_sig(np.median(inorganics_pm25_chemical_emissions))
+        inorganics_pm25_25 = round_sig(np.percentile(inorganics_pm25_chemical_emissions, 25))
+        inorganics_pm25_75 = round_sig(np.percentile(inorganics_pm25_chemical_emissions, 75))
+        inorganics_pm25_range = str(inorganics_pm25_25) + '-' + str(inorganics_pm25_75)
+        Label(tab7, text=med_inorganics_pm25, font=('Arial', 10)).grid(column=5, row=23)
+        Label(tab7, text=inorganics_pm25_range, font=('Arial', 10)).grid(column=5, row=24)
+
         med_organics = round_sig(np.median(total_organics_consumption))
         organics_25 = round_sig(np.percentile(total_organics_consumption, 25))
         organics_75 = round_sig(np.percentile(total_organics_consumption, 75))
         organics_range = str(organics_25) + '-' + str(organics_75)
         Label(tab7, text=med_organics, font=('Arial', 10,)).grid(column=1, row=25)
         Label(tab7, text=organics_range, font=('Arial', 10,)).grid(column=1, row=26)
+
+        med_organics_co2 = round_sig(np.median(organics_co2_chemical_emissions))
+        organics_co2_25 = round_sig(np.percentile(organics_co2_chemical_emissions, 25))
+        organics_co2_75 = round_sig(np.percentile(organics_co2_chemical_emissions, 75))
+        organics_co2_range = str(organics_co2_25) + '-' + str(organics_co2_75)
+        Label(tab7, text=med_organics_co2, font=('Arial', 10)).grid(column=6, row=25)
+        Label(tab7, text=organics_co2_range, font=('Arial', 10)).grid(column=6, row=26)
+
+        med_organics_so2 = round_sig(np.median(organics_so2_chemical_emissions))
+        organics_so2_25 = round_sig(np.percentile(organics_so2_chemical_emissions, 25))
+        organics_so2_75 = round_sig(np.percentile(organics_so2_chemical_emissions, 75))
+        organics_so2_range = str(organics_so2_25) + '-' + str(organics_so2_75)
+        Label(tab7, text=med_organics_so2, font=('Arial', 10)).grid(column=4, row=25)
+        Label(tab7, text=organics_so2_range, font=('Arial', 10)).grid(column=4, row=26)
+
+        med_organics_nox = round_sig(np.median(organics_nox_chemical_emissions))
+        organics_nox_25 = round_sig(np.percentile(organics_nox_chemical_emissions, 25))
+        organics_nox_75 = round_sig(np.percentile(organics_nox_chemical_emissions, 75))
+        organics_nox_range = str(organics_nox_25) + '-' + str(organics_nox_75)
+        Label(tab7, text=med_organics_nox, font=('Arial', 10)).grid(column=3, row=25)
+        Label(tab7, text=organics_nox_range, font=('Arial', 10)).grid(column=3, row=26)
+
+        med_organics_pm25 = round_sig(np.median(organics_pm25_chemical_emissions))
+        organics_pm25_25 = round_sig(np.percentile(organics_pm25_chemical_emissions, 25))
+        organics_pm25_75 = round_sig(np.percentile(organics_pm25_chemical_emissions, 75))
+        organics_pm25_range = str(organics_pm25_25) + '-' + str(organics_pm25_75)
+        Label(tab7, text=med_organics_pm25, font=('Arial', 10)).grid(column=5, row=25)
+        Label(tab7, text=organics_pm25_range, font=('Arial', 10)).grid(column=5, row=26)
+
+    # Calculate and report the damages resulting from chemical manufacturing emissions.
+
+        chem_climate_damages = calculate_climate_damages(co2_chemical_emissions, basic_info)
+        med_chem_climate = round_sig(np.median(chem_climate_damages))
+        chem_climate_25 = round_sig(np.percentile(chem_climate_damages, 25))
+        chem_climate_75 = round_sig(np.percentile(chem_climate_damages, 75))
+        chem_climate_range = str(chem_climate_25) + '-' + str(chem_climate_75)
+        Label(tab7, text=med_chem_climate, font=('Arial', 10, 'italic')).grid(column=8, row=9)
+        Label(tab7, text=chem_climate_range, font=('Arial', 10, 'italic')).grid(column=8, row=10)
+
+        caoh_climate_damages = calculate_climate_damages(caoh_co2_chemical_emissions, basic_info)
+        med_caoh_climate = round_sig(np.median(caoh_climate_damages))
+        caoh_climate_25 = round_sig(np.percentile(caoh_climate_damages, 25))
+        caoh_climate_75 = round_sig(np.percentile(caoh_climate_damages, 75))
+        caoh_climate_range = str(caoh_climate_25) + '-' + str(caoh_climate_75)
+        Label(tab7, text=med_caoh_climate, font=('Arial', 10)).grid(column=8, row=11)
+        Label(tab7, text=caoh_climate_range, font=('Arial', 10)).grid(column=8, row=12)
+
+        fecl3_climate_damages = calculate_climate_damages(fecl3_co2_chemical_emissions, basic_info)
+        med_fecl3_climate = round_sig(np.median(fecl3_climate_damages))
+        fecl3_climate_25 = round_sig(np.percentile(fecl3_climate_damages, 25))
+        fecl3_climate_75 = round_sig(np.percentile(fecl3_climate_damages, 75))
+        fecl3_climate_range = str(fecl3_climate_25) + '-' + str(fecl3_climate_75)
+        Label(tab7, text=med_fecl3_climate, font=('Arial', 10)).grid(column=8, row=13)
+        Label(tab7, text=fecl3_climate_range, font=('Arial', 10)).grid(column=8, row=14)
+
+        hcl_climate_damages = calculate_climate_damages(hcl_co2_chemical_emissions, basic_info)
+        med_hcl_climate = round_sig(np.median(hcl_climate_damages))
+        hcl_climate_25 = round_sig(np.percentile(hcl_climate_damages, 25))
+        hcl_climate_75 = round_sig(np.percentile(hcl_climate_damages, 75))
+        hcl_climate_range = str(hcl_climate_25) + '-' + str(hcl_climate_75)
+        Label(tab7, text=med_hcl_climate, font=('Arial', 10)).grid(column=8, row=15)
+        Label(tab7, text=hcl_climate_range, font=('Arial', 10)).grid(column=8, row=16)
+
+        nutrients_climate_damages = calculate_climate_damages(nutrients_co2_chemical_emissions, basic_info)
+        med_nutrients_climate = round_sig(np.median(nutrients_climate_damages))
+        nutrients_climate_25 = round_sig(np.percentile(nutrients_climate_damages, 25))
+        nutrients_climate_75 = round_sig(np.percentile(nutrients_climate_damages, 75))
+        nutrients_climate_range = str(nutrients_climate_25) + '-' + str(nutrients_climate_75)
+        Label(tab7, text=med_nutrients_climate, font=('Arial', 10)).grid(column=8, row=17)
+        Label(tab7, text=nutrients_climate_range, font=('Arial', 10)).grid(column=8, row=18)
+
+        soda_ash_climate_damages = calculate_climate_damages(soda_ash_co2_chemical_emissions, basic_info)
+        med_soda_ash_climate = round_sig(np.median(soda_ash_climate_damages))
+        soda_ash_climate_25 = round_sig(np.percentile(soda_ash_climate_damages, 25))
+        soda_ash_climate_75 = round_sig(np.percentile(soda_ash_climate_damages, 75))
+        soda_ash_climate_range = str(soda_ash_climate_25) + '-' + str(soda_ash_climate_75)
+        Label(tab7, text=med_soda_ash_climate, font=('Arial', 10)).grid(column=8, row=19)
+        Label(tab7, text=soda_ash_climate_range, font=('Arial', 10)).grid(column=8, row=20)
+
+        gac_climate_damages = calculate_climate_damages(gac_co2_chemical_emissions, basic_info)
+        med_gac_climate = round_sig(np.median(gac_climate_damages))
+        gac_climate_25 = round_sig(np.percentile(gac_climate_damages, 25))
+        gac_climate_75 = round_sig(np.percentile(gac_climate_damages, 75))
+        gac_climate_range = str(gac_climate_25) + '-' + str(gac_climate_75)
+        Label(tab7, text=med_gac_climate, font=('Arial', 10)).grid(column=8, row=21)
+        Label(tab7, text=gac_climate_range, font=('Arial', 10)).grid(column=8, row=22)
+
+        inorganics_climate_damages = calculate_climate_damages(inorganics_co2_chemical_emissions, basic_info)
+        med_inorganics_climate = round_sig(np.median(inorganics_climate_damages))
+        inorganics_climate_25 = round_sig(np.percentile(inorganics_climate_damages, 25))
+        inorganics_climate_75 = round_sig(np.percentile(inorganics_climate_damages, 75))
+        inorganics_climate_range = str(inorganics_climate_25) + '-' + str(inorganics_climate_75)
+        Label(tab7, text=med_inorganics_climate, font=('Arial', 10)).grid(column=8, row=23)
+        Label(tab7, text=inorganics_climate_range, font=('Arial', 10)).grid(column=8, row=24)
+
+        organics_climate_damages = calculate_climate_damages(organics_co2_chemical_emissions, basic_info)
+        med_organics_climate = round_sig(np.median(organics_climate_damages))
+        organics_climate_25 = round_sig(np.percentile(organics_climate_damages, 25))
+        organics_climate_75 = round_sig(np.percentile(organics_climate_damages, 75))
+        organics_climate_range = str(organics_climate_25) + '-' + str(organics_climate_75)
+        Label(tab7, text=med_organics_climate, font=('Arial', 10)).grid(column=8, row=25)
+        Label(tab7, text=organics_climate_range, font=('Arial', 10)).grid(column=8, row=26)
 
     # Create the menu.
     menu = Menu(root)
