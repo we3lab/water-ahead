@@ -1451,7 +1451,9 @@ def main():
                            electricity_consumption_dictionary, electrical_emissions_dictionary,
                            thermal_emissions_dictionary, direct_emission_dictionary):
 
-        if geography_info['chemicals state'] == 'US Average':
+        if geography_info['chemicals state'] == 'Off-Shore':
+            chem_manufacturing_distribution = chem_manufacturing_share_dict
+        elif geography_info['chemicals state'] == 'US Average':
             chem_manufacturing_distribution = chem_manufacturing_share_dict
         else:
             chem_manufacturing_distribution = empty_state_dict
@@ -1553,10 +1555,73 @@ def main():
         inflated_cost = uninflated_cost * (inflation_dictionary[year_for_inflation]/inflation_dictionary[baseline_year])
         return inflated_cost
 
+    def calculate_cap_damages_from_energy(geography_info, basic_info, nox_unit_emissions, so2_unit_emissions,
+                                               pm25_unit_emissions, emissions_damages_dataframe):
+        if geography_info['electricity state'] == 'US Average':
+            generation_distribution_2014 = pd.read_csv(fileDir / 'Data' / 'Net_generation_for_electric_utility_2014.csv')
+            total_net_generation = sum(generation_distribution_2014['2014'])
+            generation_distribution_2014['share'] = generation_distribution_2014['2014']/total_net_generation
+            emissions_damages = pd.merge(generation_distribution_2014, emissions_damages_dataframe, on='state')
+            j = 0
+            nox_damages = 0
+            so2_damages = 0
+            pm25_damages = 0
+            while j < len(emissions_damages['state']):
+                nox_damages += emissions_damages['share'][j] * emissions_damages['NOx'][j]
+                so2_damages += emissions_damages['share'][j] * emissions_damages['SO2'][j]
+                pm25_damages += emissions_damages['share'][j] * emissions_damages['PM25'][j]
+                j += 1
+        else:
+            filtered_emissions_damages_dataframe = emissions_damages_dataframe[emissions_damages_dataframe['state'] ==
+                                                                               geography_info['electricity state']]
+            nox_damages = filtered_emissions_damages_dataframe['NOx'].iloc[0]
+            so2_damages = filtered_emissions_damages_dataframe['SO2'].iloc[0]
+            pm25_damages = filtered_emissions_damages_dataframe['PM25'].iloc[0]
+
+        uninflated_nox_damages = nox_unit_emissions * (1 / 907184.73999999) * basic_info['system size'] * 365 * \
+                                 nox_damages * (basic_info['vsl'] / 8.6)
+        uninflated_so2_damages = so2_unit_emissions * (1 / 907184.73999999) * basic_info['system size'] * 365 * \
+                                 so2_damages * (basic_info['vsl'] / 8.6)
+        uninflated_pm25_damages = pm25_unit_emissions * (1 / 907184.73999999) * basic_info['system size'] * 365 * \
+                                  pm25_damages * (basic_info['vsl'] / 8.6)
+        uninflated_health_damages = uninflated_nox_damages + uninflated_so2_damages + uninflated_pm25_damages
+        inflated_health_damages = adjust_for_inflation(uninflated_health_damages, '2015',
+                                                       basic_info['inflation year'])
+
+        return inflated_health_damages
+
+
+    # TODO Add in Damage factors for US Average and States selected.
+    def calculate_cap_damages_from_chemicals(geography_info, basic_info, nox_unit_emissions, so2_unit_emissions,
+                                             pm25_unit_emissions, emissions_damages_dataframe, chem_manufacturing_distribution_dataframe):
+        if geography_info['chemicals state'] == 'Off-Shore':
+            nox_damages = 0
+            so2_damages = 0
+            pm25_damages = 0
+        elif geography_info['chemicals state'] == 'US Average':
+            nox_damages = 0
+            so2_damages = 0
+            pm25_damages = 0
+        else:
+            nox_damages = 0
+            so2_damages = 0
+            pm25_damages = 0
+
+        uninflated_nox_damages = nox_unit_emissions * (1 / 907184.73999999) * basic_info['system size'] * 365 * \
+                                 nox_damages * (basic_info['vsl'] / 8.6)
+        uninflated_so2_damages = so2_unit_emissions * (1 / 907184.73999999) * basic_info['system size'] * 365 * \
+                                 so2_damages * (basic_info['vsl'] / 8.6)
+        uninflated_pm25_damages = pm25_unit_emissions * (1 / 907184.73999999) * basic_info['system size'] * 365 * \
+                                  pm25_damages * (basic_info['vsl'] / 8.6)
+        uninflated_health_damages = uninflated_nox_damages + uninflated_so2_damages + uninflated_pm25_damages
+        inflated_health_damages = adjust_for_inflation(uninflated_health_damages, '2015',
+                                                       basic_info['inflation year'])
+
 
     def calculate_climate_damages(co2_unit_emissions, basic_info):
-        uninflated_climate_damages = co2_unit_emissions * 1/907184.73999999 * basic_info['system size'] * 365 * basic_info['scc']  #Unit conversions for grams per ton and days per year
-        inflated_climate_damages = adjust_for_inflation(uninflated_climate_damages, '2015', basic_info['inflation year'])
+        uninflated_climate_damages = co2_unit_emissions * (1/907184.73999999) * basic_info['system size'] * 365 * basic_info['scc']  #Unit conversions for grams per ton and days per year
+        inflated_climate_damages = adjust_for_inflation(uninflated_climate_damages, '2015',
+                                                        basic_info['inflation year'])
         return inflated_climate_damages
 
     # Create the notebook.
@@ -2895,6 +2960,17 @@ def main():
 
         # Calculate and report electrical energy emission damages.
 
+        elec_health_damages = calculate_cap_damages_from_energy(geography_info, basic_info, nox_electricity_emissions,
+                                                                so2_electricity_emissions, pm25_electricity_emissions,
+                                                                state_level_damages)
+        med_elec_health = round_sig(np.median(elec_health_damages))
+        elec_health_25 = round_sig(np.percentile(elec_health_damages, 25))
+        elec_health_75 = round_sig(np.percentile(elec_health_damages, 75))
+        elec_health_range = str(elec_health_25) + '-' + str(elec_health_75)
+        Label(tab7, text=med_elec_health, font=('Arial', 10)).grid(column=7, row=5)
+        Label(tab7, text=elec_health_range, font=('Arial', 10)).grid(column=7, row=6)
+
+
         elec_climate_damages = calculate_climate_damages(co2_electricity_emissions, basic_info)
         med_elec_climate = round_sig(np.median(elec_climate_damages))
         elec_climate_25 = round_sig(np.percentile(elec_climate_damages, 25))
@@ -2948,6 +3024,16 @@ def main():
 
         # Calculate and report thermal energy emission damages.
 
+        therm_health_damages = calculate_cap_damages_from_energy(geography_info, basic_info, nox_thermal_emissions,
+                                                                so2_thermal_emissions, pm25_thermal_emissions,
+                                                                state_level_damages)
+        med_therm_health = round_sig(np.median(therm_health_damages))
+        therm_health_25 = round_sig(np.percentile(therm_health_damages, 25))
+        therm_health_75 = round_sig(np.percentile(therm_health_damages, 75))
+        therm_health_range = str(therm_health_25) + '-' + str(therm_health_75)
+        Label(tab7, text=med_therm_health, font=('Arial', 10)).grid(column=7, row=7)
+        Label(tab7, text=therm_health_range, font=('Arial', 10)).grid(column=7, row=8)
+
         therm_climate_damages = calculate_climate_damages(co2_thermal_emissions, basic_info)
         med_therm_climate = round_sig(np.median(therm_climate_damages))
         therm_climate_25 = round_sig(np.percentile(therm_climate_damages, 25))
@@ -2988,12 +3074,22 @@ def main():
 
         # Calculate and report total energy emission damages.
 
+        energy_health_damages = calculate_cap_damages_from_energy(geography_info, basic_info, nox_electricity_emissions,
+                                                                so2_electricity_emissions, pm25_electricity_emissions,
+                                                                state_level_damages)
+        med_energy_health = round_sig(np.median(energy_health_damages))
+        energy_health_25 = round_sig(np.percentile(energy_health_damages, 25))
+        energy_health_75 = round_sig(np.percentile(energy_health_damages, 75))
+        energy_health_range = str(energy_health_25) + '-' + str(energy_health_75)
+        Label(tab7, text=med_energy_health, font=('Arial', 10, 'italic')).grid(column=7, row=3)
+        Label(tab7, text=energy_health_range, font=('Arial', 10, 'italic')).grid(column=7, row=4)
+
         energy_climate_damages = calculate_climate_damages((co2_thermal_emissions + co2_electricity_emissions),
                                                            basic_info)
         med_energy_climate = round_sig(np.median(energy_climate_damages))
         energy_climate_25 = round_sig(np.percentile(energy_climate_damages, 25))
         energy_climate_75 = round_sig(np.percentile(energy_climate_damages, 75))
-        energy_climate_range = str(therm_climate_25) + '-' + str(therm_climate_75)
+        energy_climate_range = str(energy_climate_25) + '-' + str(energy_climate_75)
         Label(tab7, text=med_energy_climate, font=('Arial', 10, 'italic')).grid(column=8, row=3)
         Label(tab7, text=energy_climate_range, font=('Arial', 10, 'italic')).grid(column=8, row=4)
 
