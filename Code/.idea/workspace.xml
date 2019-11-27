@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="32d2d3b5-2598-43a4-9586-d5e1865f9893" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/water_ahead_gui.py" beforeDir="false" afterPath="$PROJECT_DIR$/water_ahead_gui.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -56,13 +57,13 @@
     <session id="-8633291">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="17" />
-          <entry key="project.open.time.11" value="1" />
+          <entry key="project.closed" value="20" />
+          <entry key="project.open.time.11" value="2" />
           <entry key="project.open.time.12" value="3" />
           <entry key="project.open.time.13" value="1" />
           <entry key="project.open.time.14" value="1" />
-          <entry key="project.open.time.15" value="1" />
-          <entry key="project.open.time.16" value="1" />
+          <entry key="project.open.time.15" value="2" />
+          <entry key="project.open.time.16" value="2" />
           <entry key="project.open.time.17" value="1" />
           <entry key="project.open.time.20" value="1" />
           <entry key="project.open.time.22" value="1" />
@@ -72,18 +73,19 @@
           <entry key="project.open.time.73" value="1" />
           <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="2" />
-          <entry key="project.opened" value="18" />
+          <entry key="project.opened" value="21" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="64" />
-          <entry key="Python" value="34108" />
+          <entry key="Python" value="35959" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Python" value="7" />
+          <entry key="Image" value="6" />
+          <entry key="Python" value="8" />
         </counts>
       </usages-collector>
     </session>
@@ -93,33 +95,6 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/water_ahead_gui.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="284">
-              <caret line="1597" column="27" lean-forward="true" selection-start-line="1597" selection-start-column="27" selection-end-line="1597" selection-end-column="27" />
-              <folding>
-                <element signature="e#0#21#0" expanded="true" />
-                <element signature="e#50685#52130#0" />
-                <element signature="e#52237#73481#0" />
-                <element signature="e#73578#74075#0" />
-                <element signature="e#74184#100341#0" />
-                <element signature="e#106104#107270#0" />
-                <element signature="e#106127#107120#0" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/unit_chem_consumption.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="10" column="48" selection-start-line="10" selection-start-column="48" selection-end-line="10" selection-end-column="48" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/unit_therm_consumption.py">
           <provider selected="true" editor-type-id="text-editor">
@@ -129,10 +104,27 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/water_ahead_gui.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="420">
+              <caret line="2342" column="95" selection-start-line="2342" selection-start-column="95" selection-end-line="2342" selection-end-column="95" />
+              <folding>
+                <element signature="e#0#21#0" expanded="true" />
+                <element signature="e#50685#52130#0" />
+                <element signature="e#52237#73481#0" />
+                <element signature="e#73578#74075#0" />
+                <element signature="e#74184#100341#0" />
+                <element signature="e#164265#166861#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/unit_elec_consumption.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="672">
+            <state relative-caret-position="1207">
               <caret line="71" selection-start-line="71" selection-end-line="71" />
             </state>
           </provider>
@@ -141,7 +133,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/empty_state_dictionary.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="672">
+            <state relative-caret-position="850">
               <caret line="50" column="40" selection-start-line="50" selection-start-column="40" selection-end-line="50" selection-end-column="40" />
             </state>
           </provider>
@@ -167,8 +159,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>tab6</find>
-      <find>wastewater ro recovery</find>
       <find>disinfection recovery</find>
       <find>dewatering recovery</find>
       <find>dewatering_recovery</find>
@@ -197,6 +187,8 @@
       <find>calculate_cap_damages</find>
       <find>US Average</find>
       <find>print</find>
+      <find>Off-Shore</find>
+      <find>calculate_cap_damages_from_chemicals</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -218,10 +210,10 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="177" />
-    <option name="y" value="-8" />
+    <option name="x" value="442" />
+    <option name="y" value="-11" />
     <option name="width" value="1616" />
-    <option name="height" value="876" />
+    <option name="height" value="916" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -375,19 +367,19 @@
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.10607676" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.090618335" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.6727079" weight="0.18221258" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.67164177" weight="0.18221258" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.4993573" weight="0.39892185" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.3272921" side_tool="true" visible="true" weight="0.18221258" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.3283582" side_tool="true" visible="true" weight="0.18221258" />
       <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -416,13 +408,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/convert_dta_to_csv.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="19" selection-start-column="19" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/Anaconda3/Lib/site-packages/pandas/core/series.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="235">
@@ -437,6 +422,24 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../../../Water AHEAD GUI Documentation/Documentation/Municipal Wastewater System Tab.jpg">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../Water AHEAD GUI Documentation/Documentation/Industrial Wastewater System Tab.jpg">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../Water AHEAD GUI Documentation/Documentation/Geography Tab.jpg">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../Water AHEAD GUI Documentation/Documentation/General Properities Tab.jpg">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../Water AHEAD GUI Documentation/Documentation/Drinking Water Systems Tab.jpg">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../Water AHEAD GUI Documentation/Documentation/New Treatment Process Tab.jpg">
+      <provider selected="true" editor-type-id="images" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/unit_therm_consumption.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="119">
@@ -446,30 +449,36 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/unit_elec_consumption.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="672">
+        <state relative-caret-position="1207">
           <caret line="71" selection-start-line="71" selection-end-line="71" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/empty_state_dictionary.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="672">
+        <state relative-caret-position="850">
           <caret line="50" column="40" selection-start-line="50" selection-start-column="40" selection-end-line="50" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/convert_dta_to_csv.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="19" selection-start-column="19" selection-end-column="19" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/water_ahead_gui.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="284">
-          <caret line="1597" column="27" lean-forward="true" selection-start-line="1597" selection-start-column="27" selection-end-line="1597" selection-end-column="27" />
+        <state relative-caret-position="420">
+          <caret line="2342" column="95" selection-start-line="2342" selection-start-column="95" selection-end-line="2342" selection-end-column="95" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
             <element signature="e#50685#52130#0" />
             <element signature="e#52237#73481#0" />
             <element signature="e#73578#74075#0" />
             <element signature="e#74184#100341#0" />
-            <element signature="e#106104#107270#0" />
-            <element signature="e#106127#107120#0" />
+            <element signature="e#164265#166861#0" />
           </folding>
         </state>
       </provider>

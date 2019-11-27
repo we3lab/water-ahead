@@ -1529,7 +1529,7 @@ def main():
         pm25_chemical_emissions = chemical_consumption_estimates/1000 * (pm25_chem_elec_emissions + pm25_chem_therm_emissions + pm25_chem_direct_emissions) #Divide by 1000 for the unit conversions
 
         return co2_chemical_emissions, so2_chemical_emissions, nox_chemical_emissions, pm25_chemical_emissions, \
-               chem_manufacturing_distribution
+               chem_manufacturing_distribution_dataframe
 
     def adjust_for_inflation(uninflated_cost, baseline_year, year_for_inflation):
         inflation_dictionary = {'2000': 724060.77,
@@ -1591,21 +1591,25 @@ def main():
         return inflated_health_damages
 
 
-    # TODO Add in Damage factors for US Average and States selected.
     def calculate_cap_damages_from_chemicals(geography_info, basic_info, nox_unit_emissions, so2_unit_emissions,
                                              pm25_unit_emissions, emissions_damages_dataframe, chem_manufacturing_distribution_dataframe):
         if geography_info['chemicals state'] == 'Off-Shore':
             nox_damages = 0
             so2_damages = 0
             pm25_damages = 0
-        elif geography_info['chemicals state'] == 'US Average':
-            nox_damages = 0
-            so2_damages = 0
-            pm25_damages = 0
         else:
+            combined_emissions_share_dataframe = pd.merge(emissions_damages_dataframe,
+                                                          chem_manufacturing_distribution_dataframe, on='state')
+            j = 0
             nox_damages = 0
             so2_damages = 0
             pm25_damages = 0
+            while j < len(combined_emissions_share_dataframe['state']):
+                nox_damages += combined_emissions_share_dataframe['Share'][j] * combined_emissions_share_dataframe['NOx'][j]
+                so2_damages += combined_emissions_share_dataframe['Share'][j] * combined_emissions_share_dataframe['SO2'][j]
+                pm25_damages += combined_emissions_share_dataframe['Share'][j] * combined_emissions_share_dataframe['PM25'][j]
+                j += 1
+
 
         uninflated_nox_damages = nox_unit_emissions * (1 / 907184.73999999) * basic_info['system size'] * 365 * \
                                  nox_damages * (basic_info['vsl'] / 8.6)
@@ -1616,6 +1620,8 @@ def main():
         uninflated_health_damages = uninflated_nox_damages + uninflated_so2_damages + uninflated_pm25_damages
         inflated_health_damages = adjust_for_inflation(uninflated_health_damages, '2015',
                                                        basic_info['inflation year'])
+
+        return inflated_health_damages
 
 
     def calculate_climate_damages(co2_unit_emissions, basic_info):
@@ -2334,7 +2340,7 @@ def main():
     new_organics_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=16, sticky=W)
 
-    Label(tab7, text='Results', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=8)
+    Label(tab7, text='Results', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=10)
     Label(tab7, text='Embedded Air Emissions [g/m\N{SUPERSCRIPT THREE}]', font=('Arial', 10)).grid(column=3, row=1, columnspan=4)
     Label(tab7, text='Annual Air Damages [$/yr]', font=('Arial', 10)).grid(column=7, row=1, columnspan=3)
     Label(tab7, text='Required Dose', font=('Arial', 10)).grid(column=1, row=2, columnspan=2)
@@ -2369,6 +2375,8 @@ def main():
     Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=24)
     Label(tab7, text='Associated Organics', font=('Arial', 10)).grid(column=0, row=25)
     Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=26)
+    Label(tab7, text='TOTAL', font=('Arial', 10, 'bold')).grid(column=0, row=27, columnspan=3)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10, 'bold')).grid(column=0, row=28, columnspan=3)
 
     Label(tab7, text='kWh/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=2, row=5, rowspan=2)
     Label(tab7, text='MJ/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=2, row=7, rowspan=2)
@@ -3506,6 +3514,17 @@ def main():
 
     # Calculate and report the damages resulting from chemical manufacturing emissions.
 
+        chem_health_damages = calculate_cap_damages_from_chemicals(geography_info, basic_info, nox_chemical_emissions,
+                                                                   so2_chemical_emissions, pm25_chemical_emissions,
+                                                                   state_level_damages,
+                                                                   caoh_chem_manufacturing_distribution)
+        med_chem_health = round_sig(np.median(chem_health_damages))
+        chem_health_25 = round_sig(np.percentile(chem_health_damages, 25))
+        chem_health_75 = round_sig(np.percentile(chem_health_damages, 75))
+        chem_health_range = str(chem_health_25) + '-' + str(chem_health_75)
+        Label(tab7, text=med_chem_health, font=('Arial', 10, 'italic')).grid(column=7, row=9)
+        Label(tab7, text=chem_health_range, font=('Arial', 10, 'italic')).grid(column=7, row=10)
+
         chem_climate_damages = calculate_climate_damages(co2_chemical_emissions, basic_info)
         med_chem_climate = round_sig(np.median(chem_climate_damages))
         chem_climate_25 = round_sig(np.percentile(chem_climate_damages, 25))
@@ -3513,6 +3532,19 @@ def main():
         chem_climate_range = str(chem_climate_25) + '-' + str(chem_climate_75)
         Label(tab7, text=med_chem_climate, font=('Arial', 10, 'italic')).grid(column=8, row=9)
         Label(tab7, text=chem_climate_range, font=('Arial', 10, 'italic')).grid(column=8, row=10)
+
+        caoh_health_damages = calculate_cap_damages_from_chemicals(geography_info, basic_info,
+                                                                   caoh_nox_chemical_emissions,
+                                                                   caoh_so2_chemical_emissions,
+                                                                   caoh_pm25_chemical_emissions,
+                                                                   state_level_damages,
+                                                                   caoh_chem_manufacturing_distribution)
+        med_caoh_health = round_sig(np.median(caoh_health_damages))
+        caoh_health_25 = round_sig(np.percentile(caoh_health_damages, 25))
+        caoh_health_75 = round_sig(np.percentile(caoh_health_damages, 75))
+        caoh_health_range = str(caoh_health_25) + '-' + str(caoh_health_75)
+        Label(tab7, text=med_caoh_health, font=('Arial', 10)).grid(column=7, row=11)
+        Label(tab7, text=caoh_health_range, font=('Arial', 10)).grid(column=7, row=12)
 
         caoh_climate_damages = calculate_climate_damages(caoh_co2_chemical_emissions, basic_info)
         med_caoh_climate = round_sig(np.median(caoh_climate_damages))
@@ -3522,6 +3554,19 @@ def main():
         Label(tab7, text=med_caoh_climate, font=('Arial', 10)).grid(column=8, row=11)
         Label(tab7, text=caoh_climate_range, font=('Arial', 10)).grid(column=8, row=12)
 
+        fecl3_health_damages = calculate_cap_damages_from_chemicals(geography_info, basic_info,
+                                                                   fecl3_nox_chemical_emissions,
+                                                                   fecl3_so2_chemical_emissions,
+                                                                   fecl3_pm25_chemical_emissions,
+                                                                   state_level_damages,
+                                                                   fecl3_chem_manufacturing_distribution)
+        med_fecl3_health = round_sig(np.median(fecl3_health_damages))
+        fecl3_health_25 = round_sig(np.percentile(fecl3_health_damages, 25))
+        fecl3_health_75 = round_sig(np.percentile(fecl3_health_damages, 75))
+        fecl3_health_range = str(fecl3_health_25) + '-' + str(fecl3_health_75)
+        Label(tab7, text=med_fecl3_health, font=('Arial', 10)).grid(column=7, row=13)
+        Label(tab7, text=fecl3_health_range, font=('Arial', 10)).grid(column=7, row=14)
+
         fecl3_climate_damages = calculate_climate_damages(fecl3_co2_chemical_emissions, basic_info)
         med_fecl3_climate = round_sig(np.median(fecl3_climate_damages))
         fecl3_climate_25 = round_sig(np.percentile(fecl3_climate_damages, 25))
@@ -3529,6 +3574,19 @@ def main():
         fecl3_climate_range = str(fecl3_climate_25) + '-' + str(fecl3_climate_75)
         Label(tab7, text=med_fecl3_climate, font=('Arial', 10)).grid(column=8, row=13)
         Label(tab7, text=fecl3_climate_range, font=('Arial', 10)).grid(column=8, row=14)
+
+        hcl_health_damages = calculate_cap_damages_from_chemicals(geography_info, basic_info,
+                                                                   hcl_nox_chemical_emissions,
+                                                                   hcl_so2_chemical_emissions,
+                                                                   hcl_pm25_chemical_emissions,
+                                                                   state_level_damages,
+                                                                   hcl_chem_manufacturing_distribution)
+        med_hcl_health = round_sig(np.median(hcl_health_damages))
+        hcl_health_25 = round_sig(np.percentile(hcl_health_damages, 25))
+        hcl_health_75 = round_sig(np.percentile(hcl_health_damages, 75))
+        hcl_health_range = str(hcl_health_25) + '-' + str(hcl_health_75)
+        Label(tab7, text=med_hcl_health, font=('Arial', 10)).grid(column=7, row=15)
+        Label(tab7, text=hcl_health_range, font=('Arial', 10)).grid(column=7, row=16)
 
         hcl_climate_damages = calculate_climate_damages(hcl_co2_chemical_emissions, basic_info)
         med_hcl_climate = round_sig(np.median(hcl_climate_damages))
@@ -3538,6 +3596,19 @@ def main():
         Label(tab7, text=med_hcl_climate, font=('Arial', 10)).grid(column=8, row=15)
         Label(tab7, text=hcl_climate_range, font=('Arial', 10)).grid(column=8, row=16)
 
+        nutrients_health_damages = calculate_cap_damages_from_chemicals(geography_info, basic_info,
+                                                                   nutrients_nox_chemical_emissions,
+                                                                   nutrients_so2_chemical_emissions,
+                                                                   nutrients_pm25_chemical_emissions,
+                                                                   state_level_damages,
+                                                                   nutrients_chem_manufacturing_distribution)
+        med_nutrients_health = round_sig(np.median(nutrients_health_damages))
+        nutrients_health_25 = round_sig(np.percentile(nutrients_health_damages, 25))
+        nutrients_health_75 = round_sig(np.percentile(nutrients_health_damages, 75))
+        nutrients_health_range = str(nutrients_health_25) + '-' + str(nutrients_health_75)
+        Label(tab7, text=med_nutrients_health, font=('Arial', 10)).grid(column=7, row=17)
+        Label(tab7, text=nutrients_health_range, font=('Arial', 10)).grid(column=7, row=18)
+
         nutrients_climate_damages = calculate_climate_damages(nutrients_co2_chemical_emissions, basic_info)
         med_nutrients_climate = round_sig(np.median(nutrients_climate_damages))
         nutrients_climate_25 = round_sig(np.percentile(nutrients_climate_damages, 25))
@@ -3545,6 +3616,19 @@ def main():
         nutrients_climate_range = str(nutrients_climate_25) + '-' + str(nutrients_climate_75)
         Label(tab7, text=med_nutrients_climate, font=('Arial', 10)).grid(column=8, row=17)
         Label(tab7, text=nutrients_climate_range, font=('Arial', 10)).grid(column=8, row=18)
+
+        soda_ash_health_damages = calculate_cap_damages_from_chemicals(geography_info, basic_info, 
+                                                                   soda_ash_nox_chemical_emissions, 
+                                                                   soda_ash_so2_chemical_emissions, 
+                                                                   soda_ash_pm25_chemical_emissions, 
+                                                                   state_level_damages, 
+                                                                   soda_ash_chem_manufacturing_distribution)
+        med_soda_ash_health = round_sig(np.median(soda_ash_health_damages))
+        soda_ash_health_25 = round_sig(np.percentile(soda_ash_health_damages, 25))
+        soda_ash_health_75 = round_sig(np.percentile(soda_ash_health_damages, 75))
+        soda_ash_health_range = str(soda_ash_health_25) + '-' + str(soda_ash_health_75)
+        Label(tab7, text=med_soda_ash_health, font=('Arial', 10)).grid(column=7, row=19)
+        Label(tab7, text=soda_ash_health_range, font=('Arial', 10)).grid(column=7, row=20)
 
         soda_ash_climate_damages = calculate_climate_damages(soda_ash_co2_chemical_emissions, basic_info)
         med_soda_ash_climate = round_sig(np.median(soda_ash_climate_damages))
@@ -3554,6 +3638,19 @@ def main():
         Label(tab7, text=med_soda_ash_climate, font=('Arial', 10)).grid(column=8, row=19)
         Label(tab7, text=soda_ash_climate_range, font=('Arial', 10)).grid(column=8, row=20)
 
+        gac_health_damages = calculate_cap_damages_from_chemicals(geography_info, basic_info,
+                                                                   gac_nox_chemical_emissions,
+                                                                   gac_so2_chemical_emissions,
+                                                                   gac_pm25_chemical_emissions,
+                                                                   state_level_damages,
+                                                                   gac_chem_manufacturing_distribution)
+        med_gac_health = round_sig(np.median(gac_health_damages))
+        gac_health_25 = round_sig(np.percentile(gac_health_damages, 25))
+        gac_health_75 = round_sig(np.percentile(gac_health_damages, 75))
+        gac_health_range = str(gac_health_25) + '-' + str(gac_health_75)
+        Label(tab7, text=med_gac_health, font=('Arial', 10)).grid(column=7, row=21)
+        Label(tab7, text=gac_health_range, font=('Arial', 10)).grid(column=7, row=22)
+
         gac_climate_damages = calculate_climate_damages(gac_co2_chemical_emissions, basic_info)
         med_gac_climate = round_sig(np.median(gac_climate_damages))
         gac_climate_25 = round_sig(np.percentile(gac_climate_damages, 25))
@@ -3561,6 +3658,19 @@ def main():
         gac_climate_range = str(gac_climate_25) + '-' + str(gac_climate_75)
         Label(tab7, text=med_gac_climate, font=('Arial', 10)).grid(column=8, row=21)
         Label(tab7, text=gac_climate_range, font=('Arial', 10)).grid(column=8, row=22)
+
+        inorganics_health_damages = calculate_cap_damages_from_chemicals(geography_info, basic_info,
+                                                                   inorganics_nox_chemical_emissions,
+                                                                   inorganics_so2_chemical_emissions,
+                                                                   inorganics_pm25_chemical_emissions,
+                                                                   state_level_damages,
+                                                                   inorganics_chem_manufacturing_distribution)
+        med_inorganics_health = round_sig(np.median(inorganics_health_damages))
+        inorganics_health_25 = round_sig(np.percentile(inorganics_health_damages, 25))
+        inorganics_health_75 = round_sig(np.percentile(inorganics_health_damages, 75))
+        inorganics_health_range = str(inorganics_health_25) + '-' + str(inorganics_health_75)
+        Label(tab7, text=med_inorganics_health, font=('Arial', 10)).grid(column=7, row=23)
+        Label(tab7, text=inorganics_health_range, font=('Arial', 10)).grid(column=7, row=24)
 
         inorganics_climate_damages = calculate_climate_damages(inorganics_co2_chemical_emissions, basic_info)
         med_inorganics_climate = round_sig(np.median(inorganics_climate_damages))
@@ -3570,6 +3680,19 @@ def main():
         Label(tab7, text=med_inorganics_climate, font=('Arial', 10)).grid(column=8, row=23)
         Label(tab7, text=inorganics_climate_range, font=('Arial', 10)).grid(column=8, row=24)
 
+        organics_health_damages = calculate_cap_damages_from_chemicals(geography_info, basic_info,
+                                                                   organics_nox_chemical_emissions,
+                                                                   organics_so2_chemical_emissions,
+                                                                   organics_pm25_chemical_emissions,
+                                                                   state_level_damages,
+                                                                   organics_chem_manufacturing_distribution)
+        med_organics_health = round_sig(np.median(organics_health_damages))
+        organics_health_25 = round_sig(np.percentile(organics_health_damages, 25))
+        organics_health_75 = round_sig(np.percentile(organics_health_damages, 75))
+        organics_health_range = str(organics_health_25) + '-' + str(organics_health_75)
+        Label(tab7, text=med_organics_health, font=('Arial', 10)).grid(column=7, row=25)
+        Label(tab7, text=organics_health_range, font=('Arial', 10)).grid(column=7, row=26)
+
         organics_climate_damages = calculate_climate_damages(organics_co2_chemical_emissions, basic_info)
         med_organics_climate = round_sig(np.median(organics_climate_damages))
         organics_climate_25 = round_sig(np.percentile(organics_climate_damages, 25))
@@ -3577,6 +3700,148 @@ def main():
         organics_climate_range = str(organics_climate_25) + '-' + str(organics_climate_75)
         Label(tab7, text=med_organics_climate, font=('Arial', 10)).grid(column=8, row=25)
         Label(tab7, text=organics_climate_range, font=('Arial', 10)).grid(column=8, row=26)
+
+        # Calculate the total air emissions damages
+
+        med_energy_damages = round_sig(np.median(energy_health_damages + energy_climate_damages))
+        energy_damages_25 = round_sig(np.percentile(energy_health_damages + energy_climate_damages, 25))
+        energy_damages_75 = round_sig(np.percentile(energy_health_damages + energy_climate_damages, 75))
+        energy_damages_range = str(energy_damages_25) + '-' + str(energy_damages_75)
+        Label(tab7, text=med_energy_damages, font=('Arial', 10, 'italic')).grid(column=9, row=3)
+        Label(tab7, text=energy_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=4)
+
+        med_elec_damages = round_sig(np.median(elec_health_damages + elec_climate_damages))
+        elec_damages_25 = round_sig(np.percentile(elec_health_damages + elec_climate_damages, 25))
+        elec_damages_75 = round_sig(np.percentile(elec_health_damages + elec_climate_damages, 75))
+        elec_damages_range = str(elec_damages_25) + '-' + str(elec_damages_75)
+        Label(tab7, text=med_elec_damages, font=('Arial', 10, 'italic')).grid(column=9, row=5)
+        Label(tab7, text=elec_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=6)
+
+        med_therm_damages = round_sig(np.median(therm_health_damages + therm_climate_damages))
+        therm_damages_25 = round_sig(np.percentile(therm_health_damages + therm_climate_damages, 25))
+        therm_damages_75 = round_sig(np.percentile(therm_health_damages + therm_climate_damages, 75))
+        therm_damages_range = str(therm_damages_25) + '-' + str(therm_damages_75)
+        Label(tab7, text=med_therm_damages, font=('Arial', 10, 'italic')).grid(column=9, row=7)
+        Label(tab7, text=therm_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=8)
+
+        med_chem_damages = round_sig(np.median(chem_health_damages + chem_climate_damages))
+        chem_damages_25 = round_sig(np.percentile(chem_health_damages + chem_climate_damages, 25))
+        chem_damages_75 = round_sig(np.percentile(chem_health_damages + chem_climate_damages, 75))
+        chem_damages_range = str(chem_damages_25) + '-' + str(chem_damages_75)
+        Label(tab7, text=med_chem_damages, font=('Arial', 10, 'italic')).grid(column=9, row=9)
+        Label(tab7, text=chem_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=10)
+
+        med_caoh_damages = round_sig(np.median(caoh_health_damages + caoh_climate_damages))
+        caoh_damages_25 = round_sig(np.percentile(caoh_health_damages + caoh_climate_damages, 25))
+        caoh_damages_75 = round_sig(np.percentile(caoh_health_damages + caoh_climate_damages, 75))
+        caoh_damages_range = str(caoh_damages_25) + '-' + str(caoh_damages_75)
+        Label(tab7, text=med_caoh_damages, font=('Arial', 10, 'italic')).grid(column=9, row=11)
+        Label(tab7, text=caoh_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=12)
+
+        med_fecl3_damages = round_sig(np.median(fecl3_health_damages + fecl3_climate_damages))
+        fecl3_damages_25 = round_sig(np.percentile(fecl3_health_damages + fecl3_climate_damages, 25))
+        fecl3_damages_75 = round_sig(np.percentile(fecl3_health_damages + fecl3_climate_damages, 75))
+        fecl3_damages_range = str(fecl3_damages_25) + '-' + str(fecl3_damages_75)
+        Label(tab7, text=med_fecl3_damages, font=('Arial', 10, 'italic')).grid(column=9, row=13)
+        Label(tab7, text=fecl3_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=14)
+
+        med_hcl_damages = round_sig(np.median(hcl_health_damages + hcl_climate_damages))
+        hcl_damages_25 = round_sig(np.percentile(hcl_health_damages + hcl_climate_damages, 25))
+        hcl_damages_75 = round_sig(np.percentile(hcl_health_damages + hcl_climate_damages, 75))
+        hcl_damages_range = str(hcl_damages_25) + '-' + str(hcl_damages_75)
+        Label(tab7, text=med_hcl_damages, font=('Arial', 10, 'italic')).grid(column=9, row=15)
+        Label(tab7, text=hcl_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=16)
+
+        med_nutrients_damages = round_sig(np.median(nutrients_health_damages + nutrients_climate_damages))
+        nutrients_damages_25 = round_sig(np.percentile(nutrients_health_damages + nutrients_climate_damages, 25))
+        nutrients_damages_75 = round_sig(np.percentile(nutrients_health_damages + nutrients_climate_damages, 75))
+        nutrients_damages_range = str(nutrients_damages_25) + '-' + str(nutrients_damages_75)
+        Label(tab7, text=med_nutrients_damages, font=('Arial', 10, 'italic')).grid(column=9, row=17)
+        Label(tab7, text=nutrients_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=18)
+
+        med_soda_ash_damages = round_sig(np.median(soda_ash_health_damages + soda_ash_climate_damages))
+        soda_ash_damages_25 = round_sig(np.percentile(soda_ash_health_damages + soda_ash_climate_damages, 25))
+        soda_ash_damages_75 = round_sig(np.percentile(soda_ash_health_damages + soda_ash_climate_damages, 75))
+        soda_ash_damages_range = str(soda_ash_damages_25) + '-' + str(soda_ash_damages_75)
+        Label(tab7, text=med_soda_ash_damages, font=('Arial', 10, 'italic')).grid(column=9, row=19)
+        Label(tab7, text=soda_ash_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=20)
+
+        med_gac_damages = round_sig(np.median(gac_health_damages + gac_climate_damages))
+        gac_damages_25 = round_sig(np.percentile(gac_health_damages + gac_climate_damages, 25))
+        gac_damages_75 = round_sig(np.percentile(gac_health_damages + gac_climate_damages, 75))
+        gac_damages_range = str(gac_damages_25) + '-' + str(gac_damages_75)
+        Label(tab7, text=med_gac_damages, font=('Arial', 10, 'italic')).grid(column=9, row=21)
+        Label(tab7, text=gac_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=22)
+
+        med_inorganics_damages = round_sig(np.median(inorganics_health_damages + inorganics_climate_damages))
+        inorganics_damages_25 = round_sig(np.percentile(inorganics_health_damages + inorganics_climate_damages, 25))
+        inorganics_damages_75 = round_sig(np.percentile(inorganics_health_damages + inorganics_climate_damages, 75))
+        inorganics_damages_range = str(inorganics_damages_25) + '-' + str(inorganics_damages_75)
+        Label(tab7, text=med_inorganics_damages, font=('Arial', 10, 'italic')).grid(column=9, row=23)
+        Label(tab7, text=inorganics_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=24)
+
+        med_organics_damages = round_sig(np.median(organics_health_damages + organics_climate_damages))
+        organics_damages_25 = round_sig(np.percentile(organics_health_damages + organics_climate_damages, 25))
+        organics_damages_75 = round_sig(np.percentile(organics_health_damages + organics_climate_damages, 75))
+        organics_damages_range = str(organics_damages_25) + '-' + str(organics_damages_75)
+        Label(tab7, text=med_organics_damages, font=('Arial', 10, 'italic')).grid(column=9, row=25)
+        Label(tab7, text=organics_damages_range, font=('Arial', 10, 'italic')).grid(column=9, row=26)
+
+        # Finally, create the grand totals.
+        med_nox_emissions = round_sig(np.median(nox_electricity_emissions + nox_thermal_emissions + nox_chemical_emissions))
+        nox_emissions_25 = round_sig(np.percentile(nox_electricity_emissions + nox_thermal_emissions + nox_chemical_emissions, 25))
+        nox_emissions_75 = round_sig(np.percentile(nox_electricity_emissions + nox_thermal_emissions + nox_chemical_emissions, 75))
+        nox_emissions_range = str(nox_emissions_25) + '-' + str(nox_emissions_75)
+        Label(tab7, text=med_nox_emissions, font=('Arial', 10, 'bold')).grid(column=3, row=27)
+        Label(tab7, text=nox_emissions_range, font=('Arial', 10, 'bold')).grid(column=3, row=28)
+
+        med_so2_emissions = round_sig(np.median(so2_electricity_emissions + so2_thermal_emissions + so2_chemical_emissions))
+        so2_emissions_25 = round_sig(np.percentile(so2_electricity_emissions + so2_thermal_emissions + so2_chemical_emissions, 25))
+        so2_emissions_75 = round_sig(np.percentile(so2_electricity_emissions + so2_thermal_emissions + so2_chemical_emissions, 75))
+        so2_emissions_range = str(so2_emissions_25) + '-' + str(so2_emissions_75)
+        Label(tab7, text=med_so2_emissions, font=('Arial', 10, 'bold')).grid(column=4, row=27)
+        Label(tab7, text=so2_emissions_range, font=('Arial', 10, 'bold')).grid(column=4, row=28)
+        
+        med_pm25_emissions = round_sig(np.median(pm25_electricity_emissions + pm25_thermal_emissions + pm25_chemical_emissions))
+        pm25_emissions_25 = round_sig(np.percentile(pm25_electricity_emissions + pm25_thermal_emissions + pm25_chemical_emissions, 25))
+        pm25_emissions_75 = round_sig(np.percentile(pm25_electricity_emissions + pm25_thermal_emissions + pm25_chemical_emissions, 75))
+        pm25_emissions_range = str(pm25_emissions_25) + '-' + str(pm25_emissions_75)
+        Label(tab7, text=med_pm25_emissions, font=('Arial', 10, 'bold')).grid(column=5, row=27)
+        Label(tab7, text=pm25_emissions_range, font=('Arial', 10, 'bold')).grid(column=5, row=28)
+        
+        med_co2_emissions = round_sig(np.median(co2_electricity_emissions + co2_thermal_emissions + co2_chemical_emissions))
+        co2_emissions_25 = round_sig(np.percentile(co2_electricity_emissions + co2_thermal_emissions + co2_chemical_emissions, 25))
+        co2_emissions_75 = round_sig(np.percentile(co2_electricity_emissions + co2_thermal_emissions + co2_chemical_emissions, 75))
+        co2_emissions_range = str(co2_emissions_25) + '-' + str(co2_emissions_75)
+        Label(tab7, text=med_co2_emissions, font=('Arial', 10, 'bold')).grid(column=6, row=27)
+        Label(tab7, text=co2_emissions_range, font=('Arial', 10, 'bold')).grid(column=6, row=28)
+
+        med_health_damages = round_sig(np.median(energy_health_damages + chem_health_damages))
+        health_damages_25 = round_sig(np.percentile(energy_health_damages + chem_health_damages, 25))
+        health_damages_75 = round_sig(np.percentile(energy_health_damages + chem_health_damages, 75))
+        health_damages_range = str(health_damages_25) + '-' + str(health_damages_75)
+        Label(tab7, text=med_health_damages, font=('Arial', 10, 'bold')).grid(column=7, row=27)
+        Label(tab7, text=health_damages_range, font=('Arial', 10, 'bold')).grid(column=7, row=28)
+
+        med_climate_damages = round_sig(np.median(energy_climate_damages + chem_climate_damages))
+        climate_damages_25 = round_sig(np.percentile(energy_climate_damages + chem_climate_damages, 25))
+        climate_damages_75 = round_sig(np.percentile(energy_climate_damages + chem_climate_damages, 75))
+        climate_damages_range = str(climate_damages_25) + '-' + str(climate_damages_75)
+        Label(tab7, text=med_climate_damages, font=('Arial', 10, 'bold')).grid(column=8, row=27)
+        Label(tab7, text=climate_damages_range, font=('Arial', 10, 'bold')).grid(column=8, row=28)
+
+        med_total_damages = round_sig(
+            np.median(energy_health_damages + energy_climate_damages + chem_health_damages + chem_climate_damages))
+        total_damages_25 = round_sig(
+            np.percentile(energy_health_damages + energy_climate_damages + chem_health_damages + chem_climate_damages,
+                          25))
+        total_damages_75 = round_sig(
+            np.percentile(energy_health_damages + energy_climate_damages + chem_health_damages + chem_climate_damages,
+                          75))
+        total_damages_range = str(total_damages_25) + '-' + str(total_damages_75)
+        Label(tab7, text=med_total_damages, font=('Arial', 10, 'bold')).grid(column=9, row=27)
+        Label(tab7, text=total_damages_range, font=('Arial', 10, 'bold')).grid(column=9, row=28)
+
 
     # Create the menu.
     menu = Menu(root)
