@@ -57,29 +57,30 @@
     <session id="-8633291">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="20" />
+          <entry key="project.closed" value="27" />
+          <entry key="project.open.time.10" value="2" />
           <entry key="project.open.time.11" value="2" />
           <entry key="project.open.time.12" value="3" />
           <entry key="project.open.time.13" value="1" />
-          <entry key="project.open.time.14" value="1" />
+          <entry key="project.open.time.14" value="2" />
           <entry key="project.open.time.15" value="2" />
           <entry key="project.open.time.16" value="2" />
-          <entry key="project.open.time.17" value="1" />
-          <entry key="project.open.time.20" value="1" />
+          <entry key="project.open.time.17" value="2" />
+          <entry key="project.open.time.20" value="3" />
           <entry key="project.open.time.22" value="1" />
           <entry key="project.open.time.26" value="1" />
           <entry key="project.open.time.31" value="1" />
           <entry key="project.open.time.34" value="1" />
           <entry key="project.open.time.73" value="1" />
           <entry key="project.open.time.8" value="1" />
-          <entry key="project.open.time.9" value="2" />
-          <entry key="project.opened" value="21" />
+          <entry key="project.open.time.9" value="3" />
+          <entry key="project.opened" value="28" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="64" />
-          <entry key="Python" value="35959" />
+          <entry key="Python" value="50867" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
@@ -107,15 +108,20 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/water_ahead_gui.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="420">
-              <caret line="2342" column="95" selection-start-line="2342" selection-start-column="95" selection-end-line="2342" selection-end-column="95" />
+            <state relative-caret-position="246">
+              <caret line="4645" column="60" selection-start-line="4645" selection-start-column="60" selection-end-line="4645" selection-end-column="60" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
-                <element signature="e#50685#52130#0" />
-                <element signature="e#52237#73481#0" />
-                <element signature="e#73578#74075#0" />
-                <element signature="e#74184#100341#0" />
-                <element signature="e#164265#166861#0" />
+                <element signature="e#7538#7621#1" />
+                <element signature="e#9032#9210#0" />
+                <element signature="e#175763#188583#0" />
+                <element signature="e#193041#222929#0" />
+                <element signature="e#289666#308082#0" />
+                <element signature="e#303231#304945#0" />
+                <element signature="e#305063#306727#0" />
+                <element signature="e#306849#307676#0" />
+                <element signature="e#307791#308082#0" />
+                <element signature="e#314988#317454#0" />
               </folding>
             </state>
           </provider>
@@ -159,21 +165,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>disinfection recovery</find>
-      <find>dewatering recovery</find>
-      <find>dewatering_recovery</find>
-      <find>volume reduction recovery</find>
-      <find>calculate_electr</find>
-      <find>volume_reduction_organics</find>
-      <find>calculate_thermal_consumption</find>
-      <find>fileDir</find>
-      <find>root = Tk()</find>
-      <find>basic_info_dict</find>
-      <find>electricity state</find>
-      <find>unit_gac_consumption_dictionary</find>
-      <find>tab7</find>
-      <find>thermal_emissions</find>
-      <find>geograph</find>
       <find>electricity_emissions</find>
       <find>empty</find>
       <find>chemical_emissions</find>
@@ -189,6 +180,21 @@
       <find>print</find>
       <find>Off-Shore</find>
       <find>calculate_cap_damages_from_chemicals</find>
+      <find>new</find>
+      <find>menu_option_selected</find>
+      <find>tab6</find>
+      <find>columnspan</find>
+      <find>sys.ar</find>
+      <find>change_tab</find>
+      <find>filtration</find>
+      <find>filtration_installed</find>
+      <find>new_recovery_input</find>
+      <find>delete</find>
+      <find>note</find>
+      <find>tab7</find>
+      <find>messagebox</find>
+      <find>required_dosage_summary</find>
+      <find>save_results</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -367,19 +373,19 @@
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.090618335" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.09701493" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.67164177" weight="0.18221258" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.6657783" weight="0.18112798" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.4993573" weight="0.39892185" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.3283582" side_tool="true" visible="true" weight="0.18221258" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.33422175" side_tool="true" visible="true" weight="0.18112798" />
       <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -470,15 +476,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/water_ahead_gui.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="420">
-          <caret line="2342" column="95" selection-start-line="2342" selection-start-column="95" selection-end-line="2342" selection-end-column="95" />
+        <state relative-caret-position="246">
+          <caret line="4645" column="60" selection-start-line="4645" selection-start-column="60" selection-end-line="4645" selection-end-column="60" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
-            <element signature="e#50685#52130#0" />
-            <element signature="e#52237#73481#0" />
-            <element signature="e#73578#74075#0" />
-            <element signature="e#74184#100341#0" />
-            <element signature="e#164265#166861#0" />
+            <element signature="e#7538#7621#1" />
+            <element signature="e#9032#9210#0" />
+            <element signature="e#175763#188583#0" />
+            <element signature="e#193041#222929#0" />
+            <element signature="e#289666#308082#0" />
+            <element signature="e#303231#304945#0" />
+            <element signature="e#305063#306727#0" />
+            <element signature="e#306849#307676#0" />
+            <element signature="e#307791#308082#0" />
+            <element signature="e#314988#317454#0" />
           </folding>
         </state>
       </provider>
