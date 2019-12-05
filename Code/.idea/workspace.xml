@@ -57,15 +57,16 @@
     <session id="-8633291">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="27" />
+          <entry key="project.closed" value="29" />
           <entry key="project.open.time.10" value="2" />
           <entry key="project.open.time.11" value="2" />
           <entry key="project.open.time.12" value="3" />
           <entry key="project.open.time.13" value="1" />
           <entry key="project.open.time.14" value="2" />
           <entry key="project.open.time.15" value="2" />
-          <entry key="project.open.time.16" value="2" />
+          <entry key="project.open.time.16" value="3" />
           <entry key="project.open.time.17" value="2" />
+          <entry key="project.open.time.18" value="1" />
           <entry key="project.open.time.20" value="3" />
           <entry key="project.open.time.22" value="1" />
           <entry key="project.open.time.26" value="1" />
@@ -74,13 +75,13 @@
           <entry key="project.open.time.73" value="1" />
           <entry key="project.open.time.8" value="1" />
           <entry key="project.open.time.9" value="3" />
-          <entry key="project.opened" value="28" />
+          <entry key="project.opened" value="30" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="64" />
-          <entry key="Python" value="50867" />
+          <entry key="Python" value="57240" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
@@ -108,20 +109,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/water_ahead_gui.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="246">
-              <caret line="4645" column="60" selection-start-line="4645" selection-start-column="60" selection-end-line="4645" selection-end-column="60" />
+            <state relative-caret-position="5260">
+              <caret line="4850" column="73" selection-start-line="4850" selection-start-column="73" selection-end-line="4850" selection-end-column="73" />
               <folding>
                 <element signature="e#0#21#0" expanded="true" />
-                <element signature="e#7538#7621#1" />
-                <element signature="e#9032#9210#0" />
-                <element signature="e#175763#188583#0" />
-                <element signature="e#193041#222929#0" />
-                <element signature="e#289666#308082#0" />
-                <element signature="e#303231#304945#0" />
-                <element signature="e#305063#306727#0" />
-                <element signature="e#306849#307676#0" />
-                <element signature="e#307791#308082#0" />
-                <element signature="e#314988#317454#0" />
               </folding>
             </state>
           </provider>
@@ -180,7 +171,6 @@
       <find>print</find>
       <find>Off-Shore</find>
       <find>calculate_cap_damages_from_chemicals</find>
-      <find>new</find>
       <find>menu_option_selected</find>
       <find>tab6</find>
       <find>columnspan</find>
@@ -195,6 +185,7 @@
       <find>messagebox</find>
       <find>required_dosage_summary</find>
       <find>save_results</find>
+      <find>new</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -216,10 +207,9 @@
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="442" />
-    <option name="y" value="-11" />
-    <option name="width" value="1616" />
-    <option name="height" value="916" />
+    <option name="x" value="793" />
+    <option name="width" value="814" />
+    <option name="height" value="867" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -227,6 +217,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -247,7 +238,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -371,21 +361,21 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="-8" y="-8" width="1616" height="876" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.09701493" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.20424403" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.6657783" weight="0.18112798" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.6651671" weight="0.17789757" />
       <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.4993573" weight="0.39892185" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Terminal" order="8" />
-      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.33422175" side_tool="true" visible="true" weight="0.18112798" />
+      <window_info anchor="bottom" id="Event Log" order="9" sideWeight="0.3348329" side_tool="true" visible="true" weight="0.17789757" />
       <window_info anchor="bottom" id="Python Console" order="10" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
@@ -476,20 +466,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/water_ahead_gui.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="246">
-          <caret line="4645" column="60" selection-start-line="4645" selection-start-column="60" selection-end-line="4645" selection-end-column="60" />
+        <state relative-caret-position="5260">
+          <caret line="4850" column="73" selection-start-line="4850" selection-start-column="73" selection-end-line="4850" selection-end-column="73" />
           <folding>
             <element signature="e#0#21#0" expanded="true" />
-            <element signature="e#7538#7621#1" />
-            <element signature="e#9032#9210#0" />
-            <element signature="e#175763#188583#0" />
-            <element signature="e#193041#222929#0" />
-            <element signature="e#289666#308082#0" />
-            <element signature="e#303231#304945#0" />
-            <element signature="e#305063#306727#0" />
-            <element signature="e#306849#307676#0" />
-            <element signature="e#307791#308082#0" />
-            <element signature="e#314988#317454#0" />
           </folding>
         </state>
       </provider>
