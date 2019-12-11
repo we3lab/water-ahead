@@ -7,7 +7,19 @@ import pathlib
 import sys
 import os
 
-fileDir = pathlib.Path(__file__).parents[1]
+### IMPORTANT ###
+
+# To freeze the file, lines in some files must be c
+if getattr(sys, 'frozen', False):
+    # frozen
+    fileDir = os.path.dirname(sys.executable)
+    data_folder = fileDir + '/Data'
+    print(data_folder)
+    sys.path.append(data_folder)
+
+else:
+    #unfrozen
+    fileDir = pathlib.Path(__file__).parents[1]
 
 
 # TODO Add embedded energy in chemicals
@@ -1594,7 +1606,10 @@ def main():
     def calculate_cap_damages_from_energy(geography_info, basic_info, nox_unit_emissions, so2_unit_emissions,
                                                pm25_unit_emissions, emissions_damages_dataframe):
         if geography_info['electricity state'] == 'US Average':
-            generation_distribution_2014 = pd.read_csv(fileDir / 'Data' / 'Net_generation_for_electric_utility_2014.csv')
+            if getattr(sys, 'frozen', False):
+                generation_distribution_2014 = pd.read_csv(data_folder + '/Net_generation_for_electric_utility_2014.csv')
+            else:
+                generation_distribution_2014 = pd.read_csv(fileDir / 'Data' / 'Net_generation_for_electric_utility_2014.csv')
             total_net_generation = sum(generation_distribution_2014['2014'])
             generation_distribution_2014['share'] = generation_distribution_2014['2014']/total_net_generation
             emissions_damages = pd.merge(generation_distribution_2014, emissions_damages_dataframe, on='state')
@@ -2440,7 +2455,10 @@ def main():
 
     # Read in emissions data on the the average emissions factor per state and AP2 damages data.
     # Start with the CO2, SO2, and NOx emissions.
-    average_state_efs = pd.read_csv(fileDir / 'Data' / '2014 State MEFs.csv', header=None)
+    if getattr(sys, 'frozen', False):
+        average_state_efs = pd.read_csv(data_folder + '/2014 State MEFs.csv', header=None)
+    else:
+        average_state_efs = pd.read_csv(fileDir / 'Data' / '2014 State MEFs.csv', header=None)
     average_state_list = average_state_efs.iloc[0].dropna()
     co2_ef_list = average_state_efs.iloc[2]
     co2_ef_list = co2_ef_list.iloc[1::2]
@@ -2462,18 +2480,27 @@ def main():
 
     state_mefs = [('state', average_state_list_cleaned), ('co2', co2_ef_list_cleaned), ('so2', so2_ef_list_cleaned),
                   ('nox', nox_ef_list_cleaned)]
-    mefs = pd.DataFrame.from_items(state_mefs)
+    mefs = pd.DataFrame.from_dict(dict(state_mefs))
 
     # Now read in and merge the PM2.5 emissions factors
-    state_pm25_efs = pd.read_csv(fileDir / 'Data' / 'State PM25.csv')
+    if getattr(sys, 'frozen', False):
+        state_pm25_efs = pd.read_csv(data_folder + '/State PM25.csv')
+    else:
+        state_pm25_efs = pd.read_csv(fileDir / 'Data' / 'State PM25.csv')
     state_ef_data = pd.merge(mefs, state_pm25_efs, on='state')
 
     # Now read in AP2 damages and calculate the state-level average damages.
-    county_level_ap2_damages = pd.read_csv(fileDir / 'Data' / 'AP2 Damages.csv')
+    if getattr(sys, 'frozen', False):
+        county_level_ap2_damages = pd.read_csv(data_folder + '/AP2 Damages.csv')
+    else:
+        county_level_ap2_damages = pd.read_csv(fileDir / 'Data' / 'AP2 Damages.csv')
     county_level_ap2_damages.drop('fips', axis=1, inplace=True)
     state_level_average_damages = county_level_ap2_damages.groupby('state').mean()
     state_level_average_damages['state_fips'] = state_level_average_damages.index
-    state_fips_code_go_betweens = pd.read_csv(fileDir / 'Data' / 'state fips code go betweens.csv')
+    if getattr(sys, 'frozen', False):
+        state_fips_code_go_betweens = pd.read_csv(data_folder + '/state fips code go betweens.csv')
+    else:
+        state_fips_code_go_betweens = pd.read_csv(fileDir / 'Data' / 'state fips code go betweens.csv')
     state_level_damages = pd.merge(state_level_average_damages, state_fips_code_go_betweens, on='state_fips')
 
     # Finally create master list of EFs and Damage factors.
@@ -4982,8 +5009,6 @@ def main():
     savemenu.add_cascade(label="Save Inputs", command=save_inputs)
     savemenu.add_cascade(label="Save Results", command=save_results)
     filemenu.add_command(label="Open", command=open_input)
-    # TODO Create open_input function
-    # filemenu.add_command(label="Open", command=combine_funcs(menu_option_selected, open_input))
     filemenu.add_separator()
     filemenu.add_command(label="Exit", command=root.quit)
     analysismenu = Menu(menu)
