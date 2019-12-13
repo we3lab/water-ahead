@@ -1,9 +1,25 @@
 from tkinter import *
+from tkinter import messagebox
+from tkinter import filedialog
 import numpy as np
 import pandas as pd
 import pathlib
+import sys
+import os
 
-fileDir = pathlib.Path(__file__).parents[1]
+### IMPORTANT ###
+
+# To freeze the file, lines in some files must be c
+if getattr(sys, 'frozen', False):
+    # frozen
+    fileDir = os.path.dirname(sys.executable)
+    data_folder = fileDir + '/Data'
+    print(data_folder)
+    sys.path.append(data_folder)
+
+else:
+    #unfrozen
+    fileDir = pathlib.Path(__file__).parents[1]
 
 
 # TODO Add embedded energy in chemicals
@@ -18,6 +34,36 @@ from unit_chem_consumption import unit_sodium_carbonate_consumption_dictionary, 
 
 def menu_option_selected():
     print('Called the callback!')
+
+def shut_down_program():
+    python = sys.executable
+    os.execl(python, python, * sys.argv)
+
+def show_about_program():
+    messagebox.showinfo("About", "The Water Associated Health and Environmental Air Damages (AHEAD) tool was developed "
+                                 "to calculate the air emissions associated with water treatment. \n \nIt was developed "
+                                 "in the Water and Energy Efficiency for the Environment (WE3) Lab at Stanford "
+                                 "University.  Funding was provided by the National Science Foundation under Award Nos. "
+                                 "SEES-1215845 and CBET-1554117 and the Pittsburgh Chapter of the ARCS Foundation. "
+                                 "\n\nDetails about it can be found at the Open Science Foundation project "
+                                 "https://osf.io/p28ax/.  If you use it for your research, please cite the tool using "
+                                 "doi:  10.17605/osf.io/p28ax.")
+
+def show_program_help():
+    messagebox.showinfo("Help", "For questions about the program, how to model a water treatment plant, or how to "
+                                "interpret the results, see the Wiki page on the Open Science Foundation proejct at "
+                                "https://osf.io/p28ax/wiki/home/. \n\nFor citation to the data sources used in "
+                                "building the life-cycle inventories see the linked Mendeley library on the Open "
+                                "Science Foundation project at https://osf.io/p28ax/.")
+
+def show_licence_info():
+    messagebox.showinfo("Licence", "This program is made available under the GNU General Public Licence v3.0. "
+                                   "\n\nPermissions of this strong copyleft licence are conditioned on making "
+                                   "available complete source code of licenced works and modifications, which include "
+                                   "larger works using a licensed work, under the same licence.  Copyright and licence "
+                                   "notices must be preserved.  Contributors provide an express grant of patent "
+                                   "rights. \n\nThe full text of this licence can be found on the Open Science "
+                                   "Foundation project at https://osf.io/p28ax/.")
 
 class Notebook(Frame):
     """Notebook Widget"""
@@ -172,6 +218,8 @@ def main():
         aerated_grit_installed = baseline_process_dict['no. of aerated grit units']
         aerated_grit_recovery = baseline_process_dict['aerated grit recovery']
         grinding = baseline_process_dict['grinding']
+        ww_filtration = baseline_process_dict['ww filtration']
+        ww_filtration_recovery = baseline_process_dict['ww filtration recovery']
         grit_removal = baseline_process_dict['grit removal']
         grit_removal_installed = baseline_process_dict['no. of grit removal units']
         grit_removal_recovery = baseline_process_dict['grit removal recovery']
@@ -1558,7 +1606,10 @@ def main():
     def calculate_cap_damages_from_energy(geography_info, basic_info, nox_unit_emissions, so2_unit_emissions,
                                                pm25_unit_emissions, emissions_damages_dataframe):
         if geography_info['electricity state'] == 'US Average':
-            generation_distribution_2014 = pd.read_csv(fileDir / 'Data' / 'Net_generation_for_electric_utility_2014.csv')
+            if getattr(sys, 'frozen', False):
+                generation_distribution_2014 = pd.read_csv(data_folder + '/Net_generation_for_electric_utility_2014.csv')
+            else:
+                generation_distribution_2014 = pd.read_csv(fileDir / 'Data' / 'Net_generation_for_electric_utility_2014.csv')
             total_net_generation = sum(generation_distribution_2014['2014'])
             generation_distribution_2014['share'] = generation_distribution_2014['2014']/total_net_generation
             emissions_damages = pd.merge(generation_distribution_2014, emissions_damages_dataframe, on='state')
@@ -1907,15 +1958,15 @@ def main():
     grinding_recovery.grid(column=3, row=3)
     grinding_recovery.insert(END, 100)
 
-    filtration = BooleanVar(root)
-    filtration_button = Checkbutton(tab4, text='Filtration', variable=filtration).grid(column=1, row=4, sticky=W)
-    filtration_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    filtration_installed.grid(column=2, row=4)
-    filtration_installed.insert(END, 0)
+    ww_filtration = BooleanVar(root)
+    filtration_button = Checkbutton(tab4, text='Filtration', variable=ww_filtration).grid(column=1, row=4, sticky=W)
+    ww_filtration_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ww_filtration_installed.grid(column=2, row=4)
+    ww_filtration_installed.insert(END, 0)
 
-    filtration_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
-    filtration_recovery.grid(column=3, row=4)
-    filtration_recovery.insert(END, 100)
+    ww_filtration_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ww_filtration_recovery.grid(column=3, row=4)
+    ww_filtration_recovery.insert(END, 100)
 
     grit_removal = BooleanVar(root)
     grit_removal_button = Checkbutton(tab4, text='Grit Removal', variable=grit_removal).grid(column=1, row=5,
@@ -2211,7 +2262,7 @@ def main():
     Label(tab6, text='Recovery:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
     new_recovery_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_recovery_input.grid(column=1, row=2, sticky=W)
-    new_recovery_input.insert(END, 95)
+    new_recovery_input.insert(END, 100)
 
     Label(tab6, text='Energy Consumption', font=('Arial', 10)).grid(column=0, row=3, columnspan=4)
     Label(tab6, text='Min', font=('Arial', 10)).grid(column=1, row=4)
@@ -2227,6 +2278,7 @@ def main():
     new_elec_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_elec_max_input.grid(column=3, row=5, sticky=W)
     new_elec_max_input.insert(END, 0)
+    Label(tab6, text='kWh/m\N{SUPERSCRIPT THREE} of water', font=('Arial', 10)).grid(column=4, row=5, sticky=W)
     Label(tab6, text='Unit Thermal Energy Consumption:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
     new_therm_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
     new_therm_min_input.grid(column=1, row=6, sticky=W)
@@ -2342,7 +2394,7 @@ def main():
 
     Label(tab7, text='Results', font=('Arial', 10, 'bold')).grid(column=0, row=0, columnspan=10)
     Label(tab7, text='Embedded Air Emissions [g/m\N{SUPERSCRIPT THREE}]', font=('Arial', 10)).grid(column=3, row=1, columnspan=4)
-    Label(tab7, text='Annual Air Damages [$/yr]', font=('Arial', 10)).grid(column=7, row=1, columnspan=3)
+    Label(tab7, text='Annual Air Damages [$K/yr]', font=('Arial', 10)).grid(column=7, row=1, columnspan=3)
     Label(tab7, text='Required Dose', font=('Arial', 10)).grid(column=1, row=2, columnspan=2)
     Label(tab7, text='NOx', font=('Arial', 10)).grid(column=3, row=2)
     Label(tab7, text='SO\N{SUBSCRIPT TWO}', font=('Arial', 10)).grid(column=4, row=2)
@@ -2351,14 +2403,14 @@ def main():
     Label(tab7, text='Health', font=('Arial', 10)).grid(column=7, row=2)
     Label(tab7, text='Climate', font=('Arial', 10)).grid(column=8, row=2)
     Label(tab7, text='Total', font=('Arial', 10, 'italic')).grid(column=9, row=2)
-    Label(tab7, text='Energy', font=('Arial', 10, 'italic')).grid(column=0, row=3)
-    Label(tab7, text='(25th-75th)', font=('Arial', 10, 'italic')).grid(column=0, row=4)
+    Label(tab7, text='Energy', font=('Arial', 10, 'italic')).grid(column=0, row=3, columnspan=3)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10, 'italic')).grid(column=0, row=4, columnspan=3)
     Label(tab7, text='Electricity', font=('Arial', 10)).grid(column=0, row=5)
     Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=6)
     Label(tab7, text='Thermal', font=('Arial', 10)).grid(column=0, row=7)
     Label(tab7, text='25th-75th', font=('Arial', 10)).grid(column=0, row=8)
-    Label(tab7, text='Chemicals', font=('Arial', 10, 'italic')).grid(column=0, row=9)
-    Label(tab7, text='(25th-75th)', font=('Arial', 10, 'italic')).grid(column=0, row=10)
+    Label(tab7, text='Chemicals', font=('Arial', 10, 'italic')).grid(column=0, row=9, columnspan=3)
+    Label(tab7, text='(25th-75th)', font=('Arial', 10, 'italic')).grid(column=0, row=10, columnspan=3)
     Label(tab7, text='CaOH', font=('Arial', 10)).grid(column=0, row=11)
     Label(tab7, text='(25th-75th)', font=('Arial', 10)).grid(column=0, row=12)
     Label(tab7, text='FeCl\N{SUBSCRIPT THREE}', font=('Arial', 10)).grid(column=0, row=13)
@@ -2403,7 +2455,10 @@ def main():
 
     # Read in emissions data on the the average emissions factor per state and AP2 damages data.
     # Start with the CO2, SO2, and NOx emissions.
-    average_state_efs = pd.read_csv(fileDir / 'Data' / '2014 State MEFs.csv', header=None)
+    if getattr(sys, 'frozen', False):
+        average_state_efs = pd.read_csv(data_folder + '/2014 State MEFs.csv', header=None)
+    else:
+        average_state_efs = pd.read_csv(fileDir / 'Data' / '2014 State MEFs.csv', header=None)
     average_state_list = average_state_efs.iloc[0].dropna()
     co2_ef_list = average_state_efs.iloc[2]
     co2_ef_list = co2_ef_list.iloc[1::2]
@@ -2425,18 +2480,27 @@ def main():
 
     state_mefs = [('state', average_state_list_cleaned), ('co2', co2_ef_list_cleaned), ('so2', so2_ef_list_cleaned),
                   ('nox', nox_ef_list_cleaned)]
-    mefs = pd.DataFrame.from_items(state_mefs)
+    mefs = pd.DataFrame.from_dict(dict(state_mefs))
 
     # Now read in and merge the PM2.5 emissions factors
-    state_pm25_efs = pd.read_csv(fileDir / 'Data' / 'State PM25.csv')
+    if getattr(sys, 'frozen', False):
+        state_pm25_efs = pd.read_csv(data_folder + '/State PM25.csv')
+    else:
+        state_pm25_efs = pd.read_csv(fileDir / 'Data' / 'State PM25.csv')
     state_ef_data = pd.merge(mefs, state_pm25_efs, on='state')
 
     # Now read in AP2 damages and calculate the state-level average damages.
-    county_level_ap2_damages = pd.read_csv(fileDir / 'Data' / 'AP2 Damages.csv')
+    if getattr(sys, 'frozen', False):
+        county_level_ap2_damages = pd.read_csv(data_folder + '/AP2 Damages.csv')
+    else:
+        county_level_ap2_damages = pd.read_csv(fileDir / 'Data' / 'AP2 Damages.csv')
     county_level_ap2_damages.drop('fips', axis=1, inplace=True)
     state_level_average_damages = county_level_ap2_damages.groupby('state').mean()
     state_level_average_damages['state_fips'] = state_level_average_damages.index
-    state_fips_code_go_betweens = pd.read_csv(fileDir / 'Data' / 'state fips code go betweens.csv')
+    if getattr(sys, 'frozen', False):
+        state_fips_code_go_betweens = pd.read_csv(data_folder + '/state fips code go betweens.csv')
+    else:
+        state_fips_code_go_betweens = pd.read_csv(fileDir / 'Data' / 'state fips code go betweens.csv')
     state_level_damages = pd.merge(state_level_average_damages, state_fips_code_go_betweens, on='state_fips')
 
     # Finally create master list of EFs and Damage factors.
@@ -2566,6 +2630,572 @@ def main():
                             'so2': ng_combustion_per_m3['so2'] / ng_energy_density,
                             'pm25': ng_combustion_per_m3['pm25'] / ng_energy_density}
 
+    # def reset_inputs():
+    #     system_type.set('Drinking Water System)
+    #     system_size_input.delete(first=0, last=100)
+    #     system_size_input.insert(END, 0)
+    #     year_for_inflation.set('2015')
+    #     vsl.set(8.6)
+    #     scc.set(40)
+    #     model_runs.delete(first=0, last=100)
+    #     model_runs.insert(END, 1000)
+    #     grid_state.set('US Average')
+    #     chem_state.set('US Average')
+    #     source_water.set('Fresh Surface Water')
+    #     flocculation.set(FALSE)
+    #     flocculation_installed.delete(first=0, last=100)
+    #     flocculation_installed.insert(END, 0)
+    #     flocculation_recovery.delete(first=0, last=100)
+    #     flocculation_recovery.insert(END, 100)
+    #     coagulation.set(FALSE)
+    #     coagulation_installed.delete(first=0, last=100)
+    #     coagulation_installed.insert(END, 0)
+    #     coagulation_recovery.delete(first=0, last=100)
+    #     coagulation_recovery.insert(END, 100)
+    #     sedimentation.set(FALSE)
+    #     sedimentation_installed.delete(first=0, last=100)
+    #     sedimentation_installed.insert(END, 0)
+    #     sedimentation_recovery.delete(first=0, last=100)
+    #     sedimentation_recovery.insert(END, 100)
+    #     filtration.set('Generic')
+    #     filtration_installed.delete(first=0, last=100)
+    #     filtration_installed.insert(END, 0)
+    #     filtration_recovery.delete(first=0, last=100)
+    #     filtration_recovery.insert(END, 100)
+    #     primary_disinfection.set('Hypochlorite')
+    #     primary_disinfection_recovery.delete(first=0, last=100)
+    #     primary_disinfection_recovery.insert(END, 100)
+    #     secondary_disinfection.set('Hypochlorite')
+    #     secondary_disinfection_recovery.delete(first=0, last=100)
+    #     secondary_disinfection_recovery.insert(END, 100)
+    #     fluoridation.set(FALSE)
+    #     fluoridation_recovery.delete(first=0, last=100)
+    #     fluoridation_recovery.insert(END, 100)
+    #     softening.set(FALSE)
+    #     softening_recovery.delete(first=0, last=100)
+    #     softening_recovery.insert(END, 100)
+    #     ph_adjustment.set(FALSE)
+    #     ph_adjustment_installed.delete(first=0, last=100)
+    #     ph_adjustment_installed.insert(END, 0)
+    #     ph_adjustment_recovery.delete(first=0, last=100)
+    #     ph_adjustment_recovery.insert(END, 100)
+    #     granular_activated_carbon.set(FALSE)
+    #     granular_activated_carbon_installed.delete(first=0, last=100)
+    #     granular_activated_carbon_installed.insert(END, 0)
+    #     granular_activated_carbon_recovery.delete(first=0, last=100)
+    #     granular_activated_carbon_recovery.insert(END, 100)
+    #     reverse_osmosis.set(FALSE)
+    #     reverse_osmosis_installed.delete(first=0, last=100)
+    #     reverse_osmosis_installed.insert(END, 0)
+    #     reverse_osmosis_recovery.delete(first=0, last=100)
+    #     reverse_osmosis_recovery.insert(END, 60)
+    #     corrosion_control.set('None')
+    #     corrosion_control_recovery.delete(first=0, last=100)
+    #     corrosion_control_recovery.insert(END, 100)
+    #     aerated_grit.set(FALSE)
+    #     aerated_grit_installed.delete(first=0, last=100)
+    #     aerated_grit_installed.insert(END, 0)
+    #     aerated_grit_recovery.delete(first=0, last=100)
+    #     aerated_grit_recovery.insert(END, 100)
+    #     grinding.set(FALSE)
+    #     grinding_recovery.delete(first=0, last=100)
+    #     grinding_recovery.insert(END, 100)
+    #     ww_filtration.set(FALSE)
+    #     ww_filtration_installed.delete(first=0, last=100)
+    #     ww_filtration_installed.insert(END, 0)
+    #     ww_filtration_recovery.delete(first=0, last=100)
+    #     ww_filtration_recovery.insert(END, 100)
+    #     grit_removal.set(FALSE)
+    #     grit_removal_installed.delete(first=0, last=100)
+    #     grit_removal_installed.insert(END, 0)
+    #     grit_removal_recovery.delete(first=0, last=100)
+    #     grit_removal_recovery.insert(END, 100)
+    #     screening.set(FALSE)
+    #     screening_installed.delete(first=0, last=100)
+    #     screening_installed.insert(END, 0)
+    #     screening_recovery.delete(first=0, last=100)
+    #     screening_recovery.insert(END, 100)
+    #     wastewater_sedimentation.set(FALSE)
+    #     wastewater_sedimentation_installed.delete(first=0, last=100)
+    #     wastewater_sedimentation_installed.insert(END, 0)
+    #     wastewater_sedimentation_recovery.delete(first=0, last=100)
+    #     wastewater_sedimentation_recovery.insert(END, 100)
+    #     secondary_treatment.set('Activated Sludge and Clarification')
+    #     secondary_treatment_recovery.delete(first=0, last=100)
+    #     secondary_treatment_recovery.insert(END, 95)
+    #     nitrification_denitrification.set(FALSE)
+    #     nitrification_denitrification_installed.delete(first=0, last=100)
+    #     nitrification_denitrification_installed.insert(END, 0)
+    #     nitrification_denitrification_recovery.delete(first=0, last=100)
+    #     nitrification_denitrification_recovery.insert(END, 100)
+    #     phosphorous_removal.set(FALSE)
+    #     phosphorous_removal_installed.delete(first=0, last=100)
+    #     phosphorous_removal_installed.insert(END, 0)
+    #     phosphorous_removal_recovery.delete(first=0, last=100)
+    #     phosphorous_removal_recovery.insert(END, 100)
+    #     wastewater_reverse_osmosis.set(FALSE)
+    #     wastewater_reverse_osmosis_installed.delete(first=0, last=100)
+    #     wastewater_reverse_osmosis_installed.insert(END, 0)
+    #     wastewater_reverse_osmosis_recovery.delete(first=0, last=100)
+    #     wastewater_reverse_osmosis_recovery.insert(END, 80)
+    #     disinfection.set('Hypochlorite')
+    #     disinfection_recovery.delete(first=0, last=100)
+    #     disinfection_recovery.insert(END, 100)
+    #     dechlorination.set(FALSE)
+    #     dechlorination_recovery.delete(first=0, last=100)
+    #     dechlorination_recovery.insert(END, 100)
+    #     digestion.set('Aerobic Digestion')
+    #     digestion_recovery.delete(first=0, last=100)
+    #     digestion_recovery.insert(END, 100)
+    #     dewatering.set('Mechanical Dewatering')
+    #     dewatering_recovery.delete(first=0, last=100)
+    #     dewatering_recovery.insert(END, 100)
+    #     softening_process.set(FALSE)
+    #     softening_process_recovery.delete(first=0, last=100)
+    #     softening_process_recovery.insert(END, 100)
+    #     chemical_addition_input.delete(first=0, last=100)
+    #     chemical_addition_input.insert(END, 0)
+    #     chemical_addition_recovery.delete(first=0, last=100)
+    #     chemical_addition_recovery.insert(END, 100)
+    #     bio_treatment.set('None')
+    #     bio_treatment_installed.delete(first=0, last=100)
+    #     bio_treatment_installed.insert(END, 0)
+    #     bio_treatment_recovery.delete(first=0, last=100)
+    #     bio_treatment_recovery.insert(END, 100)
+    #     volume_reduction.set('None')
+    #     volume_reduction_installed.delete(first=0, last=100)
+    #     volume_reduction_installed.insert(END, 0)
+    #     volume_reduction_recovery.delete(first=0, last=100)
+    #     volume_reduction_recovery.insert(END, 65)
+    #     crystallization.set(FALSE)
+    #     crystallization_recovery.delete(first=0, last=100)
+    #     crystallization_recovery.insert(END, 95)
+    #     caoh_dose_min_input.delete(first=0, last=100)
+    #     caoh_dose_min_input.insert(END, 0)
+    #     caoh_dose_best_input.delete(first=0, last=100)
+    #     caoh_dose_best_input.insert(END, 0)
+    #     caoh_dose_max_input.delete(first=0, last=100)
+    #     caoh_dose_max_input.insert(END, 0)
+    #     fecl3_dose_min_input.delete(first=0, last=100)
+    #     fecl3_dose_min_input.insert(END, 0)
+    #     fecl3_dose_best_input.delete(first=0, last=100)
+    #     fecl3_dose_best_input.insert(END, 0)
+    #     fecl3_dose_max_input.delete(first=0, last=100)
+    #     fecl3_dose_max_input.insert(END, 0)
+    #     hcl_dose_min_input.delete(first=0, last=100)
+    #     hcl_dose_min_input.insert(END, 0)
+    #     hcl_dose_best_input.delete(first=0, last=100)
+    #     hcl_dose_best_input.insert(END, 0)
+    #     hcl_dose_max_input.delete(first=0, last=100)
+    #     hcl_dose_max_input.insert(END, 0)
+    #     nutrients_dose_min_input.delete(first=0, last=100)
+    #     nutrients_dose_min_input.insert(END, 0)
+    #     nutrients_dose_best_input.delete(first=0, last=100)
+    #     nutrients_dose_best_input.insert(END, 0)
+    #     nutrients_dose_max_input.delete(first=0, last=100)
+    #     nutrients_dose_max_input.insert(END, 0)
+    #     sodium_carbonate_dose_min_input.delete(first=0, last=100)
+    #     sodium_carbonate_dose_min_input.insert(END, 0)
+    #     sodium_carbonate_dose_best_input.delete(first=0, last=100)
+    #     sodium_carbonate_dose_best_input.insert(END, 0)
+    #     sodium_carbonate_dose_max_input.delete(first=0, last=100)
+    #     sodium_carbonate_dose_max_input.insert(END, 0)
+    #     gac_dose_min_input.delete(first=0, last=100)
+    #     gac_dose_min_input.insert(END, 0)
+    #     gac_dose_best_input.delete(first=0, last=100)
+    #     gac_dose_best_input.insert(END, 0)
+    #     gac_dose_max_input.delete(first=0, last=100)
+    #     gac_dose_max_input.insert(END, 0)
+    #     inorganics_dose_min_input.delete(first=0, last=100)
+    #     inorganics_dose_min_input.insert(END, 0)
+    #     inorganics_dose_best_input.delete(first=0, last=100)
+    #     inorganics_dose_best_input.insert(END, 0)
+    #     inorganics_dose_max_input.delete(first=0, last=100)
+    #     inorganics_dose_max_input.insert(END, 0)
+    #     organics_dose_min_input.delete(first=0, last=100)
+    #     organics_dose_min_input.insert(END, 0)
+    #     organics_dose_best_input.delete(first=0, last=100)
+    #     organics_dose_best_input.insert(END, 0)
+    #     organics_dose_max_input.delete(first=0, last=100)
+    #     organics_dose_max_input.insert(END, 0)
+    #     new_recovery_input.delete(first=0, last=100)
+    #     new_recovery_input.insert(END, 100)
+    #     new_elec_min_input.delete(first=0, last=100)
+    #     new_elec_min_input.insert(END, 0)
+    #     new_elec_best_input.delete(first=0, last=100)
+    #     new_elec_best_input.insert(END, 0)
+    #     new_elec_max_input.delete(first=0, last=100)
+    #     new_elec_max_input.insert(END, 0)
+    #     new_therm_min_input.delete(first=0, last=100)
+    #     new_therm_min_input.insert(END, 0)
+    #     new_therm_best_input.delete(first=0, last=100)
+    #     new_therm_best_input.insert(END, 0)
+    #     new_therm_max_input.delete(first=0, last=100)
+    #     new_therm_max_input.insert(END, 0)
+    #
+    #     new_caoh_dose_min_input.delete(first=0, last=100)
+    #     new_caoh_dose_min_input.insert(END, 0)
+    #     new_caoh_dose_best_input.delete(first=0, last=100)
+    #     new_caoh_dose_best_input.insert(END, 0)
+    #     new_caoh_dose_max_input.delete(first=0, last=100)
+    #     new_caoh_dose_max_input.insert(END, 0)
+    #     new_fecl3_dose_min_input.delete(first=0, last=100)
+    #     new_fecl3_dose_min_input.insert(END, 0)
+    #     new_fecl3_dose_best_input.delete(first=0, last=100)
+    #     new_fecl3_dose_best_input.insert(END, 0)
+    #     new_fecl3_dose_max_input.delete(first=0, last=100)
+    #     new_fecl3_dose_max_input.insert(END, 0)
+    #     new_hcl_dose_min_input.delete(first=0, last=100)
+    #     new_hcl_dose_min_input.insert(END, 0)
+    #     new_hcl_dose_best_input.delete(first=0, last=100)
+    #     new_hcl_dose_best_input.insert(END, 0)
+    #     new_hcl_dose_max_input.delete(first=0, last=100)
+    #     new_hcl_dose_max_input.insert(END, 0)
+    #     new_nutrients_dose_min_input.delete(first=0, last=100)
+    #     new_nutrients_dose_min_input.insert(END, 0)
+    #     new_nutrients_dose_best_input.delete(first=0, last=100)
+    #     new_nutrients_dose_best_input.insert(END, 0)
+    #     new_nutrients_dose_max_input.delete(first=0, last=100)
+    #     new_nutrients_dose_max_input.insert(END, 0)
+    #     new_sodium_carbonate_dose_min_input.delete(first=0, last=100)
+    #     new_sodium_carbonate_dose_min_input.insert(END, 0)
+    #     new_sodium_carbonate_dose_best_input.delete(first=0, last=100)
+    #     new_sodium_carbonate_dose_best_input.insert(END, 0)
+    #     new_sodium_carbonate_dose_max_input.delete(first=0, last=100)
+    #     new_sodium_carbonate_dose_max_input.insert(END, 0)
+    #     new_gac_dose_min_input.delete(first=0, last=100)
+    #     new_gac_dose_min_input.insert(END, 0)
+    #     new_gac_dose_best_input.delete(first=0, last=100)
+    #     new_gac_dose_best_input.insert(END, 0)
+    #     new_gac_dose_max_input.delete(first=0, last=100)
+    #     new_gac_dose_max_input.insert(END, 0)
+    #     new_inorganics_dose_min_input.delete(first=0, last=100)
+    #     new_inorganics_dose_min_input.insert(END, 0)
+    #     new_inorganics_dose_best_input.delete(first=0, last=100)
+    #     new_inorganics_dose_best_input.insert(END, 0)
+    #     new_inorganics_dose_max_input.delete(first=0, last=100)
+    #     new_inorganics_dose_max_input.insert(END, 0)
+    #     new_organics_dose_min_input.delete(first=0, last=100)
+    #     new_organics_dose_min_input.insert(END, 0)
+    #     new_organics_dose_best_input.delete(first=0, last=100)
+    #     new_organics_dose_best_input.insert(END, 0)
+    #     new_organics_dose_max_input.delete(first=0, last=100)
+    #     new_organics_dose_max_input.insert(END, 0)
+
+    def open_input():
+        '''This file will open the input values from the previously written results'''
+
+        input_file_name = filedialog.askopenfilename()
+
+        basic_info = pd.read_excel(input_file_name, sheetname="Inputs", usecols='B')
+        read_system_type, read_system_size_input, read_year_for_inflation, read_vsl, read_scc, read_model_runs = \
+            np.array(basic_info).reshape(6,)
+        system_type.set(read_system_type)
+        system_size_input.delete(first=0, last=100)
+        system_size_input.insert(END, read_system_size_input)
+        year_for_inflation.set(read_year_for_inflation)
+        vsl.set(read_vsl)
+        scc.set(read_scc)
+        model_runs.delete(first=0, last=100)
+        model_runs.insert(END, read_model_runs)
+
+        geography_info = pd.read_excel(input_file_name, sheetname="Inputs", usecols='E')
+        read_grid_state, read_chem_state = np.array(geography_info).reshape(2,)
+        grid_state.set(read_grid_state)
+        chem_state.set(read_chem_state)
+
+        drinking_water_info = pd.read_excel(input_file_name, sheetname="Inputs", usecols='H')
+        read_source_water, read_flocculation, read_flocculation_installed, read_flocculation_recovery, read_coagulation, \
+        read_coagulation_installed, read_coagulation_recovery, read_sedimentation, read_sedimentation_installed, \
+        read_sedimentation_recovery, read_filtration, read_filtration_installed, read_filtration_recovery, read_primary_disinfection, \
+        read_primary_disinfection_recovery, read_secondary_disinfection, read_secondary_disinfection_recovery, \
+        read_fluoridation, read_fluoridation_recovery, read_softening, read_softening_recovery, read_ph_adjustment, \
+        read_ph_adjustment_installed, read_ph_adjustment_recovery, read_granular_activated_carbon, \
+        read_granular_activated_carbon_installed, read_granular_activated_carbon_recovery, read_reverse_osmosis, \
+        read_reverse_osmosis_installed, read_reverse_osmosis_recovery, read_corrosion_control, \
+        read_corrosion_control_recovery = np.array(drinking_water_info).reshape(32, )
+        source_water.set(read_source_water)
+        flocculation.set(read_flocculation)
+        flocculation_installed.delete(first=0, last=100)
+        flocculation_installed.insert(END, read_flocculation_installed)
+        flocculation_recovery.delete(first=0, last=100)
+        flocculation_recovery.insert(END, read_flocculation_recovery)
+        coagulation.set(read_coagulation)
+        coagulation_installed.delete(first=0, last=100)
+        coagulation_installed.insert(END, read_coagulation_installed)
+        coagulation_recovery.delete(first=0, last=100)
+        coagulation_recovery.insert(END, read_coagulation_recovery)
+        sedimentation.set(read_sedimentation)
+        sedimentation_installed.delete(first=0, last=100)
+        sedimentation_installed.insert(END, read_sedimentation_installed)
+        sedimentation_recovery.delete(first=0, last=100)
+        sedimentation_recovery.insert(END, read_sedimentation_recovery)
+        filtration.set(read_filtration)
+        filtration_installed.delete(first=0, last=100)
+        filtration_installed.insert(END, read_filtration_installed)
+        filtration_recovery.delete(first=0, last=100)
+        filtration_recovery.insert(END, read_filtration_recovery)
+        primary_disinfection.set(read_primary_disinfection)
+        primary_disinfection_recovery.delete(first=0, last=100)
+        primary_disinfection_recovery.insert(END, read_primary_disinfection_recovery)
+        secondary_disinfection.set(read_secondary_disinfection)
+        secondary_disinfection_recovery.delete(first=0, last=100)
+        secondary_disinfection_recovery.insert(END, read_sedimentation_recovery)
+        fluoridation.set(read_fluoridation)
+        fluoridation_recovery.delete(first=0, last=100)
+        fluoridation_recovery.insert(read_fluoridation_recovery, 100)
+        softening.set(read_softening)
+        softening_recovery.delete(first=0, last=100)
+        softening_recovery.insert(END, read_softening_recovery)
+        ph_adjustment.set(read_ph_adjustment)
+        ph_adjustment_installed.delete(first=0, last=100)
+        ph_adjustment_installed.insert(END, read_ph_adjustment_installed)
+        ph_adjustment_recovery.delete(first=0, last=100)
+        ph_adjustment_recovery.insert(END, read_ph_adjustment_recovery)
+        granular_activated_carbon.set(read_granular_activated_carbon)
+        granular_activated_carbon_installed.delete(first=0, last=100)
+        granular_activated_carbon_installed.insert(END, read_granular_activated_carbon_installed)
+        granular_activated_carbon_recovery.delete(first=0, last=100)
+        granular_activated_carbon_recovery.insert(END, read_granular_activated_carbon_recovery)
+        reverse_osmosis.set(read_reverse_osmosis)
+        reverse_osmosis_installed.delete(first=0, last=100)
+        reverse_osmosis_installed.insert(END, read_reverse_osmosis_installed)
+        reverse_osmosis_recovery.delete(first=0, last=100)
+        reverse_osmosis_recovery.insert(END, read_reverse_osmosis_recovery)
+        corrosion_control.set(read_corrosion_control)
+        corrosion_control_recovery.delete(first=0, last=100)
+        corrosion_control_recovery.insert(END, read_corrosion_control_recovery)
+
+        municipal_wastewater_info = pd.read_excel(input_file_name, sheentame="Inputs", usecols='K')
+        read_aerated_grit, read_aerated_grit_installed, read_aerated_grit_recovery, read_grinding, \
+        read_grinding_recovery, read_ww_filtration, read_ww_filtration_installed, read_ww_filtration_recovery, \
+        read_grit_removal, read_grit_removal_installed, read_grit_removal_recovery, read_screening, \
+        read_screening_installed, read_screening_recovery, read_wastewater_sedimentation, \
+        read_wastewater_sedimentation_installed, read_wastewater_sedimentation_recovery, read_secondary_treatment, \
+        read_secondary_treatment_recovery, read_nitrification_denitrification, \
+        read_nitrification_denitrification_installed, read_nitrification_denitrification_recovery, \
+        read_phosphorous_removal, read_phosphorous_removal_installed, read_phosphorous_removal_recovery, \
+        read_wastewater_reverse_osmosis, read_wastewater_reverse_osmosis_installed, \
+        read_wastewater_reverse_osmosis_recovery, read_disinfection, read_disinfection_recovery, read_dechlorination, \
+        read_dechlorination_recovery, read_digestion, read_digestion_recovery, read_dewatering, \
+        read_dewatering_recovery = np.array(municipal_wastewater_info).reshape(36, )
+
+        aerated_grit.set(read_aerated_grit)
+        aerated_grit_installed.delete(first=0, last=100)
+        aerated_grit_installed.insert(END, read_aerated_grit_installed)
+        aerated_grit_recovery.delete(first=0, last=100)
+        aerated_grit_recovery.insert(END, read_aerated_grit_recovery)
+        grinding.set(read_grinding)
+        grinding_recovery.delete(first=0, last=100)
+        grinding_recovery.insert(END, read_grinding_recovery)
+        ww_filtration.set(read_ww_filtration)
+        ww_filtration_installed.delete(first=0, last=100)
+        ww_filtration_installed.insert(END, read_ww_filtration_installed)
+        ww_filtration_recovery.delete(first=0, last=100)
+        ww_filtration_recovery.insert(END, read_ww_filtration_recovery)
+        grit_removal.set(read_grit_removal)
+        grit_removal_installed.delete(first=0, last=100)
+        grit_removal_installed.insert(END, read_grit_removal_installed)
+        grit_removal_recovery.delete(first=0, last=100)
+        grit_removal_recovery.insert(END, read_grit_removal_recovery)
+        screening.set(read_screening)
+        screening_installed.delete(first=0, last=100)
+        screening_installed.insert(END, read_screening_installed)
+        screening_recovery.delete(first=0, last=100)
+        screening_recovery.insert(END, read_screening_recovery)
+        wastewater_sedimentation.set(read_wastewater_sedimentation)
+        wastewater_sedimentation_installed.delete(first=0, last=100)
+        wastewater_sedimentation_installed.insert(END, read_wastewater_sedimentation_installed)
+        wastewater_sedimentation_recovery.delete(first=0, last=100)
+        wastewater_sedimentation_recovery.insert(END, read_wastewater_sedimentation_recovery)
+        secondary_treatment.set(read_secondary_treatment)
+        secondary_treatment_recovery.delete(first=0, last=100)
+        secondary_treatment_recovery.insert(END, read_secondary_treatment_recovery)
+        nitrification_denitrification.set(read_nitrification_denitrification)
+        nitrification_denitrification_installed.delete(first=0, last=100)
+        nitrification_denitrification_installed.insert(END, read_nitrification_denitrification_installed)
+        nitrification_denitrification_recovery.delete(first=0, last=100)
+        nitrification_denitrification_recovery.insert(END, read_nitrification_denitrification_recovery)
+        phosphorous_removal.set(read_phosphorous_removal)
+        phosphorous_removal_installed.delete(first=0, last=100)
+        phosphorous_removal_installed.insert(END, read_phosphorous_removal_installed)
+        phosphorous_removal_recovery.delete(first=0, last=100)
+        phosphorous_removal_recovery.insert(END, read_phosphorous_removal_recovery)
+        wastewater_reverse_osmosis.set(read_wastewater_reverse_osmosis)
+        wastewater_reverse_osmosis_installed.delete(first=0, last=100)
+        wastewater_reverse_osmosis_installed.insert(END, read_wastewater_reverse_osmosis_installed)
+        wastewater_reverse_osmosis_recovery.delete(first=0, last=100)
+        wastewater_reverse_osmosis_recovery.insert(END, read_wastewater_reverse_osmosis_recovery)
+        disinfection.set(read_disinfection)
+        disinfection_recovery.delete(first=0, last=100)
+        disinfection_recovery.insert(END, read_disinfection_recovery)
+        dechlorination.set(read_dechlorination)
+        dechlorination_recovery.delete(first=0, last=100)
+        dechlorination_recovery.insert(END, read_dechlorination_recovery)
+        digestion.set(read_digestion)
+        digestion_recovery.delete(first=0, last=100)
+        digestion_recovery.insert(END, read_digestion_recovery)
+        dewatering.set(read_dewatering)
+        dewatering_recovery.delete(first=0, last=100)
+        dewatering_recovery.insert(END, read_dewatering_recovery)
+
+        industrial_wastewater_info = pd.read_excel(input_file_name, sheetname="Inputs", usecols='N')
+        read_softening_process, read_softening_process_recovery, read_chemical_addition_input, \
+        read_chemical_addition_recovery, read_bio_treatment, read_bio_treatment_installed, read_bio_treatment_recovery, \
+        read_volume_reduction, read_volume_reduction_installed, read_volume_reduction_recovery, read_crystallization, \
+        read_crystallization_recovery, read_caoh_dose_min_input, read_caoh_dose_best_input, read_caoh_dose_max_input, \
+        read_fecl3_dose_min_input, read_fecl3_dose_best_input, read_fecl3_dose_max_input, read_hcl_dose_min_input, \
+        read_hcl_dose_best_input, read_hcl_dose_max_input, read_nutrients_dose_min_input, \
+        read_nutrients_dose_best_input, read_nutrients_dose_max_input, read_sodium_carbonate_dose_min_input, \
+        read_sodium_carbonate_dose_best_input, read_sodium_carbonate_dose_max_input, read_gac_dose_min_input, \
+        read_gac_dose_best_input, read_gac_dose_max_input, read_inorganics_dose_min_input, \
+        read_inorganics_dose_best_input, read_inorganics_dose_max_input, read_organics_dose_min_input, \
+        read_organics_dose_best_input, read_organics_dose_max_input = np.array(industrial_wastewater_info).reshape(36, )
+
+        softening_process.set(read_softening_process)
+        softening_process_recovery.delete(first=0, last=100)
+        softening_process_recovery.insert(END, read_softening_process_recovery)
+        chemical_addition_input.delete(first=0, last=100)
+        chemical_addition_input.insert(END, read_chemical_addition_input)
+        chemical_addition_recovery.delete(first=0, last=100)
+        chemical_addition_recovery.insert(END, read_chemical_addition_recovery)
+        bio_treatment.set(read_bio_treatment)
+        bio_treatment_installed.delete(first=0, last=100)
+        bio_treatment_installed.insert(END, read_bio_treatment_installed)
+        bio_treatment_recovery.delete(first=0, last=100)
+        bio_treatment_recovery.insert(END, read_bio_treatment_recovery)
+        volume_reduction.set(read_volume_reduction)
+        volume_reduction_installed.delete(first=0, last=100)
+        volume_reduction_installed.insert(END, read_volume_reduction_installed)
+        volume_reduction_recovery.delete(first=0, last=100)
+        volume_reduction_recovery.insert(END, read_volume_reduction_recovery)
+        crystallization.set(read_crystallization)
+        crystallization_recovery.delete(first=0, last=100)
+        crystallization_recovery.insert(END, read_crystallization_recovery)
+        caoh_dose_min_input.delete(first=0, last=100)
+        caoh_dose_min_input.insert(END, read_caoh_dose_min_input)
+        caoh_dose_best_input.delete(first=0, last=100)
+        caoh_dose_best_input.insert(END, read_caoh_dose_best_input)
+        caoh_dose_max_input.delete(first=0, last=100)
+        caoh_dose_max_input.insert(END, read_caoh_dose_max_input)
+        fecl3_dose_min_input.delete(first=0, last=100)
+        fecl3_dose_min_input.insert(END, read_fecl3_dose_min_input)
+        fecl3_dose_best_input.delete(first=0, last=100)
+        fecl3_dose_best_input.insert(END, read_fecl3_dose_best_input)
+        fecl3_dose_max_input.delete(first=0, last=100)
+        fecl3_dose_max_input.insert(END, read_fecl3_dose_max_input)
+        hcl_dose_min_input.delete(first=0, last=100)
+        hcl_dose_min_input.insert(END, read_hcl_dose_min_input)
+        hcl_dose_best_input.delete(first=0, last=100)
+        hcl_dose_best_input.insert(END, read_hcl_dose_best_input)
+        hcl_dose_max_input.delete(first=0, last=100)
+        hcl_dose_max_input.insert(END, read_hcl_dose_max_input)
+        nutrients_dose_min_input.delete(first=0, last=100)
+        nutrients_dose_min_input.insert(END, read_nutrients_dose_min_input)
+        nutrients_dose_best_input.delete(first=0, last=100)
+        nutrients_dose_best_input.insert(END, read_nutrients_dose_best_input)
+        nutrients_dose_max_input.delete(first=0, last=100)
+        nutrients_dose_max_input.insert(END, read_nutrients_dose_max_input)
+        sodium_carbonate_dose_min_input.delete(first=0, last=100)
+        sodium_carbonate_dose_min_input.insert(END, read_sodium_carbonate_dose_min_input)
+        sodium_carbonate_dose_best_input.delete(first=0, last=100)
+        sodium_carbonate_dose_best_input.insert(END, read_sodium_carbonate_dose_best_input)
+        sodium_carbonate_dose_max_input.delete(first=0, last=100)
+        sodium_carbonate_dose_max_input.insert(END, read_sodium_carbonate_dose_max_input)
+        gac_dose_min_input.delete(first=0, last=100)
+        gac_dose_min_input.insert(END, read_gac_dose_min_input)
+        gac_dose_best_input.delete(first=0, last=100)
+        gac_dose_best_input.insert(END, read_gac_dose_best_input)
+        gac_dose_max_input.delete(first=0, last=100)
+        gac_dose_max_input.insert(END, read_gac_dose_max_input)
+        inorganics_dose_min_input.delete(first=0, last=100)
+        inorganics_dose_min_input.insert(END, read_inorganics_dose_min_input)
+        inorganics_dose_best_input.delete(first=0, last=100)
+        inorganics_dose_best_input.insert(END, read_inorganics_dose_best_input)
+        inorganics_dose_max_input.delete(first=0, last=100)
+        inorganics_dose_max_input.insert(END, read_inorganics_dose_max_input)
+        organics_dose_min_input.delete(first=0, last=100)
+        organics_dose_min_input.insert(END, read_organics_dose_min_input)
+        organics_dose_best_input.delete(first=0, last=100)
+        organics_dose_best_input.insert(END, read_organics_dose_best_input)
+        organics_dose_max_input.delete(first=0, last=100)
+        organics_dose_max_input.insert(END, read_organics_dose_max_input)
+
+        new_process_info = pd.read_excel(input_file_name, sheetname="Inputs", usecols='Q')
+        read_new_recovery_input, read_new_elec_min_input, read_new_elec_best_input, read_new_elec_max_input, \
+        read_new_therm_min_input, read_new_therm_best_input, read_new_therm_max_input, read_new_caoh_dose_min_input, \
+        read_new_caoh_dose_best_input, read_new_caoh_dose_max_input, read_new_fecl3_dose_min_input, \
+        read_new_fecl3_dose_best_input, read_new_fecl3_dose_max_input, read_new_hcl_dose_min_input, \
+        read_new_hcl_dose_best_input, read_new_hcl_dose_max_input, read_new_nutrients_dose_min_input, \
+        read_new_nutrients_dose_best_input, read_new_nutrients_dose_max_input, \
+        read_new_sodium_carbonate_dose_min_input, read_new_sodium_carbonate_dose_best_input, \
+        read_new_sodium_carbonate_dose_max_input, read_new_gac_dose_min_input, read_new_gac_dose_best_input, \
+        read_new_gac_dose_max_input, read_new_inorganics_dose_min_input, read_new_inorganics_dose_best_input, \
+        read_new_inorganics_dose_max_input, read_new_organics_dose_min_input, read_new_organics_dose_best_input, \
+        read_new_organics_dose_max_input = np.array(new_process_info).reshape(31, )
+
+        new_recovery_input.delete(first=0, last=100)
+        new_recovery_input.insert(END, read_new_recovery_input)
+        new_elec_min_input.delete(first=0, last=100)
+        new_elec_min_input.insert(END, read_new_elec_min_input)
+        new_elec_best_input.delete(first=0, last=100)
+        new_elec_best_input.insert(END, read_new_elec_best_input)
+        new_elec_max_input.delete(first=0, last=100)
+        new_elec_max_input.insert(END, read_new_elec_max_input)
+        new_therm_min_input.delete(first=0, last=100)
+        new_therm_min_input.insert(END, read_new_therm_min_input)
+        new_therm_best_input.delete(first=0, last=100)
+        new_therm_best_input.insert(END, read_new_therm_best_input)
+        new_therm_max_input.delete(first=0, last=100)
+        new_therm_max_input.insert(END, read_new_therm_max_input)
+        new_caoh_dose_min_input.delete(first=0, last=100)
+        new_caoh_dose_min_input.insert(END, read_new_caoh_dose_min_input)
+        new_caoh_dose_best_input.delete(first=0, last=100)
+        new_caoh_dose_best_input.insert(END, read_new_caoh_dose_best_input)
+        new_caoh_dose_max_input.delete(first=0, last=100)
+        new_caoh_dose_max_input.insert(END, read_new_caoh_dose_max_input)
+        new_fecl3_dose_min_input.delete(first=0, last=100)
+        new_fecl3_dose_min_input.insert(END, read_new_fecl3_dose_min_input)
+        new_fecl3_dose_best_input.delete(first=0, last=100)
+        new_fecl3_dose_best_input.insert(END, read_new_fecl3_dose_best_input)
+        new_fecl3_dose_max_input.delete(first=0, last=100)
+        new_fecl3_dose_max_input.insert(END, read_new_fecl3_dose_max_input)
+        new_hcl_dose_min_input.delete(first=0, last=100)
+        new_hcl_dose_min_input.insert(END, read_new_hcl_dose_min_input)
+        new_hcl_dose_best_input.delete(first=0, last=100)
+        new_hcl_dose_best_input.insert(END, read_new_hcl_dose_best_input)
+        new_hcl_dose_max_input.delete(first=0, last=100)
+        new_hcl_dose_max_input.insert(END, read_new_hcl_dose_max_input)
+        new_nutrients_dose_min_input.delete(first=0, last=100)
+        new_nutrients_dose_min_input.insert(END, read_new_nutrients_dose_min_input)
+        new_nutrients_dose_best_input.delete(first=0, last=100)
+        new_nutrients_dose_best_input.insert(END, read_new_nutrients_dose_best_input)
+        new_nutrients_dose_max_input.delete(first=0, last=100)
+        new_nutrients_dose_max_input.insert(END, read_new_nutrients_dose_max_input)
+        new_sodium_carbonate_dose_min_input.delete(first=0, last=100)
+        new_sodium_carbonate_dose_min_input.insert(END, read_new_sodium_carbonate_dose_min_input)
+        new_sodium_carbonate_dose_best_input.delete(first=0, last=100)
+        new_sodium_carbonate_dose_best_input.insert(END, read_new_sodium_carbonate_dose_best_input)
+        new_sodium_carbonate_dose_max_input.delete(first=0, last=100)
+        new_sodium_carbonate_dose_max_input.insert(END, read_new_sodium_carbonate_dose_max_input)
+        new_gac_dose_min_input.delete(first=0, last=100)
+        new_gac_dose_min_input.insert(END, read_new_gac_dose_min_input)
+        new_gac_dose_best_input.delete(first=0, last=100)
+        new_gac_dose_best_input.insert(END, read_new_gac_dose_best_input)
+        new_gac_dose_max_input.delete(first=0, last=100)
+        new_gac_dose_max_input.insert(END, read_new_gac_dose_max_input)
+        new_inorganics_dose_min_input.delete(first=0, last=100)
+        new_inorganics_dose_min_input.insert(END, read_new_inorganics_dose_min_input)
+        new_inorganics_dose_best_input.delete(first=0, last=100)
+        new_inorganics_dose_best_input.insert(END, read_new_inorganics_dose_best_input)
+        new_inorganics_dose_max_input.delete(first=0, last=100)
+        new_inorganics_dose_max_input.insert(END, read_new_inorganics_dose_max_input)
+        new_organics_dose_min_input.delete(first=0, last=100)
+        new_organics_dose_min_input.insert(END, read_new_organics_dose_min_input)
+        new_organics_dose_best_input.delete(first=0, last=100)
+        new_organics_dose_best_input.insert(END, read_new_organics_dose_best_input)
+        new_organics_dose_max_input.delete(first=0, last=100)
+        new_organics_dose_max_input.insert(END, read_new_organics_dose_max_input)
 
     def gather_inputs():
         '''This function collects the model inputs and stores them into a dictionary.'''
@@ -2613,6 +3243,9 @@ def main():
                                                'aerated grit recovery': 0,
                                            'grinding': FALSE,
                                                'grinding recovery': 0,
+                                           'ww filtration': FALSE,
+                                           'no. of ww filtration units': 0,
+                                           'ww filtration recovery': 0,
                                            'grit removal': FALSE,
                                            'no. of grit removal units': 0,
                                                'grit removal recovery': 0,
@@ -2715,6 +3348,9 @@ def main():
                                                 'aerated grit recovery': float(aerated_grit_recovery.get())/100,
                                            'grinding': grinding.get(),
                                                 'grinding recovery': float(grinding_recovery.get())/100,
+                                           'ww filtration': ww_filtration.get(),
+                                           'no. of ww filtration units': int(ww_filtration_installed.get()),
+                                           'ww filtration recovery': float(ww_filtration_recovery.get())/100,
                                            'grit removal': grit_removal.get(),
                                            'no. of grit removal units': int(grit_removal_installed.get()),
                                                 'grit removal recovery': float(grit_removal_recovery.get())/100,
@@ -2817,6 +3453,9 @@ def main():
                                                 'aerated grit recovery': 0,
                                            'grinding': FALSE,
                                                 'grinding recovery': 0,
+                                                'ww filtration': FALSE,
+                                                'no. of ww filtration units': 0,
+                                                'ww filtration recovery': 0,
                                            'grit removal': FALSE,
                                            'no. of grit removal units': 0,
                                                 'grit removal recovery': 0,
@@ -2919,6 +3558,9 @@ def main():
 
     def calculate_results():
 
+        global required_dosage_summary, nox_emissions_summary, so2_emissions_summary, pm25_emissions_summary, \
+            co2_emissions_summary, health_damages_summary, climate_damages_summary, total_damages_summary
+
         basic_info, geography_info, baseline_treatment_process_info, new_process_info = gather_inputs()
 
         # Calculate and report electricity consumption.
@@ -2970,7 +3612,7 @@ def main():
 
         elec_health_damages = calculate_cap_damages_from_energy(geography_info, basic_info, nox_electricity_emissions,
                                                                 so2_electricity_emissions, pm25_electricity_emissions,
-                                                                state_level_damages)
+                                                                state_level_damages)/1000
         med_elec_health = round_sig(np.median(elec_health_damages))
         elec_health_25 = round_sig(np.percentile(elec_health_damages, 25))
         elec_health_75 = round_sig(np.percentile(elec_health_damages, 75))
@@ -2979,7 +3621,7 @@ def main():
         Label(tab7, text=elec_health_range, font=('Arial', 10)).grid(column=7, row=6)
 
 
-        elec_climate_damages = calculate_climate_damages(co2_electricity_emissions, basic_info)
+        elec_climate_damages = calculate_climate_damages(co2_electricity_emissions, basic_info)/1000
         med_elec_climate = round_sig(np.median(elec_climate_damages))
         elec_climate_25 = round_sig(np.percentile(elec_climate_damages, 25))
         elec_climate_75 = round_sig(np.percentile(elec_climate_damages, 75))
@@ -3034,7 +3676,7 @@ def main():
 
         therm_health_damages = calculate_cap_damages_from_energy(geography_info, basic_info, nox_thermal_emissions,
                                                                 so2_thermal_emissions, pm25_thermal_emissions,
-                                                                state_level_damages)
+                                                                state_level_damages)/1000
         med_therm_health = round_sig(np.median(therm_health_damages))
         therm_health_25 = round_sig(np.percentile(therm_health_damages, 25))
         therm_health_75 = round_sig(np.percentile(therm_health_damages, 75))
@@ -3084,7 +3726,7 @@ def main():
 
         energy_health_damages = calculate_cap_damages_from_energy(geography_info, basic_info, nox_electricity_emissions,
                                                                 so2_electricity_emissions, pm25_electricity_emissions,
-                                                                state_level_damages)
+                                                                state_level_damages)/1000
         med_energy_health = round_sig(np.median(energy_health_damages))
         energy_health_25 = round_sig(np.percentile(energy_health_damages, 25))
         energy_health_75 = round_sig(np.percentile(energy_health_damages, 75))
@@ -3093,7 +3735,7 @@ def main():
         Label(tab7, text=energy_health_range, font=('Arial', 10, 'italic')).grid(column=7, row=4)
 
         energy_climate_damages = calculate_climate_damages((co2_thermal_emissions + co2_electricity_emissions),
-                                                           basic_info)
+                                                           basic_info)/1000
         med_energy_climate = round_sig(np.median(energy_climate_damages))
         energy_climate_25 = round_sig(np.percentile(energy_climate_damages, 25))
         energy_climate_75 = round_sig(np.percentile(energy_climate_damages, 75))
@@ -3517,7 +4159,7 @@ def main():
         chem_health_damages = calculate_cap_damages_from_chemicals(geography_info, basic_info, nox_chemical_emissions,
                                                                    so2_chemical_emissions, pm25_chemical_emissions,
                                                                    state_level_damages,
-                                                                   caoh_chem_manufacturing_distribution)
+                                                                   caoh_chem_manufacturing_distribution)/1000
         med_chem_health = round_sig(np.median(chem_health_damages))
         chem_health_25 = round_sig(np.percentile(chem_health_damages, 25))
         chem_health_75 = round_sig(np.percentile(chem_health_damages, 75))
@@ -3525,7 +4167,7 @@ def main():
         Label(tab7, text=med_chem_health, font=('Arial', 10, 'italic')).grid(column=7, row=9)
         Label(tab7, text=chem_health_range, font=('Arial', 10, 'italic')).grid(column=7, row=10)
 
-        chem_climate_damages = calculate_climate_damages(co2_chemical_emissions, basic_info)
+        chem_climate_damages = calculate_climate_damages(co2_chemical_emissions, basic_info)/1000
         med_chem_climate = round_sig(np.median(chem_climate_damages))
         chem_climate_25 = round_sig(np.percentile(chem_climate_damages, 25))
         chem_climate_75 = round_sig(np.percentile(chem_climate_damages, 75))
@@ -3538,7 +4180,7 @@ def main():
                                                                    caoh_so2_chemical_emissions,
                                                                    caoh_pm25_chemical_emissions,
                                                                    state_level_damages,
-                                                                   caoh_chem_manufacturing_distribution)
+                                                                   caoh_chem_manufacturing_distribution)/1000
         med_caoh_health = round_sig(np.median(caoh_health_damages))
         caoh_health_25 = round_sig(np.percentile(caoh_health_damages, 25))
         caoh_health_75 = round_sig(np.percentile(caoh_health_damages, 75))
@@ -3546,7 +4188,7 @@ def main():
         Label(tab7, text=med_caoh_health, font=('Arial', 10)).grid(column=7, row=11)
         Label(tab7, text=caoh_health_range, font=('Arial', 10)).grid(column=7, row=12)
 
-        caoh_climate_damages = calculate_climate_damages(caoh_co2_chemical_emissions, basic_info)
+        caoh_climate_damages = calculate_climate_damages(caoh_co2_chemical_emissions, basic_info)/1000
         med_caoh_climate = round_sig(np.median(caoh_climate_damages))
         caoh_climate_25 = round_sig(np.percentile(caoh_climate_damages, 25))
         caoh_climate_75 = round_sig(np.percentile(caoh_climate_damages, 75))
@@ -3559,7 +4201,7 @@ def main():
                                                                    fecl3_so2_chemical_emissions,
                                                                    fecl3_pm25_chemical_emissions,
                                                                    state_level_damages,
-                                                                   fecl3_chem_manufacturing_distribution)
+                                                                   fecl3_chem_manufacturing_distribution)/1000
         med_fecl3_health = round_sig(np.median(fecl3_health_damages))
         fecl3_health_25 = round_sig(np.percentile(fecl3_health_damages, 25))
         fecl3_health_75 = round_sig(np.percentile(fecl3_health_damages, 75))
@@ -3567,7 +4209,7 @@ def main():
         Label(tab7, text=med_fecl3_health, font=('Arial', 10)).grid(column=7, row=13)
         Label(tab7, text=fecl3_health_range, font=('Arial', 10)).grid(column=7, row=14)
 
-        fecl3_climate_damages = calculate_climate_damages(fecl3_co2_chemical_emissions, basic_info)
+        fecl3_climate_damages = calculate_climate_damages(fecl3_co2_chemical_emissions, basic_info)/1000
         med_fecl3_climate = round_sig(np.median(fecl3_climate_damages))
         fecl3_climate_25 = round_sig(np.percentile(fecl3_climate_damages, 25))
         fecl3_climate_75 = round_sig(np.percentile(fecl3_climate_damages, 75))
@@ -3580,7 +4222,7 @@ def main():
                                                                    hcl_so2_chemical_emissions,
                                                                    hcl_pm25_chemical_emissions,
                                                                    state_level_damages,
-                                                                   hcl_chem_manufacturing_distribution)
+                                                                   hcl_chem_manufacturing_distribution)/1000
         med_hcl_health = round_sig(np.median(hcl_health_damages))
         hcl_health_25 = round_sig(np.percentile(hcl_health_damages, 25))
         hcl_health_75 = round_sig(np.percentile(hcl_health_damages, 75))
@@ -3588,7 +4230,7 @@ def main():
         Label(tab7, text=med_hcl_health, font=('Arial', 10)).grid(column=7, row=15)
         Label(tab7, text=hcl_health_range, font=('Arial', 10)).grid(column=7, row=16)
 
-        hcl_climate_damages = calculate_climate_damages(hcl_co2_chemical_emissions, basic_info)
+        hcl_climate_damages = calculate_climate_damages(hcl_co2_chemical_emissions, basic_info)/1000
         med_hcl_climate = round_sig(np.median(hcl_climate_damages))
         hcl_climate_25 = round_sig(np.percentile(hcl_climate_damages, 25))
         hcl_climate_75 = round_sig(np.percentile(hcl_climate_damages, 75))
@@ -3601,7 +4243,7 @@ def main():
                                                                    nutrients_so2_chemical_emissions,
                                                                    nutrients_pm25_chemical_emissions,
                                                                    state_level_damages,
-                                                                   nutrients_chem_manufacturing_distribution)
+                                                                   nutrients_chem_manufacturing_distribution)/1000
         med_nutrients_health = round_sig(np.median(nutrients_health_damages))
         nutrients_health_25 = round_sig(np.percentile(nutrients_health_damages, 25))
         nutrients_health_75 = round_sig(np.percentile(nutrients_health_damages, 75))
@@ -3609,7 +4251,7 @@ def main():
         Label(tab7, text=med_nutrients_health, font=('Arial', 10)).grid(column=7, row=17)
         Label(tab7, text=nutrients_health_range, font=('Arial', 10)).grid(column=7, row=18)
 
-        nutrients_climate_damages = calculate_climate_damages(nutrients_co2_chemical_emissions, basic_info)
+        nutrients_climate_damages = calculate_climate_damages(nutrients_co2_chemical_emissions, basic_info)/1000
         med_nutrients_climate = round_sig(np.median(nutrients_climate_damages))
         nutrients_climate_25 = round_sig(np.percentile(nutrients_climate_damages, 25))
         nutrients_climate_75 = round_sig(np.percentile(nutrients_climate_damages, 75))
@@ -3622,7 +4264,7 @@ def main():
                                                                    soda_ash_so2_chemical_emissions, 
                                                                    soda_ash_pm25_chemical_emissions, 
                                                                    state_level_damages, 
-                                                                   soda_ash_chem_manufacturing_distribution)
+                                                                   soda_ash_chem_manufacturing_distribution)/1000
         med_soda_ash_health = round_sig(np.median(soda_ash_health_damages))
         soda_ash_health_25 = round_sig(np.percentile(soda_ash_health_damages, 25))
         soda_ash_health_75 = round_sig(np.percentile(soda_ash_health_damages, 75))
@@ -3630,7 +4272,7 @@ def main():
         Label(tab7, text=med_soda_ash_health, font=('Arial', 10)).grid(column=7, row=19)
         Label(tab7, text=soda_ash_health_range, font=('Arial', 10)).grid(column=7, row=20)
 
-        soda_ash_climate_damages = calculate_climate_damages(soda_ash_co2_chemical_emissions, basic_info)
+        soda_ash_climate_damages = calculate_climate_damages(soda_ash_co2_chemical_emissions, basic_info)/1000
         med_soda_ash_climate = round_sig(np.median(soda_ash_climate_damages))
         soda_ash_climate_25 = round_sig(np.percentile(soda_ash_climate_damages, 25))
         soda_ash_climate_75 = round_sig(np.percentile(soda_ash_climate_damages, 75))
@@ -3643,7 +4285,7 @@ def main():
                                                                    gac_so2_chemical_emissions,
                                                                    gac_pm25_chemical_emissions,
                                                                    state_level_damages,
-                                                                   gac_chem_manufacturing_distribution)
+                                                                   gac_chem_manufacturing_distribution)/1000
         med_gac_health = round_sig(np.median(gac_health_damages))
         gac_health_25 = round_sig(np.percentile(gac_health_damages, 25))
         gac_health_75 = round_sig(np.percentile(gac_health_damages, 75))
@@ -3651,7 +4293,7 @@ def main():
         Label(tab7, text=med_gac_health, font=('Arial', 10)).grid(column=7, row=21)
         Label(tab7, text=gac_health_range, font=('Arial', 10)).grid(column=7, row=22)
 
-        gac_climate_damages = calculate_climate_damages(gac_co2_chemical_emissions, basic_info)
+        gac_climate_damages = calculate_climate_damages(gac_co2_chemical_emissions, basic_info)/1000
         med_gac_climate = round_sig(np.median(gac_climate_damages))
         gac_climate_25 = round_sig(np.percentile(gac_climate_damages, 25))
         gac_climate_75 = round_sig(np.percentile(gac_climate_damages, 75))
@@ -3664,7 +4306,7 @@ def main():
                                                                    inorganics_so2_chemical_emissions,
                                                                    inorganics_pm25_chemical_emissions,
                                                                    state_level_damages,
-                                                                   inorganics_chem_manufacturing_distribution)
+                                                                   inorganics_chem_manufacturing_distribution)/1000
         med_inorganics_health = round_sig(np.median(inorganics_health_damages))
         inorganics_health_25 = round_sig(np.percentile(inorganics_health_damages, 25))
         inorganics_health_75 = round_sig(np.percentile(inorganics_health_damages, 75))
@@ -3672,7 +4314,7 @@ def main():
         Label(tab7, text=med_inorganics_health, font=('Arial', 10)).grid(column=7, row=23)
         Label(tab7, text=inorganics_health_range, font=('Arial', 10)).grid(column=7, row=24)
 
-        inorganics_climate_damages = calculate_climate_damages(inorganics_co2_chemical_emissions, basic_info)
+        inorganics_climate_damages = calculate_climate_damages(inorganics_co2_chemical_emissions, basic_info)/1000
         med_inorganics_climate = round_sig(np.median(inorganics_climate_damages))
         inorganics_climate_25 = round_sig(np.percentile(inorganics_climate_damages, 25))
         inorganics_climate_75 = round_sig(np.percentile(inorganics_climate_damages, 75))
@@ -3685,7 +4327,7 @@ def main():
                                                                    organics_so2_chemical_emissions,
                                                                    organics_pm25_chemical_emissions,
                                                                    state_level_damages,
-                                                                   organics_chem_manufacturing_distribution)
+                                                                   organics_chem_manufacturing_distribution)/1000
         med_organics_health = round_sig(np.median(organics_health_damages))
         organics_health_25 = round_sig(np.percentile(organics_health_damages, 25))
         organics_health_75 = round_sig(np.percentile(organics_health_damages, 75))
@@ -3693,7 +4335,7 @@ def main():
         Label(tab7, text=med_organics_health, font=('Arial', 10)).grid(column=7, row=25)
         Label(tab7, text=organics_health_range, font=('Arial', 10)).grid(column=7, row=26)
 
-        organics_climate_damages = calculate_climate_damages(organics_co2_chemical_emissions, basic_info)
+        organics_climate_damages = calculate_climate_damages(organics_co2_chemical_emissions, basic_info)/1000
         med_organics_climate = round_sig(np.median(organics_climate_damages))
         organics_climate_25 = round_sig(np.percentile(organics_climate_damages, 25))
         organics_climate_75 = round_sig(np.percentile(organics_climate_damages, 75))
@@ -3842,6 +4484,517 @@ def main():
         Label(tab7, text=med_total_damages, font=('Arial', 10, 'bold')).grid(column=9, row=27)
         Label(tab7, text=total_damages_range, font=('Arial', 10, 'bold')).grid(column=9, row=28)
 
+        required_dosage_summary = ['', '', med_elec, elec_range, med_therm, therm_range, '', '', med_caoh,
+                                   caoh_range, med_fecl3, fecl3_range, med_hcl, hcl_range, med_nutrients,
+                                   nutrients_range, med_soda_ash, soda_ash_range, med_gac, gac_range, med_inorganics,
+                                   inorganics_range, med_organics, organics_range, '', '']
+        nox_emissions_summary = [med_energy_nox, energy_nox_range, med_elec_nox, elec_nox_range, med_therm_nox,
+                                 therm_nox_range, med_chem_nox, chem_nox_range, med_caoh_nox, caoh_nox_range,
+                                 med_fecl3_nox, fecl3_nox_range, med_hcl_nox, hcl_nox_range, med_nutrients_nox,
+                                 nutrients_nox_range, med_soda_ash_nox, soda_ash_nox_range, med_gac_nox, gac_nox_range,
+                                 med_inorganics_nox, inorganics_nox_range, med_organics_nox, organics_nox_range,
+                                 med_nox_emissions, nox_emissions_range]
+        so2_emissions_summary = [med_energy_so2, energy_so2_range, med_elec_so2, elec_so2_range, med_therm_so2,
+                                 therm_so2_range, med_chem_so2, chem_so2_range, med_caoh_so2, caoh_so2_range,
+                                 med_fecl3_so2, fecl3_so2_range, med_hcl_so2, hcl_so2_range, med_nutrients_so2,
+                                 nutrients_so2_range, med_soda_ash_so2, soda_ash_so2_range, med_gac_so2, gac_so2_range,
+                                 med_inorganics_so2, inorganics_so2_range, med_organics_so2, organics_so2_range,
+                                 med_so2_emissions, so2_emissions_range]
+        pm25_emissions_summary = [med_energy_pm25, energy_pm25_range, med_elec_pm25, elec_pm25_range, med_therm_pm25,
+                                  therm_pm25_range, med_chem_pm25, chem_pm25_range, med_caoh_pm25, caoh_pm25_range,
+                                  med_fecl3_pm25, fecl3_pm25_range, med_hcl_pm25, hcl_pm25_range, med_nutrients_pm25,
+                                  nutrients_pm25_range, med_soda_ash_pm25, soda_ash_pm25_range, med_gac_pm25,
+                                  gac_pm25_range,
+                                  med_inorganics_pm25, inorganics_pm25_range, med_organics_pm25, organics_pm25_range,
+                                  med_pm25_emissions, pm25_emissions_range]
+        co2_emissions_summary = [med_energy_co2, energy_co2_range, med_elec_co2, elec_co2_range, med_therm_co2,
+                                 therm_co2_range, med_chem_co2, chem_co2_range, med_caoh_co2, caoh_co2_range,
+                                 med_fecl3_co2, fecl3_co2_range, med_hcl_co2, hcl_co2_range, med_nutrients_co2,
+                                 nutrients_co2_range, med_soda_ash_co2, soda_ash_co2_range, med_gac_co2, gac_co2_range,
+                                 med_inorganics_co2, inorganics_co2_range, med_organics_co2, organics_co2_range,
+                                 med_co2_emissions, co2_emissions_range]
+        health_damages_summary = [med_energy_health, energy_health_range, med_elec_health, elec_health_range,
+                                  med_therm_health,
+                                  therm_health_range, med_chem_health, chem_health_range, med_caoh_health,
+                                  caoh_health_range,
+                                  med_fecl3_health, fecl3_health_range, med_hcl_health, hcl_health_range,
+                                  med_nutrients_health,
+                                  nutrients_health_range, med_soda_ash_health, soda_ash_health_range, med_gac_health,
+                                  gac_health_range,
+                                  med_inorganics_health, inorganics_health_range, med_organics_health,
+                                  organics_health_range,
+                                  med_health_damages, health_damages_range]
+        climate_damages_summary = [med_energy_climate, energy_climate_range, med_elec_climate, elec_climate_range,
+                                   med_therm_climate,
+                                   therm_climate_range, med_chem_climate, chem_climate_range, med_caoh_climate,
+                                   caoh_climate_range,
+                                   med_fecl3_climate, fecl3_climate_range, med_hcl_climate, hcl_climate_range,
+                                   med_nutrients_climate,
+                                   nutrients_climate_range, med_soda_ash_climate, soda_ash_climate_range,
+                                   med_gac_climate, gac_climate_range,
+                                   med_inorganics_climate, inorganics_climate_range, med_organics_climate,
+                                   organics_climate_range,
+                                   med_climate_damages, climate_damages_range]
+        total_damages_summary = [med_energy_damages, energy_damages_range, med_elec_damages, elec_damages_range,
+                                 med_therm_damages,
+                                 therm_damages_range, med_chem_damages, chem_damages_range, med_caoh_damages,
+                                 caoh_damages_range,
+                                 med_fecl3_damages, fecl3_damages_range, med_hcl_damages, hcl_damages_range,
+                                 med_nutrients_damages,
+                                 nutrients_damages_range, med_soda_ash_damages, soda_ash_damages_range, med_gac_damages,
+                                 gac_damages_range,
+                                 med_inorganics_damages, inorganics_damages_range, med_organics_damages,
+                                 organics_damages_range,
+                                 med_total_damages, total_damages_range]
+
+        messagebox.showinfo("Success!", "Results have been calculated and are available on the Results tab.")
+
+
+
+
+    def save_inputs():
+        basic_info_values = [system_type.get(), float(system_size_input.get()), year_for_inflation.get(), vsl.get(),
+                             scc.get(), int(model_runs.get())]
+        basic_info_summary = pd.DataFrame(data=basic_info_values, index=['System Type', 'System Size',
+                                                                         'Year for Inflation', 'VSL', 'SCC',
+                                                                         'Monte Carlo Runs'], columns=['Values'])
+        geography_info_values = [grid_state.get(), chem_state.get()]
+        geography_info_summary = pd.DataFrame(data=geography_info_values, index=['Electricity Source',
+                                                                                 'Chemicals Source'],
+                                              columns=['Values'])
+
+        drinking_water_values = [source_water.get(), flocculation.get(), int(flocculation_installed.get()),
+                                 float(flocculation_recovery.get()), coagulation.get(),
+                                 int(coagulation_installed.get()), float(coagulation_recovery.get()),
+                                 sedimentation.get(), int(sedimentation_installed.get()),
+                                 float(sedimentation_recovery.get()), filtration.get(), int(filtration_installed.get()),
+                                 float(filtration_recovery.get()), primary_disinfection.get(),
+                                 float(primary_disinfection_recovery.get()), secondary_disinfection.get(),
+                                 float(secondary_disinfection_recovery.get()), fluoridation.get(),
+                                 float(fluoridation_recovery.get()), softening.get(), float(softening_recovery.get()),
+                                 ph_adjustment.get(), int(ph_adjustment_installed.get()),
+                                 float(ph_adjustment_recovery.get()), granular_activated_carbon.get(),
+                                 int(granular_activated_carbon_installed.get()),
+                                 float(granular_activated_carbon_recovery.get()), reverse_osmosis.get(),
+                                 int(reverse_osmosis_installed.get()), float(reverse_osmosis_recovery.get()),
+                                 corrosion_control.get(), float(corrosion_control_recovery.get())]
+
+        drinking_water_summary = pd.DataFrame(data=drinking_water_values, index=['source water', 'flocculation',
+                                                                                 'no. of flocculation units',
+                                                                                 'flocculation recovery', 'coagulation',
+                                                                                 'no. of coagulation units',
+                                                                                 'coagulation recovery',
+                                                                                 'sedimentation',
+                                                                                 'no. of sedimentation units',
+                                                                                 'sedimentation recovery', 'filtration',
+                                                                                 'no. of filtration units',
+                                                                                 'filtration recovery',
+                                                                                 'primary disinfection',
+                                                                                 'primary disinfection recovery',
+                                                                                 'secondary disinfection',
+                                                                                 'secondary disinfection recovery',
+                                                                                 'fluoridation',
+                                                                                 'fluoridation recovery', 'softening',
+                                                                                 'softening recovery', 'pH adjustment',
+                                                                                 'no. of pH adjustment units',
+                                                                                 'pH adjustment recovery', 'gac',
+                                                                                 'no. of gac units', 'gac recovery',
+                                                                                 'ro', 'no. of ro units', 'ro recovery',
+                                                                                 'corrosion control',
+                                                                                 'corrosion control recovery'],
+                                              columns=['Values'])
+
+        municipal_wastewater_values = [aerated_grit.get(), int(aerated_grit_installed.get()),
+                                       float(aerated_grit_recovery.get()), grinding.get(),
+                                       float(grinding_recovery.get()), ww_filtration.get(),
+                                       int(ww_filtration_installed.get()), float(ww_filtration_recovery.get()),
+                                       grit_removal.get(), int(grit_removal_installed.get()),
+                                       float(grit_removal_recovery.get()), screening.get(),
+                                       int(screening_installed.get()), float(screening_recovery.get()),
+                                       wastewater_sedimentation.get(), int(wastewater_sedimentation_installed.get()),
+                                       float(wastewater_sedimentation_recovery.get()), secondary_treatment.get(),
+                                       float(secondary_treatment_recovery.get()), nitrification_denitrification.get(),
+                                       int(nitrification_denitrification_installed.get()),
+                                       float(nitrification_denitrification_recovery.get()), phosphorous_removal.get(),
+                                       int(phosphorous_removal_installed.get()),
+                                       float(phosphorous_removal_recovery.get()), wastewater_reverse_osmosis.get(),
+                                       int(wastewater_reverse_osmosis_installed.get()),
+                                       float(wastewater_reverse_osmosis_recovery.get()), disinfection.get(),
+                                       float(disinfection_recovery.get()), dechlorination.get(),
+                                       float(dechlorination_recovery.get()), digestion.get(),
+                                       float(digestion_recovery.get()), dewatering.get(),
+                                       float(dewatering_recovery.get())]
+        municipal_wastewater_summary = pd.DataFrame(data=municipal_wastewater_values,
+                                                    index=['aerated grit', 'no. of aerated grit units',
+                                                           'aerated grit recovery', 'grinding', 'grinding recovery',
+                                                           'ww filtration', 'no. of ww filtration units',
+                                                           'ww filtration recovery', 'grit removal',
+                                                           'no. of grit removal units', 'grit removal recovery',
+                                                           'screening', 'no. of screening units', 'screening recovery',
+                                                           'wastewater sedimentation',
+                                                           'no. of wastewater sedimentation units',
+                                                           'wastewater sedimentation recovery', 'secondary treatment',
+                                                           'secondary treatment recovery',
+                                                           'nitrification denitrification',
+                                                           'no. of nitrification denitrification units',
+                                                           'nitrification denitrification recovery',
+                                                           'phosphorous removal', 'no. of phosphorous removal units',
+                                                           'phosphorous removal recovery', 'wastewater ro',
+                                                           'no. of wastewater ro units', 'wastewater ro recovery',
+                                                           'disinfection', 'disinfection recovery', 'dechlorination',
+                                                           'dechlorination recovery', 'digestion', 'digestion recovery',
+                                                           'dewatering', 'dewatering recovery'], columns=['Values'])
+
+        industrial_wastewater_values = [softening_process.get(), float(softening_process_recovery.get()),
+                                        chemical_addition_input.get(), float(chemical_addition_recovery.get()),
+                                        bio_treatment.get(), int(bio_treatment_installed.get()),
+                                        float(bio_treatment_recovery.get()), volume_reduction.get(),
+                                        int(volume_reduction_installed.get()), float(volume_reduction_recovery.get()),
+                                        crystallization.get(), float(crystallization_recovery.get()),
+                                        float(caoh_dose_min_input.get()), float(caoh_dose_best_input.get()),
+                                        float(caoh_dose_max_input.get()), float(fecl3_dose_min_input.get()),
+                                        float(fecl3_dose_best_input.get()), float(fecl3_dose_max_input.get()),
+                                        float(hcl_dose_min_input.get()), float(hcl_dose_best_input.get()),
+                                        float(hcl_dose_max_input.get()), float(nutrients_dose_min_input.get()),
+                                        float(nutrients_dose_best_input.get()), float(nutrients_dose_max_input.get()),
+                                        float(sodium_carbonate_dose_min_input.get()),
+                                        float(sodium_carbonate_dose_best_input.get()),
+                                        float(sodium_carbonate_dose_max_input.get()), float(gac_dose_min_input.get()),
+                                        float(gac_dose_best_input.get()), float(gac_dose_max_input.get()),
+                                        float(organics_dose_min_input.get()), float(organics_dose_best_input.get()),
+                                        float(organics_dose_max_input.get()), float(inorganics_dose_min_input.get()),
+                                        float(inorganics_dose_best_input.get()), float(inorganics_dose_max_input.get())]
+        industrial_wastewater_summary = pd.DataFrame(data=industrial_wastewater_values,
+                                                     index=['softening process', 'softening process recovery',
+                                                            'chemical addition input', 'chemical addition recovery',
+                                                            'bio treatment', 'no. of bio treatment units',
+                                                            'bio treatment recovery', 'volume reduction',
+                                                            'no. of volume reduction units',
+                                                            'volume reduction recovery', 'crystallization',
+                                                            'crystallization recovery', 'caoh dose min input',
+                                                            'caoh dose best input', 'caoh dose max input',
+                                                            'fecl3 dose min input', 'fecl3 dose best input',
+                                                            'fecl3 dose max input', 'hcl dose min input',
+                                                            'hcl dose best input', 'hcl dose max input',
+                                                            'nutrients dose min input', 'nutrients dose best input',
+                                                            'nutrients dose max input',
+                                                            'sodium carbonate dose min input',
+                                                            'sodium carbonate dose best input',
+                                                            'sodium carbonate dose max input', 'gac dose min input',
+                                                            'gac dose best input', 'gac dose max input',
+                                                            'organics dose min input', 'organics dose best input',
+                                                            'organics dose max input', 'inorganics dose min input',
+                                                            'inorganics dose best input', 'inorganics dose max input'],
+                                                     columns=['Values'])
+
+        new_process_values = [float(new_recovery_input.get()), float(new_elec_min_input.get()),
+                              float(new_elec_best_input.get()), float(new_elec_max_input.get()),
+                              float(new_therm_min_input.get()), float(new_therm_best_input.get()),
+                              float(new_therm_max_input.get()), float(new_caoh_dose_min_input.get()),
+                              float(new_caoh_dose_best_input.get()), float(new_caoh_dose_max_input.get()),
+                              float(new_fecl3_dose_min_input.get()), float(new_fecl3_dose_best_input.get()),
+                              float(new_fecl3_dose_max_input.get()), float(new_hcl_dose_min_input.get()),
+                              float(new_hcl_dose_best_input.get()), float(new_hcl_dose_max_input.get()),
+                              float(new_nutrients_dose_min_input.get()), float(new_nutrients_dose_best_input.get()),
+                              float(new_nutrients_dose_max_input.get()),
+                              float(new_sodium_carbonate_dose_min_input.get()),
+                              float(new_sodium_carbonate_dose_best_input.get()),
+                              float(new_sodium_carbonate_dose_max_input.get()), float(new_gac_dose_min_input.get()),
+                              float(new_gac_dose_best_input.get()), float(new_gac_dose_max_input.get()),
+                              float(new_organics_dose_min_input.get()), float(new_organics_dose_best_input.get()),
+                              float(new_organics_dose_max_input.get()), float(new_inorganics_dose_min_input.get()),
+                              float(new_inorganics_dose_best_input.get()), float(new_inorganics_dose_max_input.get())]
+        new_process_summary = pd.DataFrame(data=new_process_values,
+                                           index=['new recovery', 'new electricity min input',
+                                                  'new electricity best input', 'new electricity max input',
+                                                  'new thermal min input', 'new thermal best input',
+                                                  'new thermal max input', 'new caoh dose min input',
+                                                  'new caoh dose best input', 'new caoh dose max input',
+                                                  'new fecl3 dose min input', 'new fecl3 dose best input',
+                                                  'new fecl3 dose max input', 'new hcl dose min input',
+                                                  'new hcl dose best input', 'new hcl dose max input',
+                                                  'new nutrients dose min input', 'new nutrients dose best input',
+                                                  'new nutrients dose max input', 'new sodium carbonate dose min input',
+                                                  'new sodium carbonate dose best input',
+                                                  'new sodium carbonate dose max input', 'new gac dose min input',
+                                                  'new gac dose best input', 'new gac dose max input',
+                                                  'new organics dose min input', 'new organics dose best input',
+                                                  'new organics dose max input', 'new inorganics dose min input',
+                                                  'new inorganics dose best input', 'new inorganics dose max input'],
+                                           columns=['Values'])
+
+        # Try to save the file
+        try:
+            output_file_path = filedialog.askdirectory()
+            writer = pd.ExcelWriter(str(output_file_path) + '/' + 'Inputs.xlsx', engine='openpyxl')
+            basic_info_summary.to_excel(writer, sheet_name='Inputs')
+            geography_info_summary.to_excel(writer, sheet_name='Inputs', startrow=0, startcol=3)
+            drinking_water_summary.to_excel(writer, sheet_name='Inputs', startrow=0, startcol=6)
+            municipal_wastewater_summary.to_excel(writer, sheet_name='Inputs', startrow=0, startcol=9)
+            industrial_wastewater_summary.to_excel(writer, sheet_name='Inputs', startrow=0, startcol=12)
+            new_process_summary.to_excel(writer, sheet_name='Inputs', startrow=0, startcol=15)
+            writer.save()
+            messagebox.showinfo("Success!", "The input file has been successfully saved.")
+        # If the user did not enter a file directory, an error will pop up.
+        except NameError:
+            window2 = Toplevel(root)
+            window2.grid()
+            window2.title("Error")
+            Label(window2, text='File directory not selected', font=('Arial', 10)).grid(row=0, column=0)
+            button = Button(window2, text='Dismiss', command=window2.destroy).grid(row=1, column=0)
+
+    def refresh():
+        root.destroy()
+        main()
+
+    def save_results():
+
+        indices=['Energy', '(25th-75th)', 'Electricity', '(25th-75th)', 'Thermal', '(25th-75th)', 'Chemicals',
+                 '(25th-75th)', 'CaOH', '(25th-75th)', 'FeCl3', '(25th-75th)', 'HCl', '(25th-75th)', 'Nutrients',
+                 '(25th-75th)', 'Na2CO3', '(25th-75th)', 'Activated Carbon', '(25th-75th)', 'Assorted Inorganics',
+                 '(25th-75th)', 'Associated Organics', '(25th-75th)', 'Total', '(25th-75th)']
+        column_labels=['Required Dose', '', 'Embedded NOx [g/m^3]', 'Embedded SO2 [g/m^3]', 'Embedded PM2.5 [g/m^3]',
+                       'Embedded CO2 [g/m^3]', 'Annual Health Damages [$K/yr]', 'Annual Cliamte Damages [$K/yr]',
+                       'Annual Total Damages [$K/yr]']
+        dose_units = ['', '', 'kWh/m^3', '', 'MJ/m^3', '', '', '', 'mg/L', '', 'mg/L', '', 'mg/L', '', 'mg/L', '',
+                      'mg/L', '', 'mg/L', '', 'mg/L', '', 'mg/L', '', '', '']
+        results_summary_data = {'Required Dose': required_dosage_summary, '': dose_units,
+                                'Embedded NOx [g/m^3]': nox_emissions_summary,
+                                'Embedded SO2 [g/m^3]': so2_emissions_summary,
+                                'Embedded PM2.5 [g/m^3]': pm25_emissions_summary,
+                                'Embedded CO2 [g/m^3]': co2_emissions_summary,
+                                'Annual Health Damages [$K/yr]': health_damages_summary,
+                                'Annual Cliamte Damages [$K/yr]': climate_damages_summary,
+                                'Annual Total Damages [$K/yr]': total_damages_summary}
+        results_summary = pd.DataFrame(data=results_summary_data, index=indices)
+
+        # Try to save the file
+        try:
+            output_file_path = filedialog.askdirectory()
+            writer = pd.ExcelWriter(str(output_file_path) + '/' + 'Results.xlsx', engine='openpyxl')
+            results_summary.to_excel(writer, sheet_name='Results')
+            writer.save()
+            messagebox.showinfo("Success!", "The results file has been successfully saved.")
+        # If the user did not enter a file directory, an error will pop up.
+        except NameError:
+            window2 = Toplevel(root)
+            window2.grid()
+            window2.title("Error")
+            Label(window2, text='File directory not selected', font=('Arial', 10)).grid(row=0, column=0)
+            button = Button(window2, text='Dismiss', command=window2.destroy).grid(row=1, column=0)
+
+    def save_all():
+        #Start off by saving the inputs.
+        basic_info_values = [system_type.get(), float(system_size_input.get()), year_for_inflation.get(), vsl.get(),
+                             scc.get(), int(model_runs.get())]
+        basic_info_summary = pd.DataFrame(data=basic_info_values, index=['System Type', 'System Size',
+                                                                         'Year for Inflation', 'VSL', 'SCC',
+                                                                         'Monte Carlo Runs'], columns=['Values'])
+        geography_info_values = [grid_state.get(), chem_state.get()]
+        geography_info_summary = pd.DataFrame(data=geography_info_values, index=['Electricity Source',
+                                                                                 'Chemicals Source'],
+                                              columns=['Values'])
+
+        drinking_water_values = [source_water.get(), flocculation.get(), int(flocculation_installed.get()),
+                                 float(flocculation_recovery.get()), coagulation.get(),
+                                 int(coagulation_installed.get()), float(coagulation_recovery.get()),
+                                 sedimentation.get(), int(sedimentation_installed.get()),
+                                 float(sedimentation_recovery.get()), filtration.get(), int(filtration_installed.get()),
+                                 float(filtration_recovery.get()), primary_disinfection.get(),
+                                 float(primary_disinfection_recovery.get()), secondary_disinfection.get(),
+                                 float(secondary_disinfection_recovery.get()), fluoridation.get(),
+                                 float(fluoridation_recovery.get()), softening.get(), float(softening_recovery.get()),
+                                 ph_adjustment.get(), int(ph_adjustment_installed.get()),
+                                 float(ph_adjustment_recovery.get()), granular_activated_carbon.get(),
+                                 int(granular_activated_carbon_installed.get()),
+                                 float(granular_activated_carbon_recovery.get()), reverse_osmosis.get(),
+                                 int(reverse_osmosis_installed.get()), float(reverse_osmosis_recovery.get()),
+                                 corrosion_control.get(), float(corrosion_control_recovery.get())]
+
+        drinking_water_summary = pd.DataFrame(data=drinking_water_values, index=['source water', 'flocculation',
+                                                                                 'no. of flocculation units',
+                                                                                 'flocculation recovery', 'coagulation',
+                                                                                 'no. of coagulation units',
+                                                                                 'coagulation recovery',
+                                                                                 'sedimentation',
+                                                                                 'no. of sedimentation units',
+                                                                                 'sedimentation recovery', 'filtration',
+                                                                                 'no. of filtration units',
+                                                                                 'filtration recovery',
+                                                                                 'primary disinfection',
+                                                                                 'primary disinfection recovery',
+                                                                                 'secondary disinfection',
+                                                                                 'secondary disinfection recovery',
+                                                                                 'fluoridation',
+                                                                                 'fluoridation recovery', 'softening',
+                                                                                 'softening recovery', 'pH adjustment',
+                                                                                 'no. of pH adjustment units',
+                                                                                 'pH adjustment recovery', 'gac',
+                                                                                 'no. of gac units', 'gac recovery',
+                                                                                 'ro', 'no. of ro units', 'ro recovery',
+                                                                                 'corrosion control',
+                                                                                 'corrosion control recovery'],
+                                              columns=['Values'])
+
+        municipal_wastewater_values = [aerated_grit.get(), int(aerated_grit_installed.get()),
+                                       float(aerated_grit_recovery.get()), grinding.get(),
+                                       float(grinding_recovery.get()), ww_filtration.get(),
+                                       int(ww_filtration_installed.get()), float(ww_filtration_recovery.get()),
+                                       grit_removal.get(), int(grit_removal_installed.get()),
+                                       float(grit_removal_recovery.get()), screening.get(),
+                                       int(screening_installed.get()), float(screening_recovery.get()),
+                                       wastewater_sedimentation.get(), int(wastewater_sedimentation_installed.get()),
+                                       float(wastewater_sedimentation_recovery.get()), secondary_treatment.get(),
+                                       float(secondary_treatment_recovery.get()), nitrification_denitrification.get(),
+                                       int(nitrification_denitrification_installed.get()),
+                                       float(nitrification_denitrification_recovery.get()), phosphorous_removal.get(),
+                                       int(phosphorous_removal_installed.get()),
+                                       float(phosphorous_removal_recovery.get()), wastewater_reverse_osmosis.get(),
+                                       int(wastewater_reverse_osmosis_installed.get()),
+                                       float(wastewater_reverse_osmosis_recovery.get()), disinfection.get(),
+                                       float(disinfection_recovery.get()), dechlorination.get(),
+                                       float(dechlorination_recovery.get()), digestion.get(),
+                                       float(digestion_recovery.get()), dewatering.get(),
+                                       float(dewatering_recovery.get())]
+        municipal_wastewater_summary = pd.DataFrame(data=municipal_wastewater_values,
+                                                    index=['aerated grit', 'no. of aerated grit units',
+                                                           'aerated grit recovery', 'grinding', 'grinding recovery',
+                                                           'ww filtration', 'no. of ww filtration units',
+                                                           'ww filtration recovery', 'grit removal',
+                                                           'no. of grit removal units', 'grit removal recovery',
+                                                           'screening', 'no. of screening units', 'screening recovery',
+                                                           'wastewater sedimentation',
+                                                           'no. of wastewater sedimentation units',
+                                                           'wastewater sedimentation recovery', 'secondary treatment',
+                                                           'secondary treatment recovery',
+                                                           'nitrification denitrification',
+                                                           'no. of nitrification denitrification units',
+                                                           'nitrification denitrification recovery',
+                                                           'phosphorous removal', 'no. of phosphorous removal units',
+                                                           'phosphorous removal recovery', 'wastewater ro',
+                                                           'no. of wastewater ro units', 'wastewater ro recovery',
+                                                           'disinfection', 'disinfection recovery', 'dechlorination',
+                                                           'dechlorination recovery', 'digestion', 'digestion recovery',
+                                                           'dewatering', 'dewatering recovery'], columns=['Values'])
+
+        industrial_wastewater_values = [softening_process.get(), float(softening_process_recovery.get()),
+                                        chemical_addition_input.get(), float(chemical_addition_recovery.get()),
+                                        bio_treatment.get(), int(bio_treatment_installed.get()),
+                                        float(bio_treatment_recovery.get()), volume_reduction.get(),
+                                        int(volume_reduction_installed.get()), float(volume_reduction_recovery.get()),
+                                        crystallization.get(), float(crystallization_recovery.get()),
+                                        float(caoh_dose_min_input.get()), float(caoh_dose_best_input.get()),
+                                        float(caoh_dose_max_input.get()), float(fecl3_dose_min_input.get()),
+                                        float(fecl3_dose_best_input.get()), float(fecl3_dose_max_input.get()),
+                                        float(hcl_dose_min_input.get()), float(hcl_dose_best_input.get()),
+                                        float(hcl_dose_max_input.get()), float(nutrients_dose_min_input.get()),
+                                        float(nutrients_dose_best_input.get()), float(nutrients_dose_max_input.get()),
+                                        float(sodium_carbonate_dose_min_input.get()),
+                                        float(sodium_carbonate_dose_best_input.get()),
+                                        float(sodium_carbonate_dose_max_input.get()), float(gac_dose_min_input.get()),
+                                        float(gac_dose_best_input.get()), float(gac_dose_max_input.get()),
+                                        float(organics_dose_min_input.get()), float(organics_dose_best_input.get()),
+                                        float(organics_dose_max_input.get()), float(inorganics_dose_min_input.get()),
+                                        float(inorganics_dose_best_input.get()), float(inorganics_dose_max_input.get())]
+        industrial_wastewater_summary = pd.DataFrame(data=industrial_wastewater_values,
+                                                     index=['softening process', 'softening process recovery',
+                                                            'chemical addition input', 'chemical addition recovery',
+                                                            'bio treatment', 'no. of bio treatment units',
+                                                            'bio treatment recovery', 'volume reduction',
+                                                            'no. of volume reduction units',
+                                                            'volume reduction recovery', 'crystallization',
+                                                            'crystallization recovery', 'caoh dose min input',
+                                                            'caoh dose best input', 'caoh dose max input',
+                                                            'fecl3 dose min input', 'fecl3 dose best input',
+                                                            'fecl3 dose max input', 'hcl dose min input',
+                                                            'hcl dose best input', 'hcl dose max input',
+                                                            'nutrients dose min input', 'nutrients dose best input',
+                                                            'nutrients dose max input',
+                                                            'sodium carbonate dose min input',
+                                                            'sodium carbonate dose best input',
+                                                            'sodium carbonate dose max input', 'gac dose min input',
+                                                            'gac dose best input', 'gac dose max input',
+                                                            'organics dose min input', 'organics dose best input',
+                                                            'organics dose max input', 'inorganics dose min input',
+                                                            'inorganics dose best input', 'inorganics dose max input'],
+                                                     columns=['Values'])
+
+        new_process_values = [float(new_recovery_input.get()), float(new_elec_min_input.get()),
+                              float(new_elec_best_input.get()), float(new_elec_max_input.get()),
+                              float(new_therm_min_input.get()), float(new_therm_best_input.get()),
+                              float(new_therm_max_input.get()), float(new_caoh_dose_min_input.get()),
+                              float(new_caoh_dose_best_input.get()), float(new_caoh_dose_max_input.get()),
+                              float(new_fecl3_dose_min_input.get()), float(new_fecl3_dose_best_input.get()),
+                              float(new_fecl3_dose_max_input.get()), float(new_hcl_dose_min_input.get()),
+                              float(new_hcl_dose_best_input.get()), float(new_hcl_dose_max_input.get()),
+                              float(new_nutrients_dose_min_input.get()), float(new_nutrients_dose_best_input.get()),
+                              float(new_nutrients_dose_max_input.get()),
+                              float(new_sodium_carbonate_dose_min_input.get()),
+                              float(new_sodium_carbonate_dose_best_input.get()),
+                              float(new_sodium_carbonate_dose_max_input.get()), float(new_gac_dose_min_input.get()),
+                              float(new_gac_dose_best_input.get()), float(new_gac_dose_max_input.get()),
+                              float(new_organics_dose_min_input.get()), float(new_organics_dose_best_input.get()),
+                              float(new_organics_dose_max_input.get()), float(new_inorganics_dose_min_input.get()),
+                              float(new_inorganics_dose_best_input.get()), float(new_inorganics_dose_max_input.get())]
+        new_process_summary = pd.DataFrame(data=new_process_values,
+                                           index=['new recovery', 'new electricity min input',
+                                                  'new electricity best input', 'new electricity max input',
+                                                  'new thermal min input', 'new thermal best input',
+                                                  'new thermal max input', 'new caoh dose min input',
+                                                  'new caoh dose best input', 'new caoh dose max input',
+                                                  'new fecl3 dose min input', 'new fecl3 dose best input',
+                                                  'new fecl3 dose max input', 'new hcl dose min input',
+                                                  'new hcl dose best input', 'new hcl dose max input',
+                                                  'new nutrients dose min input', 'new nutrients dose best input',
+                                                  'new nutrients dose max input', 'new sodium carbonate dose min input',
+                                                  'new sodium carbonate dose best input',
+                                                  'new sodium carbonate dose max input', 'new gac dose min input',
+                                                  'new gac dose best input', 'new gac dose max input',
+                                                  'new organics dose min input', 'new organics dose best input',
+                                                  'new organics dose max input', 'new inorganics dose min input',
+                                                  'new inorganics dose best input', 'new inorganics dose max input'],
+                                           columns=['Values'])
+
+        # Then save the model results.
+        indices=['Energy', '(25th-75th)', 'Electricity', '(25th-75th)', 'Thermal', '(25th-75th)', 'Chemicals',
+                 '(25th-75th)', 'CaOH', '(25th-75th)', 'FeCl3', '(25th-75th)', 'HCl', '(25th-75th)', 'Nutrients',
+                 '(25th-75th)', 'Na2CO3', '(25th-75th)', 'Activated Carbon', '(25th-75th)', 'Assorted Inorganics',
+                 '(25th-75th)', 'Associated Organics', '(25th-75th)', 'Total', '(25th-75th)']
+        column_labels=['Required Dose', '', 'Embedded NOx [g/m^3]', 'Embedded SO2 [g/m^3]', 'Embedded PM2.5 [g/m^3]',
+                       'Embedded CO2 [g/m^3]', 'Annual Health Damages [$K/yr]', 'Annual Cliamte Damages [$K/yr]',
+                       'Annual Total Damages [$K/yr]']
+        dose_units = ['', '', 'kWh/m^3', '', 'MJ/m^3', '', '', '', 'mg/L', '', 'mg/L', '', 'mg/L', '', 'mg/L', '',
+                      'mg/L', '', 'mg/L', '', 'mg/L', '', 'mg/L', '', '', '']
+        results_summary_data = {'Required Dose': required_dosage_summary, '': dose_units,
+                                'Embedded NOx [g/m^3]': nox_emissions_summary,
+                                'Embedded SO2 [g/m^3]': so2_emissions_summary,
+                                'Embedded PM2.5 [g/m^3]': pm25_emissions_summary,
+                                'Embedded CO2 [g/m^3]': co2_emissions_summary,
+                                'Annual Health Damages [$K/yr]': health_damages_summary,
+                                'Annual Cliamte Damages [$K/yr]': climate_damages_summary,
+                                'Annual Total Damages [$K/yr]': total_damages_summary}
+        results_summary = pd.DataFrame(data=results_summary_data, index=indices)
+
+        # Try to save the file
+        try:
+            output_file_path = filedialog.askdirectory()
+            writer = pd.ExcelWriter(str(output_file_path) + '/' + 'Water AHEAD Inputs and Results.xlsx', engine='openpyxl')
+            basic_info_summary.to_excel(writer, sheet_name='Inputs')
+            geography_info_summary.to_excel(writer, sheet_name='Inputs', startrow=0, startcol=3)
+            drinking_water_summary.to_excel(writer, sheet_name='Inputs', startrow=0, startcol=6)
+            municipal_wastewater_summary.to_excel(writer, sheet_name='Inputs', startrow=0, startcol=9)
+            industrial_wastewater_summary.to_excel(writer, sheet_name='Inputs', startrow=0, startcol=12)
+            new_process_summary.to_excel(writer, sheet_name='Inputs', startrow=0, startcol=15)
+            results_summary.to_excel(writer, sheet_name='Results')
+            writer.save()
+            messagebox.showinfo("Success!", "The inputs and results file has been successfully saved.")
+        # If the user did not enter a file directory, an error will pop up.
+        except NameError:
+            window2 = Toplevel(root)
+            window2.grid()
+            window2.title("Error")
+            Label(window2, text='File directory not selected', font=('Arial', 10)).grid(row=0, column=0)
+            button = Button(window2, text='Dismiss', command=window2.destroy).grid(row=1, column=0)
 
     # Create the menu.
     menu = Menu(root)
@@ -3850,39 +5003,28 @@ def main():
     filemenu = Menu(menu)
     savemenu = Menu(menu)
     menu.add_cascade(label="File", menu=filemenu)
-    filemenu.add_command(label="New", command=menu_option_selected)
+    filemenu.add_command(label="New", command=refresh)
     filemenu.add_cascade(label="Save Options", menu=savemenu, command=menu_option_selected)
-    savemenu.add_cascade(label="Save All", command=menu_option_selected)
-    savemenu.add_cascade(label="Save Inputs", command=menu_option_selected)
-    savemenu.add_cascade(label="Save Results", command=menu_option_selected)
-    filemenu.add_command(label="Open", command=menu_option_selected)
-    # TODO Create save functions (save_all, save_inputs, save_results)
-    # savemenu.add_cascade(label="Save All", command=save_all)
-    # savemenu.add_cascade(label="Save Inputs", command=save_inputs)
-    # savemenu.add_cascade(label="Save Results", command=save_results)
-    # TODO Create open_input function
-    # filemenu.add_command(label="Open", command=combine_funcs(menu_option_selected, open_input))
+    savemenu.add_cascade(label="Save All", command=save_all)
+    savemenu.add_cascade(label="Save Inputs", command=save_inputs)
+    savemenu.add_cascade(label="Save Results", command=save_results)
+    filemenu.add_command(label="Open", command=open_input)
     filemenu.add_separator()
     filemenu.add_command(label="Exit", command=root.quit)
-
-    # TODO Create check_input function
-    # TODO Create calcualte_input fucntion
     analysismenu = Menu(menu)
     menu.add_cascade(label="Analysis", menu=analysismenu)
     analysismenu.add_command(label='Calculate', command=calculate_results)
-
-    # TODO Create a help menu.
-    # TODO Create an About tab.
-    # TODO Create a License tab.
     helpmenu = Menu(menu)
     menu.add_cascade(label="Help", menu=helpmenu)
-    helpmenu.add_command(label="About", command=menu_option_selected)
-    helpmenu.add_command(label="License", command=menu_option_selected)
+    helpmenu.add_command(label="About", command=show_about_program)
+    helpmenu.add_command(label="Help", command=show_program_help)
+    helpmenu.add_command(label="License", command=show_licence_info)
 
     root.mainloop()
 
 if __name__ == "__main__":
     main()
+
 
 # class App:
 #
