@@ -19,6 +19,8 @@ A user can specify the type of a treatment plant, the plant's capacity, the geog
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Creating an instance of the GUI using Python
+<b>You will need to download the data files separately.  They are located at <a href="https://osf.io/p28ax/files/"> Open Science Foundation project Files </a>.  Once you have downloaded them you will need to place the Data folder at the same level in your directory as the Code folder. </b>
+
 To create the GUI using Python, run the water_ahead_GUI.py file located in the Code/GUI directory.
 
 ### Installing the GUI 
@@ -35,7 +37,7 @@ To requiest a feature, create an issue in the GitHub Repository.  Please use the
 
 ## Authors
 <ul> 
-  <li> Daniel Gingerich, Stanford University, dbginger@stanford.edu </li>
+  <li> Daniel Gingerich, Stanford University, (Current Location The Ohio State University), gingerich.62@osu.edu </li>
   </ul>
 
 ## Citation
