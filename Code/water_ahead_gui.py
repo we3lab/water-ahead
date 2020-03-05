@@ -1695,13 +1695,34 @@ def main():
     tab6 = note.add_tab(text='New Treatment Process')
     tab7 = note.add_tab(text='Results')
 
-    def callback(P):
-        if str.isalpha(P):
-            return False
-        else:
-            return True
+    def callback_integer(inStr, acttyp):
+        if acttyp == '1':
+            if not inStr.isdigit():
+                return False
+        return True
 
-    vcmd = (tab1.register(callback))
+    def callback_percent(inStr, acttyp):
+        if acttyp == '1':
+            converted = inStr.replace('.','0')
+            if not converted.isdigit():
+                return False
+            if float(inStr) > 100:
+                return False
+            if float(inStr) <= 0:
+                return False
+        return True        
+
+    def callback_numeric(inStr, acttyp):
+        if acttyp == '1':
+            converted = inStr.replace('.','0')
+            if not converted.isdigit():
+                return False
+        return True
+
+    vcmd_integer = (tab1.register(callback_integer))
+    vcmd_percent = (tab1.register(callback_percent))
+    vcmd_numeric = (tab1.register(callback_numeric))
+
 
     Label(tab1, text='System Parameters',font=('Arial', 10, 'bold')).grid(row=0, column=1)  # Use each created tab as a parent, etc etc...
     Label(tab1, text='System Type:', font=('Arial', 10)).grid(row=1, column=0, sticky=E)
@@ -1732,7 +1753,7 @@ def main():
 
     system_type.trace('w', change_dropdown)
 
-    system_size_input = Entry(tab1, validate='all', validatecommand=(vcmd, '%P'))
+    system_size_input = Entry(tab1, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'))
     system_size_input.insert(END, 0)
     system_size_input.grid(row=2, column=1)
     Label(tab1, text=f'm\N{SUPERSCRIPT THREE}/d', font=('Arial', 10)).grid(row=2, column=2, sticky=W)
@@ -1759,7 +1780,7 @@ def main():
 
     Label(tab1, text='Simulation Parameters', font=('Arial', 10, 'bold')).grid(row=7, column=1)
     Label(tab1, text='Number of Simulations:', font=('Arial', 10)).grid(row=8, column=0, sticky=E)
-    model_runs = Entry(tab1, validate='all', validatecommand=(vcmd, '%P'))
+    model_runs = Entry(tab1, validate='all', validatecommand=(vcmd_integer, '%P', '%d'))
     model_runs.insert(END, 1000)
     model_runs.grid(row=8, column=1)
 
@@ -1801,32 +1822,32 @@ def main():
     flocculation = BooleanVar(root)
     flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation).grid(column=1, row=2,
                                                                                              sticky=W)
-    flocculation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    flocculation_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     flocculation_installed.grid(column=2, row=2)
     flocculation_installed.insert(END, 0)
 
-    flocculation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    flocculation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     flocculation_recovery.grid(column=3, row=2)
     flocculation_recovery.insert(END, 100)
 
     coagulation = BooleanVar(root)
     coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation).grid(column=1, row=3, sticky=W)
-    coagulation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    coagulation_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     coagulation_installed.grid(column=2, row=3)
     coagulation_installed.insert(END, 0)
 
-    coagulation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    coagulation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     coagulation_recovery.grid(column=3, row=3)
     coagulation_recovery.insert(END, 100)
 
     sedimentation = BooleanVar(root)
     sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation).grid(column=1, row=4,
                                                                                                 sticky=W)
-    sedimentation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sedimentation_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     sedimentation_installed.grid(column=2, row=4)
     sedimentation_installed.insert(END, 0)
 
-    sedimentation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sedimentation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     sedimentation_recovery.grid(column=3, row=4)
     sedimentation_recovery.insert(END, 100)
 
@@ -1836,11 +1857,11 @@ def main():
                           'Pressurized Sand', 'Rapid Sand', 'Slow Sand', 'Ultrafiltration Membrane']
     filtration.set('Generic')
     filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
-    filtration_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    filtration_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     filtration_installed.grid(column=2, row=5)
     filtration_installed.insert(END, 0)
 
-    filtration_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    filtration_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     filtration_recovery.grid(column=3, row=5)
     filtration_recovery.insert(END, 100)
 
@@ -1851,7 +1872,7 @@ def main():
     primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection, *primary_disinfection_choices).grid(
         column=1, row=6, sticky=W)
 
-    primary_disinfection_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    primary_disinfection_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     primary_disinfection_recovery.grid(column=3, row=6)
     primary_disinfection_recovery.insert(END, 100)
 
@@ -1862,7 +1883,7 @@ def main():
     secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection,
                                                    *secondary_disinfection_choices).grid(column=1, row=7, sticky=W)
 
-    secondary_disinfection_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    secondary_disinfection_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     secondary_disinfection_recovery.grid(column=3, row=7)
     secondary_disinfection_recovery.insert(END, 100)
 
@@ -1872,7 +1893,7 @@ def main():
     fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation).grid(column=1, row=8,
                                                                                              sticky=W)
 
-    fluoridation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    fluoridation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     fluoridation_recovery.grid(column=3, row=8)
     fluoridation_recovery.insert(END, 100)
 
@@ -1880,18 +1901,18 @@ def main():
     softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening).grid(column=1, row=9,
                                                                                              sticky=W)
 
-    softening_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    softening_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     softening_recovery.grid(column=3, row=9)
     softening_recovery.insert(END, 100)
 
     ph_adjustment = BooleanVar(root)
     ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment).grid(column=1, row=10,
                                                                                                 sticky=W)
-    ph_adjustment_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ph_adjustment_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     ph_adjustment_installed.grid(column=2, row=10)
     ph_adjustment_installed.insert(END, 0)
 
-    ph_adjustment_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ph_adjustment_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     ph_adjustment_recovery.grid(column=3, row=10)
     ph_adjustment_recovery.insert(END, 100)
 
@@ -1899,11 +1920,11 @@ def main():
     granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
                                                    variable=granular_activated_carbon).grid(column=1, row=11,
                                                                                             sticky=W)
-    granular_activated_carbon_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    granular_activated_carbon_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     granular_activated_carbon_installed.grid(column=2, row=11)
     granular_activated_carbon_installed.insert(END, 0)
 
-    granular_activated_carbon_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    granular_activated_carbon_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     granular_activated_carbon_recovery.grid(column=3, row=11)
     granular_activated_carbon_recovery.insert(END, 100)
 
@@ -1911,11 +1932,11 @@ def main():
     reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis).grid(column=1,
                                                                                                       row=12,
                                                                                                       sticky=W)
-    reverse_osmosis_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    reverse_osmosis_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     reverse_osmosis_installed.grid(column=2, row=12)
     reverse_osmosis_installed.insert(END, 0)
 
-    reverse_osmosis_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    reverse_osmosis_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     reverse_osmosis_recovery.grid(column=3, row=12)
     reverse_osmosis_recovery.insert(END, 60)
 
@@ -1929,7 +1950,7 @@ def main():
                                                                                                         row=13,
                                                                                                         sticky=W)
 
-    corrosion_control_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    corrosion_control_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     corrosion_control_recovery.grid(column=3, row=13)
     corrosion_control_recovery.insert(END, 100)
 
@@ -1943,49 +1964,49 @@ def main():
     aerated_grit = BooleanVar(root)
     aerated_grit_button = Checkbutton(tab4, text='Aerated Grit', variable=aerated_grit).grid(column=1, row=2,
                                                                                              sticky=W)
-    aerated_grit_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    aerated_grit_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     aerated_grit_installed.grid(column=2, row=2)
     aerated_grit_installed.insert(END, 0)
 
-    aerated_grit_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    aerated_grit_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     aerated_grit_recovery.grid(column=3, row=2)
     aerated_grit_recovery.insert(END, 100)
 
     grinding = BooleanVar(root)
     grinding_button = Checkbutton(tab4, text='Grinding', variable=grinding).grid(column=1, row=3, sticky=W)
 
-    grinding_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    grinding_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     grinding_recovery.grid(column=3, row=3)
     grinding_recovery.insert(END, 100)
 
     ww_filtration = BooleanVar(root)
     filtration_button = Checkbutton(tab4, text='Filtration', variable=ww_filtration).grid(column=1, row=4, sticky=W)
-    ww_filtration_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ww_filtration_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     ww_filtration_installed.grid(column=2, row=4)
     ww_filtration_installed.insert(END, 0)
 
-    ww_filtration_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ww_filtration_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     ww_filtration_recovery.grid(column=3, row=4)
     ww_filtration_recovery.insert(END, 100)
 
     grit_removal = BooleanVar(root)
     grit_removal_button = Checkbutton(tab4, text='Grit Removal', variable=grit_removal).grid(column=1, row=5,
                                                                                              sticky=W)
-    grit_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    grit_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     grit_removal_installed.grid(column=2, row=5)
     grit_removal_installed.insert(END, 0)
 
-    grit_removal_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    grit_removal_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     grit_removal_recovery.grid(column=3, row=5)
     grit_removal_recovery.insert(END, 100)
 
     screening = BooleanVar(root)
     screening_button = Checkbutton(tab4, text='Screening', variable=screening).grid(column=1, row=6, sticky=W)
-    screening_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    screening_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     screening_installed.grid(column=2, row=6)
     screening_installed.insert(END, 0)
 
-    screening_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    screening_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     screening_recovery.grid(column=3, row=6)
     screening_recovery.insert(END, 100)
 
@@ -1994,11 +2015,11 @@ def main():
     wastewater_sedimentation = BooleanVar(root)
     wastewater_sedimentation_button = Checkbutton(tab4, text='Sedimentation', variable=wastewater_sedimentation).grid(column=1, row=7,
                                                                                                 sticky=W)
-    wastewater_sedimentation_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_sedimentation_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     wastewater_sedimentation_installed.grid(column=2, row=7)
     wastewater_sedimentation_installed.insert(END, 0)
 
-    wastewater_sedimentation_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_sedimentation_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     wastewater_sedimentation_recovery.grid(column=3, row=7)
     wastewater_sedimentation_recovery.insert(END, 100)
 
@@ -2010,7 +2031,7 @@ def main():
     secondary_treatment_popup_menu = OptionMenu(tab4, secondary_treatment, *secondary_treatment_choices).grid(
         column=1, row=8, sticky=W)
 
-    secondary_treatment_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    secondary_treatment_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     secondary_treatment_recovery.grid(column=3, row=8)
     secondary_treatment_recovery.insert(END, 95)
 
@@ -2020,22 +2041,22 @@ def main():
     nitrification_denitrification_button = Checkbutton(tab4, text='Nitrification/Denitrification',
                                                        variable=nitrification_denitrification).grid(column=1, row=9,
                                                                                                     sticky=W)
-    nitrification_denitrification_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nitrification_denitrification_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     nitrification_denitrification_installed.grid(column=2, row=9)
     nitrification_denitrification_installed.insert(END, 0)
 
-    nitrification_denitrification_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nitrification_denitrification_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     nitrification_denitrification_recovery.grid(column=3, row=9)
     nitrification_denitrification_recovery.insert(END, 100)
 
     phosphorous_removal = BooleanVar(root)
     phosphorous_removal_button = Checkbutton(tab4, text='Phosphorous Removal', variable=phosphorous_removal).grid(
         column=1, row=10, sticky=W)
-    phosphorous_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    phosphorous_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     phosphorous_removal_installed.grid(column=2, row=10)
     phosphorous_removal_installed.insert(END, 0)
 
-    phosphorous_removal_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    phosphorous_removal_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     phosphorous_removal_recovery.grid(column=3, row=10)
     phosphorous_removal_recovery.insert(END, 100)
 
@@ -2043,11 +2064,11 @@ def main():
     wastewater_reverse_osmosis_button = Checkbutton(tab4, text='Reverse Osmosis', variable=wastewater_reverse_osmosis).grid(column=1,
                                                                                                       row=11,
                                                                                                       sticky=W)
-    wastewater_reverse_osmosis_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_reverse_osmosis_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     wastewater_reverse_osmosis_installed.grid(column=2, row=11)
     wastewater_reverse_osmosis_installed.insert(END, 0)
 
-    wastewater_reverse_osmosis_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_reverse_osmosis_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     wastewater_reverse_osmosis_recovery.grid(column=3, row=11)
     wastewater_reverse_osmosis_recovery.insert(END, 80)
 
@@ -2057,7 +2078,7 @@ def main():
     disinfection.set('Hypochlorite')
     disinfection_popup_menu = OptionMenu(tab4, disinfection, *disinfection_choices).grid(column=1, row=12, sticky=W)
 
-    disinfection_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    disinfection_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     disinfection_recovery.grid(column=3, row=12)
     disinfection_recovery.insert(END, 100)
 
@@ -2065,7 +2086,7 @@ def main():
     dechlorination_button = Checkbutton(tab4, text='Dechlorination', variable=dechlorination).grid(column=1, row=13,
                                                                                                    sticky=W)
 
-    dechlorination_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    dechlorination_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     dechlorination_recovery.grid(column=3, row=13)
     dechlorination_recovery.insert(END, 100)
 
@@ -2076,7 +2097,7 @@ def main():
     digestion.set('Aerobic Digestion')
     digestion_popup_menu = OptionMenu(tab4, digestion, *digestion_choices).grid(column=1, row=14, sticky=W)
 
-    digestion_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    digestion_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     digestion_recovery.grid(column=3, row=14)
     digestion_recovery.insert(END, 100)
 
@@ -2086,7 +2107,7 @@ def main():
     dewatering.set('Mechanical Dewatering')
     dewatering_popup_menu = OptionMenu(tab4, dewatering, *dewatering_choices).grid(column=1, row=15, sticky=W)
 
-    dewatering_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    dewatering_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     dewatering_recovery.grid(column=3, row=15)
     dewatering_recovery.insert(END, 100)
 
@@ -2101,16 +2122,16 @@ def main():
     softening_process_button = Checkbutton(tab5, text='', variable=softening_process).grid(column=1, row=2,
                                                                                            sticky=W)
 
-    softening_process_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    softening_process_recovery = Entry(tab5, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     softening_process_recovery.grid(column=5, row=2)
     softening_process_recovery.insert(END, 100)
 
     Label(tab5, text='Number of Chemical Addition Reactors:', font=('Arial', 10)).grid(column=0, row=3, sticky=E)
-    chemical_addition_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    chemical_addition_input = Entry(tab5, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     chemical_addition_input.grid(column=1, row=3, sticky=W)
     chemical_addition_input.insert(END, 0)
 
-    chemical_addition_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    chemical_addition_recovery = Entry(tab5, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     chemical_addition_recovery.grid(column=5, row=3)
     chemical_addition_recovery.insert(END, 100)
 
@@ -2120,12 +2141,12 @@ def main():
                              'Trickling Filter']
     bio_treatment.set('None')
     bio_treatment_popup_menu = OptionMenu(tab5, bio_treatment, *bio_treatment_choices).grid(column=1, row=4,
-                                                                                            columnspan=3, sticky=W)
-    bio_treatment_installed = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+                                                                                            columnspan=2, sticky=W)
+    bio_treatment_installed = Entry(tab5, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     bio_treatment_installed.grid(column=2, row=4, columnspan=3)
     bio_treatment_installed.insert(END, 0)
 
-    bio_treatment_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    bio_treatment_recovery = Entry(tab5, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     bio_treatment_recovery.grid(column=5, row=4)
     bio_treatment_recovery.insert(END, 100)
 
@@ -2137,13 +2158,13 @@ def main():
     volume_reduction.set('None')
     volume_reduction_popup_menu = OptionMenu(tab5, volume_reduction, *volume_reduction_choices).grid(column=1,
                                                                                                      row=5,
-                                                                                                     columnspan=3,
+                                                                                                     columnspan=2,
                                                                                                      sticky=W)
-    volume_reduction_installed = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    volume_reduction_installed = Entry(tab5, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     volume_reduction_installed.grid(column=2, row=5, columnspan=3)
     volume_reduction_installed.insert(END, 0)
 
-    volume_reduction_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    volume_reduction_recovery = Entry(tab5, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     volume_reduction_recovery.grid(column=5, row=5)
     volume_reduction_recovery.insert(END, 65)
 
@@ -2151,7 +2172,7 @@ def main():
     crystallization = BooleanVar(root)
     crystallization_button = Checkbutton(tab5, text='', variable=crystallization).grid(column=1, row=6, sticky=W)
 
-    crystallization_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    crystallization_recovery = Entry(tab5, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     crystallization_recovery.grid(column=5, row=6)
     crystallization_recovery.insert(END, 95)
 
@@ -2161,98 +2182,98 @@ def main():
     Label(tab5, text='Max', font=('Arial', 10)).grid(column=3, row=8)
 
     Label(tab5, text='CaOH:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
-    caoh_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    caoh_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     caoh_dose_min_input.grid(column=1, row=9, sticky=W)
     caoh_dose_min_input.insert(END, 0)
-    caoh_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    caoh_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     caoh_dose_best_input.grid(column=2, row=9, sticky=W)
     caoh_dose_best_input.insert(END, 0)
-    caoh_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    caoh_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     caoh_dose_max_input.grid(column=3, row=9, sticky=W)
     caoh_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=9, sticky=W)
 
     Label(tab5, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
-    fecl3_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    fecl3_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     fecl3_dose_min_input.grid(column=1, row=10, sticky=W)
     fecl3_dose_min_input.insert(END, 0)
-    fecl3_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    fecl3_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     fecl3_dose_best_input.grid(column=2, row=10, sticky=W)
     fecl3_dose_best_input.insert(END, 0)
-    fecl3_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    fecl3_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     fecl3_dose_max_input.grid(column=3, row=10, sticky=W)
     fecl3_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=10, sticky=W)
 
     Label(tab5, text='HCl:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
-    hcl_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    hcl_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     hcl_dose_min_input.grid(column=1, row=11, sticky=W)
     hcl_dose_min_input.insert(END, 0)
-    hcl_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    hcl_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     hcl_dose_best_input.grid(column=2, row=11, sticky=W)
     hcl_dose_best_input.insert(END, 0)
-    hcl_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    hcl_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     hcl_dose_max_input.grid(column=3, row=11, sticky=W)
     hcl_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=11, sticky=W)
 
     Label(tab5, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
-    nutrients_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nutrients_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     nutrients_dose_min_input.grid(column=1, row=12, sticky=W)
     nutrients_dose_min_input.insert(END, 0)
-    nutrients_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    nutrients_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     nutrients_dose_best_input.grid(column=2, row=12, sticky=W)
     nutrients_dose_best_input.insert(END, 0)
-    nutrients_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nutrients_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     nutrients_dose_max_input.grid(column=3, row=12, sticky=W)
     nutrients_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=12, sticky=W)
 
     Label(tab5, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=13,
                                                                                             sticky=E)
-    sodium_carbonate_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sodium_carbonate_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     sodium_carbonate_dose_min_input.grid(column=1, row=13, sticky=W)
     sodium_carbonate_dose_min_input.insert(END, 0)
-    sodium_carbonate_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    sodium_carbonate_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     sodium_carbonate_dose_best_input.grid(column=2, row=13, sticky=W)
     sodium_carbonate_dose_best_input.insert(END, 0)
-    sodium_carbonate_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sodium_carbonate_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     sodium_carbonate_dose_max_input.grid(column=3, row=13, sticky=W)
     sodium_carbonate_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=13, sticky=W)
 
     Label(tab5, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
-    gac_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    gac_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     gac_dose_min_input.grid(column=1, row=14, sticky=W)
     gac_dose_min_input.insert(END, 0)
-    gac_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    gac_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     gac_dose_best_input.grid(column=2, row=14, sticky=W)
     gac_dose_best_input.insert(END, 0)
-    gac_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    gac_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     gac_dose_max_input.grid(column=3, row=14, sticky=W)
     gac_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=14, sticky=W)
 
     Label(tab5, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
-    inorganics_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    inorganics_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     inorganics_dose_min_input.grid(column=1, row=15, sticky=W)
     inorganics_dose_min_input.insert(END, 0)
-    inorganics_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    inorganics_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     inorganics_dose_best_input.grid(column=2, row=15, sticky=W)
     inorganics_dose_best_input.insert(END, 0)
-    inorganics_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    inorganics_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     inorganics_dose_max_input.grid(column=3, row=15, sticky=W)
     inorganics_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=15, sticky=W)
 
     Label(tab5, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=16, sticky=E)
-    organics_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    organics_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     organics_dose_min_input.grid(column=1, row=16, sticky=W)
     organics_dose_min_input.insert(END, 0)
-    organics_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    organics_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     organics_dose_best_input.grid(column=2, row=16, sticky=W)
     organics_dose_best_input.insert(END, 0)
-    organics_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    organics_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     organics_dose_max_input.grid(column=3, row=16, sticky=W)
     organics_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=16, sticky=W)
@@ -2260,7 +2281,7 @@ def main():
     Label(tab6, text='Enter energy consumption and chemical dosages for the new process.').grid(column=0, row=1, columnspan=4)
 
     Label(tab6, text='Recovery:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
-    new_recovery_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_recovery_input = Entry(tab6, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     new_recovery_input.grid(column=1, row=2, sticky=W)
     new_recovery_input.insert(END, 100)
 
@@ -2269,24 +2290,24 @@ def main():
     Label(tab6, text='Best', font=('Arial', 10)).grid(column=2, row=4)
     Label(tab6, text='Max', font=('Arial', 10)).grid(column=3, row=4)
     Label(tab6, text='Unit Electricity Consumption:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
-    new_elec_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_elec_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_elec_min_input.grid(column=1, row=5, sticky=W)
     new_elec_min_input.insert(END, 0)
-    new_elec_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_elec_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_elec_best_input.grid(column=2, row=5, sticky=W)
     new_elec_best_input.insert(END, 0)
-    new_elec_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_elec_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_elec_max_input.grid(column=3, row=5, sticky=W)
     new_elec_max_input.insert(END, 0)
     Label(tab6, text='kWh/m\N{SUPERSCRIPT THREE} of water', font=('Arial', 10)).grid(column=4, row=5, sticky=W)
     Label(tab6, text='Unit Thermal Energy Consumption:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
-    new_therm_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_therm_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_therm_min_input.grid(column=1, row=6, sticky=W)
     new_therm_min_input.insert(END, 0)
-    new_therm_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_therm_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_therm_best_input.grid(column=2, row=6, sticky=W)
     new_therm_best_input.insert(END, 0)
-    new_therm_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_therm_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_therm_max_input.grid(column=3, row=6, sticky=W)
     new_therm_max_input.insert(END, 0)
     Label(tab6, text='MJ/m\N{SUPERSCRIPT THREE} of water', font=('Arial', 10)).grid(column=4, row=6, sticky=W)
@@ -2297,97 +2318,97 @@ def main():
     Label(tab6, text='Max', font=('Arial', 10)).grid(column=3, row=8)
 
     Label(tab6, text='CaOH:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
-    new_caoh_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_caoh_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_caoh_dose_min_input.grid(column=1, row=9, sticky=W)
     new_caoh_dose_min_input.insert(END, 0)
-    new_caoh_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_caoh_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_caoh_dose_best_input.grid(column=2, row=9, sticky=W)
     new_caoh_dose_best_input.insert(END, 0)
-    new_caoh_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_caoh_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_caoh_dose_max_input.grid(column=3, row=9, sticky=W)
     new_caoh_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=9, sticky=W)
 
     Label(tab6, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
-    new_fecl3_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_fecl3_dose_min_input.grid(column=1, row=10, sticky=W)
     new_fecl3_dose_min_input.insert(END, 0)
-    new_fecl3_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_fecl3_dose_best_input.grid(column=2, row=10, sticky=W)
     new_fecl3_dose_best_input.insert(END, 0)
-    new_fecl3_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_fecl3_dose_max_input.grid(column=3, row=10, sticky=W)
     new_fecl3_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=10, sticky=W)
 
     Label(tab6, text='HCl:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
-    new_hcl_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_hcl_dose_min_input.grid(column=1, row=11, sticky=W)
     new_hcl_dose_min_input.insert(END, 0)
-    new_hcl_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_hcl_dose_best_input.grid(column=2, row=11, sticky=W)
     new_hcl_dose_best_input.insert(END, 0)
-    new_hcl_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_hcl_dose_max_input.grid(column=3, row=11, sticky=W)
     new_hcl_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=11, sticky=W)
 
     Label(tab6, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
-    new_nutrients_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_nutrients_dose_min_input.grid(column=1, row=12, sticky=W)
     new_nutrients_dose_min_input.insert(END, 0)
-    new_nutrients_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_nutrients_dose_best_input.grid(column=2, row=12, sticky=W)
     new_nutrients_dose_best_input.insert(END, 0)
-    new_nutrients_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_nutrients_dose_max_input.grid(column=3, row=12, sticky=W)
     new_nutrients_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=12, sticky=W)
 
     Label(tab6, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
-    new_sodium_carbonate_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_sodium_carbonate_dose_min_input.grid(column=1, row=13, sticky=W)
     new_sodium_carbonate_dose_min_input.insert(END, 0)
-    new_sodium_carbonate_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_sodium_carbonate_dose_best_input.grid(column=2, row=13, sticky=W)
     new_sodium_carbonate_dose_best_input.insert(END, 0)
-    new_sodium_carbonate_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_sodium_carbonate_dose_max_input.grid(column=3, row=13, sticky=W)
     new_sodium_carbonate_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=13, sticky=W)
 
     Label(tab6, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
-    new_gac_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_gac_dose_min_input.grid(column=1, row=14, sticky=W)
     new_gac_dose_min_input.insert(END, 0)
-    new_gac_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_gac_dose_best_input.grid(column=2, row=14, sticky=W)
     new_gac_dose_best_input.insert(END, 0)
-    new_gac_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_gac_dose_max_input.grid(column=3, row=14, sticky=W)
     new_gac_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=14, sticky=W)
 
     Label(tab6, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
-    new_inorganics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_inorganics_dose_min_input.grid(column=1, row=15, sticky=W)
     new_inorganics_dose_min_input.insert(END, 0)
-    new_inorganics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_inorganics_dose_best_input.grid(column=2, row=15, sticky=W)
     new_inorganics_dose_best_input.insert(END, 0)
-    new_inorganics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_inorganics_dose_max_input.grid(column=3, row=15, sticky=W)
     new_inorganics_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=15, sticky=W)
 
     Label(tab6, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=16, sticky=E)
-    new_organics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_organics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_organics_dose_min_input.grid(column=1, row=16, sticky=W)
     new_organics_dose_min_input.insert(END, 0)
-    new_organics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_organics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_organics_dose_best_input.grid(column=2, row=16, sticky=W)
     new_organics_dose_best_input.insert(END, 0)
-    new_organics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_organics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_organics_dose_max_input.grid(column=3, row=16, sticky=W)
     new_organics_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=16, sticky=W)
