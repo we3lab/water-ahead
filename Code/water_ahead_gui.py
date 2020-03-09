@@ -1695,25 +1695,734 @@ def main():
     tab6 = note.add_tab(text='New Treatment Process')
     tab7 = note.add_tab(text='Results')
 
-    def callback(P):
-        if str.isalpha(P):
-            return False
-        else:
-            return True
+    def callback_integer(inStr, acttyp):
+        if acttyp == '1':
+            if not inStr.isdigit():
+                return False
+        return True
 
-    vcmd = (tab1.register(callback))
+    def callback_percent(inStr, acttyp):
+        if acttyp == '1':
+            converted = inStr.replace('.','0')
+            if not converted.isdigit():
+                return False
+            if float(inStr) > 100:
+                return False
+            if float(inStr) <= 0:
+                return False
+        return True        
+
+    def callback_numeric(inStr, acttyp):
+        if acttyp == '1':
+            converted = inStr.replace('.','0')
+            if not converted.isdigit():
+                return False
+        return True
+
+    vcmd_integer = (tab1.register(callback_integer))
+    vcmd_percent = (tab1.register(callback_percent))
+    vcmd_numeric = (tab1.register(callback_numeric))
+
 
     Label(tab1, text='System Parameters',font=('Arial', 10, 'bold')).grid(row=0, column=1)  # Use each created tab as a parent, etc etc...
     Label(tab1, text='System Type:', font=('Arial', 10)).grid(row=1, column=0, sticky=E)
     Label(tab1, text='System Size:', font=('Arial', 10)).grid(row=2, column=0, sticky=E)
 
     system_type = StringVar(root)
-    system_type_choices = ['Drinking Water System', 'Municipal Wastewater System', 'Industrial Wastewater System']
-    system_type.set('Drinking Water System')
+    system_type_choices = [' ', 'Drinking Water System', 'Municipal Wastewater System', 'Industrial Wastewater System']
+    system_type.set(' ')
     system_type_popup_menu = OptionMenu(tab1, system_type, *system_type_choices).grid(row=1, column=1)
 
     def change_dropdown(*args):
         selected_system_type = system_type.get()
+        if selected_system_type == ' ':
+            # Drinking Water Treatment System
+            source_water_choices = ['N/A']
+            source_water.set('N/A')
+            source_water_type_popup_menu = OptionMenu(tab3, source_water, *source_water_choices).grid(column=1, row=1,
+                                                                                                      sticky=W)
+            flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation,
+                                              state='disabled').grid(column=1, row=2, sticky=W)
+            flocculation_installed['state'] = 'disabled'
+            flocculation_recovery['state'] = 'disabled'
+            coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation, state='disabled').grid(
+                column=1, row=3, sticky=W)
+            coagulation_installed['state'] = 'disabled'
+            coagulation_recovery['state'] = 'disabled'
+            sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation,
+                                               state='disabled').grid(column=1, row=4, sticky=W)
+            sedimentation_installed['state'] = 'disabled'
+            sedimentation_recovery['state'] = 'disabled'
+            filtration_choices = ['No Filtration']
+            filtration.set('No Filtration')
+            filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
+            filtration_installed['state'] = 'disabled'
+            filtration_recovery['state'] = 'disabled'
+            primary_disinfection_choices = ['None']
+            primary_disinfection.set('None')
+            primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection,
+                                                         *primary_disinfection_choices).grid(
+                column=1, row=6, sticky=W)
+            primary_disinfection_recovery['state'] = 'disabled'
+            secondary_disinfection_choices = ['None']
+            secondary_disinfection.set('None')
+            secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection,
+                                                           *secondary_disinfection_choices).grid(column=1, row=7,
+                                                                                                 sticky=W)
+            secondary_disinfection_recovery['state'] = 'disabled'
+            fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation,
+                                              state='disabled').grid(column=1, row=8, sticky=W)
+
+            fluoridation_recovery['state'] = 'disabled'
+            softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening,
+                                           state='disabled').grid(column=1, row=9, sticky=W)
+            softening_recovery['state'] = 'disabled'
+            ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment,
+                                               state='disabled').grid(column=1, row=10, sticky=W)
+            ph_adjustment_installed['state'] = 'disabled'
+            ph_adjustment_recovery['state'] = 'disabled'
+            granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
+                                                           variable=granular_activated_carbon, state='disabled').grid(
+                column=1, row=11, sticky=W)
+            granular_activated_carbon_installed['state'] = 'disabled'
+            granular_activated_carbon_recovery['state'] = 'disabled'
+            reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis,
+                                                 state='disabled').grid(column=1, row=12, sticky=W)
+            reverse_osmosis_installed['state'] = 'disabled'
+            reverse_osmosis_recovery['state'] = 'disabled'
+            corrosion_control_choices = ['None']
+            corrosion_control.set('None')
+            corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(
+                column=1,
+                row=13,
+                sticky=W)
+
+            corrosion_control_recovery['state'] = 'disabled'
+
+            # Municipal Wastewater Treatment Process Buttons
+            aerated_grit_button = Checkbutton(tab4, text='Aerated Grit', variable=aerated_grit, state='disabled').grid(
+                column=1, row=2, sticky=W)
+            aerated_grit_installed['state'] = 'disabled'
+            aerated_grit_recovery['state'] = 'disabled'
+            grinding_button = Checkbutton(tab4, text='Grinding', variable=grinding, state='disabled').grid(
+                column=1, row=3, sticky=W)
+            grinding_recovery['state'] = 'disabled'
+            filtration_button = Checkbutton(tab4, text='Filtration', variable=ww_filtration, state='disabled').grid(
+                column=1, row=4, sticky=W)
+            ww_filtration_installed['state'] = 'disabled'
+            ww_filtration_recovery['state'] = 'disabled'
+            grit_removal_button = Checkbutton(tab4, text='Grit Removal', variable=grit_removal, state='disabled').grid(
+                column=1, row=5, sticky=W)
+            grit_removal_installed['state'] = 'disabled'
+            grit_removal_recovery['state'] = 'disabled'
+            screening_button = Checkbutton(tab4, text='Screening', variable=screening, state='disabled').grid(
+                column=1, row=6, sticky=W)
+            screening_installed['state'] = 'disabled'
+            screening_recovery['state'] = 'disabled'
+            wastewater_sedimentation_button = Checkbutton(tab4, text='Sedimentation',
+                                                          variable=wastewater_sedimentation, state='disabled').grid(
+                column=1, row=7, sticky=W)
+            wastewater_sedimentation_installed['state'] = 'disabled'
+            wastewater_sedimentation_recovery['state'] = 'disabled'
+            secondary_treatment_choices = ['None']
+            secondary_treatment_popup_menu = OptionMenu(tab4, secondary_treatment, *secondary_treatment_choices).grid(
+                column=1, row=8, sticky=W)
+            secondary_treatment.set('None')
+            secondary_treatment_recovery['state'] = 'disabled'
+            nitrification_denitrification_button = Checkbutton(tab4, text='Nitrification/Denitrification',
+                                                               variable=nitrification_denitrification,
+                                                               state='disabled').grid(column=1, row=9, sticky=W)
+            nitrification_denitrification_installed['state'] = 'disabled'
+            nitrification_denitrification_recovery['state'] = 'disabled'
+            phosphorous_removal_button = Checkbutton(tab4, text='Phosphorous Removal',
+                                                     variable=phosphorous_removal, state='disabled').grid(
+                column=1, row=10, sticky=W)
+            phosphorous_removal_installed['state'] = 'disabled'
+            phosphorous_removal_recovery['state'] = 'disabled'
+            wastewater_reverse_osmosis_button = Checkbutton(tab4, text='Reverse Osmosis',
+                                                            variable=wastewater_reverse_osmosis, state='disabled').grid(
+                column=1, row=11, sticky=W)
+            wastewater_reverse_osmosis_installed['state'] = 'disabled'
+            wastewater_reverse_osmosis_recovery['state'] = 'disabled'
+            disinfection_choices = ['None']
+            disinfection_popup_menu = OptionMenu(tab4, disinfection, *disinfection_choices).grid(column=1, row=12,
+                                                                                                 sticky=W)
+            disinfection.set('None')
+            disinfection_recovery['state'] = 'disabled'
+            dechlorination_button = Checkbutton(tab4, text='Dechlorination', variable=dechlorination,
+                                                state='disabled').grid(column=1, row=13, sticky=W)
+            dechlorination_recovery['state'] = 'disabled'
+            digestion_choices = ['None']
+            digestion_popup_menu = OptionMenu(tab4, digestion, *digestion_choices).grid(column=1, row=14, sticky=W)
+            digestion.set('None')
+            digestion_recovery['state'] = 'disabled'
+            dewatering_choices = ['None']
+            dewatering_popup_menu = OptionMenu(tab4, dewatering, *dewatering_choices).grid(column=1, row=15, sticky=W)
+            dewatering.set('None')
+            dewatering_recovery['state'] = 'disabled'
+
+            # Industrial Wastewater Treatment Process Buttons
+            softening_process_button = Checkbutton(tab5, text='', variable=softening_process, state='disabled').grid(
+                column=1, row=2, sticky=W)
+            softening_process_recovery['state'] = 'disabled'
+            chemical_addition_input['state'] = 'disabled'
+            chemical_addition_recovery['state'] = 'disabled'
+            bio_treatment_choices = ['None']
+            bio_treatment_popup_menu = OptionMenu(tab5, bio_treatment, *bio_treatment_choices).grid(
+                column=1, row=4, columnspan=2, sticky=W)
+            bio_treatment_installed['state'] = 'disabled'
+            bio_treatment_recovery['state'] = 'disabled'
+            volume_reduction_choices = ['None']
+            volume_reduction_popup_menu = OptionMenu(tab5, volume_reduction, *volume_reduction_choices).grid(
+                column=1, row=5, columnspan=2, sticky=W)
+            volume_reduction_installed['state'] = 'disabled'
+            volume_reduction_recovery['state'] = 'disabled'
+            crystallization_button = Checkbutton(tab5, text='', variable=crystallization, state='disabled').grid(
+                column=1, row=6, sticky=W)
+            crystallization_recovery['state'] = 'disabled'
+            caoh_dose_min_input['state'] = 'disabled'
+            caoh_dose_best_input['state'] = 'disabled'
+            caoh_dose_max_input['state'] = 'disabled'
+            fecl3_dose_min_input['state'] = 'disabled'
+            fecl3_dose_best_input['state'] = 'disabled'
+            fecl3_dose_max_input['state'] = 'disabled'
+            hcl_dose_min_input['state'] = 'disabled'
+            hcl_dose_best_input['state'] = 'disabled'
+            hcl_dose_max_input['state'] = 'disabled'
+            nutrients_dose_min_input['state'] = 'disabled'
+            nutrients_dose_best_input['state'] = 'disabled'
+            nutrients_dose_max_input['state'] = 'disabled'
+            sodium_carbonate_dose_min_input['state'] = 'disabled'
+            sodium_carbonate_dose_best_input['state'] = 'disabled'
+            sodium_carbonate_dose_max_input['state'] = 'disabled'
+            gac_dose_min_input['state'] = 'disabled'
+            gac_dose_best_input['state'] = 'disabled'
+            gac_dose_max_input['state'] = 'disabled'
+            inorganics_dose_min_input['state'] = 'disabled'
+            inorganics_dose_best_input['state'] = 'disabled'
+            inorganics_dose_max_input['state'] = 'disabled'
+            organics_dose_min_input['state'] = 'disabled'
+            organics_dose_best_input['state'] = 'disabled'
+            organics_dose_max_input['state'] = 'disabled'
+
+        elif selected_system_type == "Drinking Water System":
+            # Drinking Water Treatment System
+            source_water_choices = ['Fresh Surface Water', 'Fresh Groundwater', 'Brackish Groundwater', 'Seawater']
+            source_water.set('Fresh Surface Water')
+            source_water_type_popup_menu = OptionMenu(tab3, source_water, *source_water_choices).grid(column=1, row=1,
+                                                                                                      sticky=W)
+            flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation,
+                                              state='normal').grid(column=1, row=2, sticky=W)
+            flocculation_installed['state'] = 'normal'
+            flocculation_recovery['state'] = 'normal'
+            coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation, state='normal').grid(
+                column=1, row=3, sticky=W)
+            coagulation_installed['state'] = 'normal'
+            coagulation_recovery['state'] = 'normal'
+            sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation,
+                                               state='normal').grid(column=1, row=4, sticky=W)
+            sedimentation_installed['state'] = 'normal'
+            sedimentation_recovery['state'] = 'normal'
+            filtration_choices = ['No Filtration', 'Generic', 'Cartridge', 'Diatomaceous Earth', 'Greensand',
+                                  'Pressurized Sand', 'Rapid Sand', 'Slow Sand', 'Ultrafiltration Membrane']
+            filtration.set('No Filtration')
+            filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
+            filtration_installed['state'] = 'normal'
+            filtration_recovery['state'] = 'normal'
+            primary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'Iodine', 'Ozonation', 'UV Disinfection',
+                                            'None']
+            primary_disinfection.set('None')
+            primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection,
+                                                         *primary_disinfection_choices).grid(
+                column=1, row=6, sticky=W)
+            primary_disinfection_recovery['state'] = 'normal'
+            secondary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'None']
+            secondary_disinfection.set('None')
+            secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection,
+                                                           *secondary_disinfection_choices).grid(column=1, row=7,
+                                                                                                 sticky=W)
+            secondary_disinfection_recovery['state'] = 'normal'
+            fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation,
+                                              state='normal').grid(column=1, row=8, sticky=W)
+
+            fluoridation_recovery['state'] = 'normal'
+            softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening,
+                                           state='normal').grid(column=1, row=9, sticky=W)
+            softening_recovery['state'] = 'normal'
+            ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment,
+                                               state='normal').grid(column=1, row=10, sticky=W)
+            ph_adjustment_installed['state'] = 'normal'
+            ph_adjustment_recovery['state'] = 'normal'
+            granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
+                                                           variable=granular_activated_carbon, state='normal').grid(
+                column=1, row=11, sticky=W)
+            granular_activated_carbon_installed['state'] = 'normal'
+            granular_activated_carbon_recovery['state'] = 'normal'
+            reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis,
+                                                 state='normal').grid(column=1, row=12, sticky=W)
+            reverse_osmosis_installed['state'] = 'normal'
+            reverse_osmosis_recovery['state'] = 'normal'
+            corrosion_control_choices = ['Bimetallic Phosphate', 'Hexametaphosphate', 'Orthophosphate', 'Polyphosphate',
+                                         'Silicate', 'Permagnate', 'Sodium Bisulfate', 'Sodium Sulfate',
+                                         'Sulfur Dioxide', 'None']
+            corrosion_control.set('None')
+            corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(
+                column=1,
+                row=13,
+                sticky=W)
+            corrosion_control_recovery['state'] = 'normal'
+
+            # Municipal Wastewater Treatment Process Buttons
+            aerated_grit_button = Checkbutton(tab4, text='Aerated Grit', variable=aerated_grit, state='disabled').grid(
+                column=1, row=2, sticky=W)
+            aerated_grit_installed['state'] = 'disabled'
+            aerated_grit_recovery['state'] = 'disabled'
+            grinding_button = Checkbutton(tab4, text='Grinding', variable=grinding, state='disabled').grid(
+                column=1, row=3, sticky=W)
+            grinding_recovery['state'] = 'disabled'
+            filtration_button = Checkbutton(tab4, text='Filtration', variable=ww_filtration, state='disabled').grid(
+                column=1, row=4, sticky=W)
+            ww_filtration_installed['state'] = 'disabled'
+            ww_filtration_recovery['state'] = 'disabled'
+            grit_removal_button = Checkbutton(tab4, text='Grit Removal', variable=grit_removal, state='disabled').grid(
+                column=1, row=5, sticky=W)
+            grit_removal_installed['state'] = 'disabled'
+            grit_removal_recovery['state'] = 'disabled'
+            screening_button = Checkbutton(tab4, text='Screening', variable=screening, state='disabled').grid(
+                column=1, row=6, sticky=W)
+            screening_installed['state'] = 'disabled'
+            screening_recovery['state'] = 'disabled'
+            wastewater_sedimentation_button = Checkbutton(tab4, text='Sedimentation',
+                                                          variable=wastewater_sedimentation, state='disabled').grid(
+                column=1, row=7, sticky=W)
+            wastewater_sedimentation_installed['state'] = 'disabled'
+            wastewater_sedimentation_recovery['state'] = 'disabled'
+            secondary_treatment_choices = ['None']
+            secondary_treatment_popup_menu = OptionMenu(tab4, secondary_treatment, *secondary_treatment_choices).grid(
+                column=1, row=8, sticky=W)
+            secondary_treatment.set('None')
+            secondary_treatment_recovery['state'] = 'disabled'
+            nitrification_denitrification_button = Checkbutton(tab4, text='Nitrification/Denitrification',
+                                                               variable=nitrification_denitrification,
+                                                               state='disabled').grid(column=1, row=9, sticky=W)
+            nitrification_denitrification_installed['state'] = 'disabled'
+            nitrification_denitrification_recovery['state'] = 'disabled'
+            phosphorous_removal_button = Checkbutton(tab4, text='Phosphorous Removal',
+                                                     variable=phosphorous_removal, state='disabled').grid(
+                column=1, row=10, sticky=W)
+            phosphorous_removal_installed['state'] = 'disabled'
+            phosphorous_removal_recovery['state'] = 'disabled'
+            wastewater_reverse_osmosis_button = Checkbutton(tab4, text='Reverse Osmosis',
+                                                            variable=wastewater_reverse_osmosis, state='disabled').grid(
+                column=1, row=11, sticky=W)
+            wastewater_reverse_osmosis_installed['state'] = 'disabled'
+            wastewater_reverse_osmosis_recovery['state'] = 'disabled'
+            disinfection_choices = ['None']
+            disinfection_popup_menu = OptionMenu(tab4, disinfection, *disinfection_choices).grid(column=1, row=12,
+                                                                                                 sticky=W)
+            disinfection.set('None')
+            disinfection_recovery['state'] = 'disabled'
+            dechlorination_button = Checkbutton(tab4, text='Dechlorination', variable=dechlorination,
+                                                state='disabled').grid(column=1, row=13, sticky=W)
+            dechlorination_recovery['state'] = 'disabled'
+            digestion_choices = ['None']
+            digestion_popup_menu = OptionMenu(tab4, digestion, *digestion_choices).grid(column=1, row=14, sticky=W)
+            digestion.set('None')
+            digestion_recovery['state'] = 'disabled'
+            dewatering_choices = ['None']
+            dewatering_popup_menu = OptionMenu(tab4, dewatering, *dewatering_choices).grid(column=1, row=15, sticky=W)
+            dewatering.set('None')
+            dewatering_recovery['state'] = 'disabled'
+
+            # Industrial Wastewater Treatment Process Buttons
+            softening_process_button = Checkbutton(tab5, text='', variable=softening_process, state='disabled').grid(
+                column=1, row=2, sticky=W)
+            softening_process_recovery['state'] = 'disabled'
+            chemical_addition_input['state'] = 'disabled'
+            chemical_addition_recovery['state'] = 'disabled'
+            bio_treatment_choices = ['None']
+            bio_treatment_popup_menu = OptionMenu(tab5, bio_treatment, *bio_treatment_choices).grid(
+                column=1, row=4, columnspan=2, sticky=W)
+            bio_treatment_installed['state'] = 'disabled'
+            bio_treatment_recovery['state'] = 'disabled'
+            volume_reduction_choices = ['None']
+            volume_reduction_popup_menu = OptionMenu(tab5, volume_reduction, *volume_reduction_choices).grid(
+                column=1, row=5, columnspan=2, sticky=W)
+            volume_reduction_installed['state'] = 'disabled'
+            volume_reduction_recovery['state'] = 'disabled'
+            crystallization_button = Checkbutton(tab5, text='', variable=crystallization, state='disabled').grid(
+                column=1, row=6, sticky=W)
+            crystallization_recovery['state'] = 'disabled'
+            caoh_dose_min_input['state'] = 'disabled'
+            caoh_dose_best_input['state'] = 'disabled'
+            caoh_dose_max_input['state'] = 'disabled'
+            fecl3_dose_min_input['state'] = 'disabled'
+            fecl3_dose_best_input['state'] = 'disabled'
+            fecl3_dose_max_input['state'] = 'disabled'
+            hcl_dose_min_input['state'] = 'disabled'
+            hcl_dose_best_input['state'] = 'disabled'
+            hcl_dose_max_input['state'] = 'disabled'
+            nutrients_dose_min_input['state'] = 'disabled'
+            nutrients_dose_best_input['state'] = 'disabled'
+            nutrients_dose_max_input['state'] = 'disabled'
+            sodium_carbonate_dose_min_input['state'] = 'disabled'
+            sodium_carbonate_dose_best_input['state'] = 'disabled'
+            sodium_carbonate_dose_max_input['state'] = 'disabled'
+            gac_dose_min_input['state'] = 'disabled'
+            gac_dose_best_input['state'] = 'disabled'
+            gac_dose_max_input['state'] = 'disabled'
+            inorganics_dose_min_input['state'] = 'disabled'
+            inorganics_dose_best_input['state'] = 'disabled'
+            inorganics_dose_max_input['state'] = 'disabled'
+            organics_dose_min_input['state'] = 'disabled'
+            organics_dose_best_input['state'] = 'disabled'
+            organics_dose_max_input['state'] = 'disabled'
+        elif selected_system_type == "Municipal Wastewater System":
+
+            # Drinking Water Treatment System
+            source_water_choices = ['N/A']
+            source_water.set('N/A')
+            source_water_type_popup_menu = OptionMenu(tab3, source_water, *source_water_choices).grid(column=1, row=1,
+                                                                                                      sticky=W)
+            flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation,
+                                              state='disabled').grid(column=1, row=2, sticky=W)
+            flocculation_installed['state'] = 'disabled'
+            flocculation_recovery['state'] = 'disabled'
+            coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation, state='disabled').grid(
+                column=1, row=3, sticky=W)
+            coagulation_installed['state'] = 'disabled'
+            coagulation_recovery['state'] = 'disabled'
+            sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation,
+                                               state='disabled').grid(column=1, row=4, sticky=W)
+            sedimentation_installed['state'] = 'disabled'
+            sedimentation_recovery['state'] = 'disabled'
+            filtration_choices = ['No Filtration']
+            filtration.set('No Filtration')
+            filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
+            filtration_installed['state'] = 'disabled'
+            filtration_recovery['state'] = 'disabled'
+            primary_disinfection_choices = ['None']
+            primary_disinfection.set('None')
+            primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection,
+                                                         *primary_disinfection_choices).grid(
+                column=1, row=6, sticky=W)
+            primary_disinfection_recovery['state'] = 'disabled'
+            secondary_disinfection_choices = ['None']
+            secondary_disinfection.set('None')
+            secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection,
+                                                           *secondary_disinfection_choices).grid(column=1, row=7,
+                                                                                                 sticky=W)
+            secondary_disinfection_recovery['state'] = 'disabled'
+            fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation,
+                                              state='disabled').grid(column=1, row=8, sticky=W)
+
+            fluoridation_recovery['state'] = 'disabled'
+            softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening,
+                                           state='disabled').grid(column=1, row=9, sticky=W)
+            softening_recovery['state'] = 'disabled'
+            ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment,
+                                               state='disabled').grid(column=1, row=10, sticky=W)
+            ph_adjustment_installed['state'] = 'disabled'
+            ph_adjustment_recovery['state'] = 'disabled'
+            granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
+                                                           variable=granular_activated_carbon, state='disabled').grid(
+                column=1, row=11, sticky=W)
+            granular_activated_carbon_installed['state'] = 'disabled'
+            granular_activated_carbon_recovery['state'] = 'disabled'
+            reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis,
+                                                 state='disabled').grid(column=1, row=12, sticky=W)
+            reverse_osmosis_installed['state'] = 'disabled'
+            reverse_osmosis_recovery['state'] = 'disabled'
+            corrosion_control_choices = ['None']
+            corrosion_control.set('None')
+            corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(
+                column=1,
+                row=13,
+                sticky=W)
+
+            corrosion_control_recovery['state'] = 'disabled'
+
+            # Municipal Wastewater Treatment Process Buttons
+            aerated_grit_button = Checkbutton(tab4, text='Aerated Grit', variable=aerated_grit, state='normal').grid(
+                column=1, row=2, sticky=W)
+            aerated_grit_installed['state'] = 'normal'
+            aerated_grit_recovery['state'] = 'normal'
+            grinding_button = Checkbutton(tab4, text='Grinding', variable=grinding, state='normal').grid(
+                column=1, row=3, sticky=W)
+            grinding_recovery['state'] = 'normal'
+            filtration_button = Checkbutton(tab4, text='Filtration', variable=ww_filtration, state='normal').grid(
+                column=1, row=4, sticky=W)
+            ww_filtration_installed['state'] = 'normal'
+            ww_filtration_recovery['state'] = 'normal'
+            grit_removal_button = Checkbutton(tab4, text='Grit Removal', variable=grit_removal, state='normal').grid(
+                column=1, row=5, sticky=W)
+            grit_removal_installed['state'] = 'normal'
+            grit_removal_recovery['state'] = 'normal'
+            screening_button = Checkbutton(tab4, text='Screening', variable=screening, state='normal').grid(
+                column=1, row=6, sticky=W)
+            screening_installed['state'] = 'normal'
+            screening_recovery['state'] = 'normal'
+            wastewater_sedimentation_button = Checkbutton(tab4, text='Sedimentation',
+                                                          variable=wastewater_sedimentation, state='normal').grid(
+                column=1, row=7, sticky=W)
+            wastewater_sedimentation_installed['state'] = 'normal'
+            wastewater_sedimentation_recovery['state'] = 'normal'
+            secondary_treatment_choices = ['Activated Sludge and Clarification', 'Lagoon', 'Stabilization Pond',
+                                           'Trickling Filter', 'None']
+            secondary_treatment_popup_menu = OptionMenu(tab4, secondary_treatment, *secondary_treatment_choices).grid(
+                column=1, row=8, sticky=W)
+            secondary_treatment.set('None')
+            secondary_treatment_recovery['state'] = 'normal'
+            nitrification_denitrification_button = Checkbutton(tab4, text='Nitrification/Denitrification',
+                                                               variable=nitrification_denitrification,
+                                                               state='normal').grid(column=1, row=9, sticky=W)
+            nitrification_denitrification_installed['state'] = 'normal'
+            nitrification_denitrification_recovery['state'] = 'normal'
+            phosphorous_removal_button = Checkbutton(tab4, text='Phosphorous Removal',
+                                                     variable=phosphorous_removal, state='normal').grid(
+                column=1, row=10, sticky=W)
+            phosphorous_removal_installed['state'] = 'normal'
+            phosphorous_removal_recovery['state'] = 'normal'
+            wastewater_reverse_osmosis_button = Checkbutton(tab4, text='Reverse Osmosis',
+                                                            variable=wastewater_reverse_osmosis, state='normal').grid(
+                column=1, row=11, sticky=W)
+            wastewater_reverse_osmosis_installed['state'] = 'normal'
+            wastewater_reverse_osmosis_recovery['state'] = 'normal'
+            disinfection_choices = ['Hypochlorite', 'Ultraviolet', 'Ozone', 'None']
+            disinfection_popup_menu = OptionMenu(tab4, disinfection, *disinfection_choices).grid(column=1, row=12,
+                                                                                                 sticky=W)
+            disinfection.set('None')
+            disinfection_recovery['state'] = 'normal'
+            dechlorination_button = Checkbutton(tab4, text='Dechlorination', variable=dechlorination,
+                                                state='normal').grid(column=1, row=13, sticky=W)
+            dechlorination_recovery['state'] = 'normal'
+            digestion_choices = ['Aerobic Digestion', 'Anaerobic Digestion w/o Biogas Use',
+                                 'Anaerobic Digestion w/ Biogas Use', 'None']
+            digestion_popup_menu = OptionMenu(tab4, digestion, *digestion_choices).grid(column=1, row=14, sticky=W)
+            digestion.set('None')
+            digestion_recovery['state'] = 'normal'
+            dewatering_choices = ['Gravity Thickening', 'Mechanical Dewatering', 'Polymer Dewatering', 'None']
+            dewatering_popup_menu = OptionMenu(tab4, dewatering, *dewatering_choices).grid(column=1, row=15, sticky=W)
+            dewatering.set('None')
+            dewatering_recovery['state'] = 'normal'
+
+            # Industrial Wastewater Treatment Process Buttons
+            softening_process_button = Checkbutton(tab5, text='', variable=softening_process, state='disabled').grid(
+                column=1, row=2, sticky=W)
+            softening_process_recovery['state'] = 'disabled'
+            chemical_addition_input['state'] = 'disabled'
+            chemical_addition_recovery['state'] = 'disabled'
+            bio_treatment_choices = ['None']
+            bio_treatment_popup_menu = OptionMenu(tab5, bio_treatment, *bio_treatment_choices).grid(
+                column=1, row=4, columnspan=2, sticky=W)
+            bio_treatment_installed['state'] = 'disabled'
+            bio_treatment_recovery['state'] = 'disabled'
+            volume_reduction_choices = ['None']
+            volume_reduction_popup_menu = OptionMenu(tab5, volume_reduction, *volume_reduction_choices).grid(
+                column=1, row=5, columnspan=2, sticky=W)
+            volume_reduction_installed['state'] = 'disabled'
+            volume_reduction_recovery['state'] = 'disabled'
+            crystallization_button = Checkbutton(tab5, text='', variable=crystallization, state='disabled').grid(
+                column=1, row=6, sticky=W)
+            crystallization_recovery['state'] = 'disabled'
+            caoh_dose_min_input['state'] = 'disabled'
+            caoh_dose_best_input['state'] = 'disabled'
+            caoh_dose_max_input['state'] = 'disabled'
+            fecl3_dose_min_input['state'] = 'disabled'
+            fecl3_dose_best_input['state'] = 'disabled'
+            fecl3_dose_max_input['state'] = 'disabled'
+            hcl_dose_min_input['state'] = 'disabled'
+            hcl_dose_best_input['state'] = 'disabled'
+            hcl_dose_max_input['state'] = 'disabled'
+            nutrients_dose_min_input['state'] = 'disabled'
+            nutrients_dose_best_input['state'] = 'disabled'
+            nutrients_dose_max_input['state'] = 'disabled'
+            sodium_carbonate_dose_min_input['state'] = 'disabled'
+            sodium_carbonate_dose_best_input['state'] = 'disabled'
+            sodium_carbonate_dose_max_input['state'] = 'disabled'
+            gac_dose_min_input['state'] = 'disabled'
+            gac_dose_best_input['state'] = 'disabled'
+            gac_dose_max_input['state'] = 'disabled'
+            inorganics_dose_min_input['state'] = 'disabled'
+            inorganics_dose_best_input['state'] = 'disabled'
+            inorganics_dose_max_input['state'] = 'disabled'
+            organics_dose_min_input['state'] = 'disabled'
+            organics_dose_best_input['state'] = 'disabled'
+            organics_dose_max_input['state'] = 'disabled'
+
+        elif selected_system_type == "Industrial Wastewater System":
+
+            # Drinking Water Treatment System
+            source_water_choices = ['N/A']
+            source_water.set('N/A')
+            source_water_type_popup_menu = OptionMenu(tab3, source_water, *source_water_choices).grid(column=1, row=1,
+                                                                                                      sticky=W)
+            flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation,
+                                              state='disabled').grid(column=1, row=2, sticky=W)
+            flocculation_installed['state'] = 'disabled'
+            flocculation_recovery['state'] = 'disabled'
+            coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation, state='disabled').grid(
+                column=1, row=3, sticky=W)
+            coagulation_installed['state'] = 'disabled'
+            coagulation_recovery['state'] = 'disabled'
+            sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation,
+                                               state='disabled').grid(column=1, row=4, sticky=W)
+            sedimentation_installed['state'] = 'disabled'
+            sedimentation_recovery['state'] = 'disabled'
+            filtration_choices = ['No Filtration']
+            filtration.set('No Filtration')
+            filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
+            filtration_installed['state'] = 'disabled'
+            filtration_recovery['state'] = 'disabled'
+            primary_disinfection_choices = ['None']
+            primary_disinfection.set('None')
+            primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection,
+                                                         *primary_disinfection_choices).grid(
+                column=1, row=6, sticky=W)
+            primary_disinfection_recovery['state'] = 'disabled'
+            secondary_disinfection_choices = ['None']
+            secondary_disinfection.set('None')
+            secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection,
+                                                           *secondary_disinfection_choices).grid(column=1, row=7,
+                                                                                                 sticky=W)
+            secondary_disinfection_recovery['state'] = 'disabled'
+            fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation,
+                                              state='disabled').grid(column=1, row=8, sticky=W)
+
+            fluoridation_recovery['state'] = 'disabled'
+            softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening,
+                                           state='disabled').grid(column=1, row=9, sticky=W)
+            softening_recovery['state'] = 'disabled'
+            ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment,
+                                               state='disabled').grid(column=1, row=10, sticky=W)
+            ph_adjustment_installed['state'] = 'disabled'
+            ph_adjustment_recovery['state'] = 'disabled'
+            granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
+                                                           variable=granular_activated_carbon, state='disabled').grid(
+                column=1, row=11, sticky=W)
+            granular_activated_carbon_installed['state'] = 'disabled'
+            granular_activated_carbon_recovery['state'] = 'disabled'
+            reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis,
+                                                 state='disabled').grid(column=1, row=12, sticky=W)
+            reverse_osmosis_installed['state'] = 'disabled'
+            reverse_osmosis_recovery['state'] = 'disabled'
+            corrosion_control_choices = ['None']
+            corrosion_control.set('None')
+            corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(
+                column=1,
+                row=13,
+                sticky=W)
+            corrosion_control_recovery['state'] = 'disabled'
+
+            # Municipal Wastewater Treatment Process Buttons
+            aerated_grit_button = Checkbutton(tab4, text='Aerated Grit', variable=aerated_grit, state='disabled').grid(
+                column=1, row=2, sticky=W)
+            aerated_grit_installed['state'] = 'disabled'
+            aerated_grit_recovery['state'] = 'disabled'
+            grinding_button = Checkbutton(tab4, text='Grinding', variable=grinding, state='disabled').grid(
+                column=1, row=3, sticky=W)
+            grinding_recovery['state'] = 'disabled'
+            filtration_button = Checkbutton(tab4, text='Filtration', variable=ww_filtration, state='disabled').grid(
+                column=1, row=4, sticky=W)
+            ww_filtration_installed['state'] = 'disabled'
+            ww_filtration_recovery['state'] = 'disabled'
+            grit_removal_button = Checkbutton(tab4, text='Grit Removal', variable=grit_removal, state='disabled').grid(
+                column=1, row=5, sticky=W)
+            grit_removal_installed['state'] = 'disabled'
+            grit_removal_recovery['state'] = 'disabled'
+            screening_button = Checkbutton(tab4, text='Screening', variable=screening, state='disabled').grid(
+                column=1, row=6, sticky=W)
+            screening_installed['state'] = 'disabled'
+            screening_recovery['state'] = 'disabled'
+            wastewater_sedimentation_button = Checkbutton(tab4, text='Sedimentation',
+                                                          variable=wastewater_sedimentation, state='disabled').grid(
+                column=1, row=7, sticky=W)
+            wastewater_sedimentation_installed['state'] = 'disabled'
+            wastewater_sedimentation_recovery['state'] = 'disabled'
+            secondary_treatment_choices = ['None']
+            secondary_treatment_popup_menu = OptionMenu(tab4, secondary_treatment, *secondary_treatment_choices).grid(
+                column=1, row=8, sticky=W)
+            secondary_treatment.set('None')
+            secondary_treatment_recovery['state'] = 'disabled'
+            nitrification_denitrification_button = Checkbutton(tab4, text='Nitrification/Denitrification',
+                                                               variable=nitrification_denitrification,
+                                                               state='disabled').grid(column=1, row=9, sticky=W)
+            nitrification_denitrification_installed['state'] = 'disabled'
+            nitrification_denitrification_recovery['state'] = 'disabled'
+            phosphorous_removal_button = Checkbutton(tab4, text='Phosphorous Removal',
+                                                     variable=phosphorous_removal, state='disabled').grid(
+                column=1, row=10, sticky=W)
+            phosphorous_removal_installed['state'] = 'disabled'
+            phosphorous_removal_recovery['state'] = 'disabled'
+            wastewater_reverse_osmosis_button = Checkbutton(tab4, text='Reverse Osmosis',
+                                                            variable=wastewater_reverse_osmosis, state='disabled').grid(
+                column=1, row=11, sticky=W)
+            wastewater_reverse_osmosis_installed['state'] = 'disabled'
+            wastewater_reverse_osmosis_recovery['state'] = 'disabled'
+            disinfection_choices = ['None']
+            disinfection_popup_menu = OptionMenu(tab4, disinfection, *disinfection_choices).grid(column=1, row=12,
+                                                                                                 sticky=W)
+            disinfection.set('None')
+            disinfection_recovery['state'] = 'disabled'
+            dechlorination_button = Checkbutton(tab4, text='Dechlorination', variable=dechlorination,
+                                                state='disabled').grid(column=1, row=13, sticky=W)
+            dechlorination_recovery['state'] = 'disabled'
+            digestion_choices = ['None']
+            digestion_popup_menu = OptionMenu(tab4, digestion, *digestion_choices).grid(column=1, row=14, sticky=W)
+            digestion.set('None')
+            digestion_recovery['state'] = 'disabled'
+            dewatering_choices = ['None']
+            dewatering_popup_menu = OptionMenu(tab4, dewatering, *dewatering_choices).grid(column=1, row=15, sticky=W)
+            dewatering.set('None')
+            dewatering_recovery['state'] = 'disabled'
+
+            # Industrial Wastewater Treatment Process Buttons
+            softening_process_button = Checkbutton(tab5, text='', variable=softening_process, state='normal').grid(
+            column = 1, row = 2, sticky = W)
+            softening_process_recovery['state'] = 'normal'
+            chemical_addition_input['state'] = 'normal'
+            chemical_addition_recovery['state'] = 'normal'
+            bio_treatment_choices = ['None', 'Activated Sludge and Clarification', 'Lagoon', 'Stabilization Pond',
+                                     'Trickling Filter']
+            bio_treatment_popup_menu = OptionMenu(tab5, bio_treatment, *bio_treatment_choices).grid(
+                column=1, row=4, columnspan=2, sticky=W)
+            bio_treatment_installed['state'] = 'normal'
+            bio_treatment_recovery['state'] = 'normal'
+            volume_reduction_choices = ['None', 'Mechanical Vapor Compression', 'Thermal Vapor Compression',
+                                        'Reverse Osmosis', 'Forward Osmosis', 'Multiple Effect Distillation',
+                                        'Multi-Stage Flash Distillation', 'Membrane Distillation']
+            volume_reduction_popup_menu = OptionMenu(tab5, volume_reduction, *volume_reduction_choices).grid(
+                column=1, row=5, columnspan=2, sticky=W)
+            volume_reduction_installed['state'] = 'normal'
+            volume_reduction_recovery['state'] = 'normal'
+            crystallization_button = Checkbutton(tab5, text='', variable=crystallization, state='normal').grid(
+            column = 1, row = 6, sticky = W)
+            crystallization_recovery['state'] = 'normal'
+            caoh_dose_min_input['state'] = 'normal'
+            caoh_dose_best_input['state'] = 'normal'
+            caoh_dose_max_input['state'] = 'normal'
+            fecl3_dose_min_input['state'] = 'normal'
+            fecl3_dose_best_input['state'] = 'normal'
+            fecl3_dose_max_input['state'] = 'normal'
+            hcl_dose_min_input['state'] = 'normal'
+            hcl_dose_best_input['state'] = 'normal'
+            hcl_dose_max_input['state'] = 'normal'
+            nutrients_dose_min_input['state'] = 'normal'
+            nutrients_dose_best_input['state'] = 'normal'
+            nutrients_dose_max_input['state'] = 'normal'
+            sodium_carbonate_dose_min_input['state'] = 'normal'
+            sodium_carbonate_dose_best_input['state'] = 'normal'
+            sodium_carbonate_dose_max_input['state'] = 'normal'
+            gac_dose_min_input['state'] = 'normal'
+            gac_dose_best_input['state'] = 'normal'
+            gac_dose_max_input['state'] = 'normal'
+            inorganics_dose_min_input['state'] = 'normal'
+            inorganics_dose_best_input['state'] = 'normal'
+            inorganics_dose_max_input['state'] = 'normal'
+            organics_dose_min_input['state'] = 'normal'
+            organics_dose_best_input['state'] = 'normal'
+            organics_dose_max_input['state'] = 'normal'
+
         print(selected_system_type)
 
     def all_children(window):
@@ -1725,14 +2434,145 @@ def main():
 
         return _list
 
-    def change_value(value):
-        value_updated = value.get()
+    def change_flocculation_value(*args):
+        if flocculation.get() == 1:
+            flocculation_installed.delete(first=0, last=100)
+            flocculation_installed.insert(END, 1)
+        elif flocculation.get() == 0:
+            flocculation_installed.delete(first=0, last=100)
+            flocculation_installed.insert(END, 0)
 
-        return value_updated
+    def change_coagulation_value(*args):
+        if coagulation.get() == 1:
+            coagulation_installed.delete(first=0, last=100)
+            coagulation_installed.insert(END, 1)
+        elif coagulation.get() == 0:
+            coagulation_installed.delete(first=0, last=100)
+            coagulation_installed.insert(END, 0)
+
+    def change_sedimentation_value(*args):
+        if sedimentation.get() == 1:
+            sedimentation_installed.delete(first=0, last=100)
+            sedimentation_installed.insert(END, 1)
+        elif sedimentation.get() == 0:
+            sedimentation_installed.delete(first=0, last=100)
+            sedimentation_installed.insert(END, 0)
+
+    def change_filtration_value(*args):
+        if filtration.get() == 'No Filtration':
+            filtration_installed.delete(first=0, last=100)
+            filtration_installed.insert(END, 0)
+        else:
+            filtration_installed.delete(first=0, last=100)
+            filtration_installed.insert(END, 1)
+
+    def change_ph_adjustment_value(*args):
+        if ph_adjustment.get() == 1:
+            ph_adjustment_installed.delete(first=0, last=100)
+            ph_adjustment_installed.insert(END, 1)
+        elif ph_adjustment.get() == 0:
+            ph_adjustment_installed.delete(first=0, last=100)
+            ph_adjustment_installed.insert(END, 0)
+
+    def change_granular_activated_carbon_value(*args):
+        if granular_activated_carbon.get() == 1:
+            granular_activated_carbon_installed.delete(first=0, last=100)
+            granular_activated_carbon_installed.insert(END, 1)
+        elif granular_activated_carbon.get() == 0:
+            granular_activated_carbon_installed.delete(first=0, last=100)
+            granular_activated_carbon_installed.insert(END, 0)
+
+    def change_reverse_osmosis_value(*args):
+        if reverse_osmosis.get() == 1:
+            reverse_osmosis_installed.delete(first=0, last=100)
+            reverse_osmosis_installed.insert(END, 1)
+        elif reverse_osmosis.get() == 0:
+            reverse_osmosis_installed.delete(first=0, last=100)
+            reverse_osmosis_installed.insert(END, 0)
+
+    def change_aerated_grit_value(*args):
+        if aerated_grit.get() == 1:
+            aerated_grit_installed.delete(first=0, last=100)
+            aerated_grit_installed.insert(END, 1)
+        elif aerated_grit.get() == 0:
+            aerated_grit_installed.delete(first=0, last=100)
+            aerated_grit_installed.insert(END, 0)
+
+    def change_ww_filtration_value(*args):
+        if ww_filtration.get() == 1:
+            ww_filtration_installed.delete(first=0, last=100)
+            ww_filtration_installed.insert(END, 1)
+        elif ww_filtration.get() == 0:
+            ww_filtration_installed.delete(first=0, last=100)
+            ww_filtration_installed.insert(END, 0)
+
+    def change_grit_removal_value(*args):
+        if grit_removal.get() == 1:
+            grit_removal_installed.delete(first=0, last=100)
+            grit_removal_installed.insert(END, 1)
+        elif grit_removal.get() == 0:
+            grit_removal_installed.delete(first=0, last=100)
+            grit_removal_installed.insert(END, 0)
+
+    def change_screening_value(*args):
+        if screening.get() == 1:
+            screening_installed.delete(first=0, last=100)
+            screening_installed.insert(END, 1)
+        elif screening.get() == 0:
+            screening_installed.delete(first=0, last=100)
+            screening_installed.insert(END, 0)
+
+    def change_wastewater_sedimentation_value(*args):
+        if wastewater_sedimentation.get() == 1:
+            wastewater_sedimentation_installed.delete(first=0, last=100)
+            wastewater_sedimentation_installed.insert(END, 1)
+        elif wastewater_sedimentation.get() == 0:
+            wastewater_sedimentation_installed.delete(first=0, last=100)
+            wastewater_sedimentation_installed.insert(END, 0)
+
+    def change_nitrification_denitrification_value(*args):
+        if nitrification_denitrification.get() == 1:
+            nitrification_denitrification_installed.delete(first=0, last=100)
+            nitrification_denitrification_installed.insert(END, 1)
+        elif nitrification_denitrification.get() == 0:
+            nitrification_denitrification_installed.delete(first=0, last=100)
+            nitrification_denitrification_installed.insert(END, 0)
+
+    def change_phosphorous_removal_value(*args):
+        if phosphorous_removal.get() == 1:
+            phosphorous_removal_installed.delete(first=0, last=100)
+            phosphorous_removal_installed.insert(END, 1)
+        elif phosphorous_removal.get() == 0:
+            phosphorous_removal_installed.delete(first=0, last=100)
+            phosphorous_removal_installed.insert(END, 0)
+
+    def change_wastewater_reverse_osmosis_value(*args):
+        if wastewater_reverse_osmosis.get() == 1:
+            wastewater_reverse_osmosis_installed.delete(first=0, last=100)
+            wastewater_reverse_osmosis_installed.insert(END, 1)
+        elif wastewater_reverse_osmosis.get() == 0:
+            wastewater_reverse_osmosis_installed.delete(first=0, last=100)
+            wastewater_reverse_osmosis_installed.insert(END, 0)
+
+    def change_bio_treatment_value(*args):
+        if bio_treatment.get() == 'None':
+            bio_treatment_installed.delete(first=0, last=100)
+            bio_treatment_installed.insert(END, 0)
+        else:
+            bio_treatment_installed.delete(first=0, last=100)
+            bio_treatment_installed.insert(END, 1)
+
+    def change_volume_reduction_value(*args):
+        if volume_reduction.get() == 'None':
+            volume_reduction_installed.delete(first=0, last=100)
+            volume_reduction_installed.insert(END, 0)
+        else:
+            volume_reduction_installed.delete(first=0, last=100)
+            volume_reduction_installed.insert(END, 1)
 
     system_type.trace('w', change_dropdown)
 
-    system_size_input = Entry(tab1, validate='all', validatecommand=(vcmd, '%P'))
+    system_size_input = Entry(tab1, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'))
     system_size_input.insert(END, 0)
     system_size_input.grid(row=2, column=1)
     Label(tab1, text=f'm\N{SUPERSCRIPT THREE}/d', font=('Arial', 10)).grid(row=2, column=2, sticky=W)
@@ -1759,7 +2599,7 @@ def main():
 
     Label(tab1, text='Simulation Parameters', font=('Arial', 10, 'bold')).grid(row=7, column=1)
     Label(tab1, text='Number of Simulations:', font=('Arial', 10)).grid(row=8, column=0, sticky=E)
-    model_runs = Entry(tab1, validate='all', validatecommand=(vcmd, '%P'))
+    model_runs = Entry(tab1, validate='all', validatecommand=(vcmd_integer, '%P', '%d'))
     model_runs.insert(END, 1000)
     model_runs.grid(row=8, column=1)
 
@@ -1801,32 +2641,35 @@ def main():
     flocculation = BooleanVar(root)
     flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation).grid(column=1, row=2,
                                                                                              sticky=W)
-    flocculation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    flocculation_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     flocculation_installed.grid(column=2, row=2)
     flocculation_installed.insert(END, 0)
+    flocculation.trace('w', change_flocculation_value)
 
-    flocculation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    flocculation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     flocculation_recovery.grid(column=3, row=2)
     flocculation_recovery.insert(END, 100)
 
     coagulation = BooleanVar(root)
     coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation).grid(column=1, row=3, sticky=W)
-    coagulation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    coagulation_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     coagulation_installed.grid(column=2, row=3)
     coagulation_installed.insert(END, 0)
+    coagulation.trace('w', change_coagulation_value)
 
-    coagulation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    coagulation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     coagulation_recovery.grid(column=3, row=3)
     coagulation_recovery.insert(END, 100)
 
     sedimentation = BooleanVar(root)
     sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation).grid(column=1, row=4,
                                                                                                 sticky=W)
-    sedimentation_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sedimentation_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     sedimentation_installed.grid(column=2, row=4)
     sedimentation_installed.insert(END, 0)
+    sedimentation.trace('w', change_sedimentation_value)
 
-    sedimentation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sedimentation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     sedimentation_recovery.grid(column=3, row=4)
     sedimentation_recovery.insert(END, 100)
 
@@ -1834,35 +2677,36 @@ def main():
     filtration = StringVar(root)
     filtration_choices = ['No Filtration', 'Generic', 'Cartridge', 'Diatomaceous Earth', 'Greensand',
                           'Pressurized Sand', 'Rapid Sand', 'Slow Sand', 'Ultrafiltration Membrane']
-    filtration.set('Generic')
+    filtration.set('No Filtration')
     filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
-    filtration_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    filtration_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     filtration_installed.grid(column=2, row=5)
     filtration_installed.insert(END, 0)
+    filtration.trace('w', change_filtration_value)
 
-    filtration_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    filtration_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     filtration_recovery.grid(column=3, row=5)
     filtration_recovery.insert(END, 100)
 
     Label(tab3, text='Primary Disinfection:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
     primary_disinfection = StringVar(root)
     primary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'Iodine', 'Ozonation', 'UV Disinfection', 'None']
-    primary_disinfection.set('Hypochlorite')
+    primary_disinfection.set('None')
     primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection, *primary_disinfection_choices).grid(
         column=1, row=6, sticky=W)
 
-    primary_disinfection_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    primary_disinfection_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     primary_disinfection_recovery.grid(column=3, row=6)
     primary_disinfection_recovery.insert(END, 100)
 
     Label(tab3, text='Secondary Disinfection:', font=('Arial', 10)).grid(column=0, row=7, sticky=E)
     secondary_disinfection = StringVar(root)
     secondary_disinfection_choices = ['Hypochlorite', 'Chloramine', 'None']
-    secondary_disinfection.set('Hypochlorite')
+    secondary_disinfection.set('None')
     secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection,
                                                    *secondary_disinfection_choices).grid(column=1, row=7, sticky=W)
 
-    secondary_disinfection_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    secondary_disinfection_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     secondary_disinfection_recovery.grid(column=3, row=7)
     secondary_disinfection_recovery.insert(END, 100)
 
@@ -1872,7 +2716,7 @@ def main():
     fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation).grid(column=1, row=8,
                                                                                              sticky=W)
 
-    fluoridation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    fluoridation_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     fluoridation_recovery.grid(column=3, row=8)
     fluoridation_recovery.insert(END, 100)
 
@@ -1880,18 +2724,19 @@ def main():
     softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening).grid(column=1, row=9,
                                                                                              sticky=W)
 
-    softening_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    softening_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     softening_recovery.grid(column=3, row=9)
     softening_recovery.insert(END, 100)
 
     ph_adjustment = BooleanVar(root)
     ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment).grid(column=1, row=10,
                                                                                                 sticky=W)
-    ph_adjustment_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ph_adjustment_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     ph_adjustment_installed.grid(column=2, row=10)
     ph_adjustment_installed.insert(END, 0)
+    ph_adjustment.trace('w', change_ph_adjustment_value)
 
-    ph_adjustment_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ph_adjustment_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     ph_adjustment_recovery.grid(column=3, row=10)
     ph_adjustment_recovery.insert(END, 100)
 
@@ -1899,11 +2744,12 @@ def main():
     granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
                                                    variable=granular_activated_carbon).grid(column=1, row=11,
                                                                                             sticky=W)
-    granular_activated_carbon_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    granular_activated_carbon_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     granular_activated_carbon_installed.grid(column=2, row=11)
     granular_activated_carbon_installed.insert(END, 0)
+    granular_activated_carbon.trace('w', change_granular_activated_carbon_value)
 
-    granular_activated_carbon_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    granular_activated_carbon_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     granular_activated_carbon_recovery.grid(column=3, row=11)
     granular_activated_carbon_recovery.insert(END, 100)
 
@@ -1911,11 +2757,12 @@ def main():
     reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis).grid(column=1,
                                                                                                       row=12,
                                                                                                       sticky=W)
-    reverse_osmosis_installed = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    reverse_osmosis_installed = Entry(tab3, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     reverse_osmosis_installed.grid(column=2, row=12)
     reverse_osmosis_installed.insert(END, 0)
+    reverse_osmosis.trace('w', change_reverse_osmosis_value)
 
-    reverse_osmosis_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    reverse_osmosis_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     reverse_osmosis_recovery.grid(column=3, row=12)
     reverse_osmosis_recovery.insert(END, 60)
 
@@ -1929,7 +2776,7 @@ def main():
                                                                                                         row=13,
                                                                                                         sticky=W)
 
-    corrosion_control_recovery = Entry(tab3, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    corrosion_control_recovery = Entry(tab3, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     corrosion_control_recovery.grid(column=3, row=13)
     corrosion_control_recovery.insert(END, 100)
 
@@ -1943,49 +2790,53 @@ def main():
     aerated_grit = BooleanVar(root)
     aerated_grit_button = Checkbutton(tab4, text='Aerated Grit', variable=aerated_grit).grid(column=1, row=2,
                                                                                              sticky=W)
-    aerated_grit_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    aerated_grit_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     aerated_grit_installed.grid(column=2, row=2)
     aerated_grit_installed.insert(END, 0)
+    aerated_grit.trace('w', change_aerated_grit_value)
 
-    aerated_grit_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    aerated_grit_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     aerated_grit_recovery.grid(column=3, row=2)
     aerated_grit_recovery.insert(END, 100)
 
     grinding = BooleanVar(root)
     grinding_button = Checkbutton(tab4, text='Grinding', variable=grinding).grid(column=1, row=3, sticky=W)
 
-    grinding_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    grinding_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     grinding_recovery.grid(column=3, row=3)
     grinding_recovery.insert(END, 100)
 
     ww_filtration = BooleanVar(root)
     filtration_button = Checkbutton(tab4, text='Filtration', variable=ww_filtration).grid(column=1, row=4, sticky=W)
-    ww_filtration_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ww_filtration_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     ww_filtration_installed.grid(column=2, row=4)
     ww_filtration_installed.insert(END, 0)
+    ww_filtration.trace('w', change_ww_filtration_value)
 
-    ww_filtration_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    ww_filtration_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     ww_filtration_recovery.grid(column=3, row=4)
     ww_filtration_recovery.insert(END, 100)
 
     grit_removal = BooleanVar(root)
     grit_removal_button = Checkbutton(tab4, text='Grit Removal', variable=grit_removal).grid(column=1, row=5,
                                                                                              sticky=W)
-    grit_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    grit_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     grit_removal_installed.grid(column=2, row=5)
     grit_removal_installed.insert(END, 0)
+    grit_removal.trace('w', change_grit_removal_value)
 
-    grit_removal_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    grit_removal_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     grit_removal_recovery.grid(column=3, row=5)
     grit_removal_recovery.insert(END, 100)
 
     screening = BooleanVar(root)
     screening_button = Checkbutton(tab4, text='Screening', variable=screening).grid(column=1, row=6, sticky=W)
-    screening_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    screening_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     screening_installed.grid(column=2, row=6)
     screening_installed.insert(END, 0)
+    screening.trace('w', change_screening_value)
 
-    screening_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    screening_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     screening_recovery.grid(column=3, row=6)
     screening_recovery.insert(END, 100)
 
@@ -1994,11 +2845,12 @@ def main():
     wastewater_sedimentation = BooleanVar(root)
     wastewater_sedimentation_button = Checkbutton(tab4, text='Sedimentation', variable=wastewater_sedimentation).grid(column=1, row=7,
                                                                                                 sticky=W)
-    wastewater_sedimentation_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_sedimentation_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     wastewater_sedimentation_installed.grid(column=2, row=7)
     wastewater_sedimentation_installed.insert(END, 0)
+    wastewater_sedimentation.trace('w', change_wastewater_sedimentation_value)
 
-    wastewater_sedimentation_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_sedimentation_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     wastewater_sedimentation_recovery.grid(column=3, row=7)
     wastewater_sedimentation_recovery.insert(END, 100)
 
@@ -2006,11 +2858,11 @@ def main():
     secondary_treatment = StringVar(root)
     secondary_treatment_choices = ['Activated Sludge and Clarification', 'Lagoon', 'Stabilization Pond',
                                    'Trickling Filter', 'None']
-    secondary_treatment.set('Activated Sludge and Clarification')
+    secondary_treatment.set('None')
     secondary_treatment_popup_menu = OptionMenu(tab4, secondary_treatment, *secondary_treatment_choices).grid(
         column=1, row=8, sticky=W)
 
-    secondary_treatment_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    secondary_treatment_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     secondary_treatment_recovery.grid(column=3, row=8)
     secondary_treatment_recovery.insert(END, 95)
 
@@ -2020,22 +2872,24 @@ def main():
     nitrification_denitrification_button = Checkbutton(tab4, text='Nitrification/Denitrification',
                                                        variable=nitrification_denitrification).grid(column=1, row=9,
                                                                                                     sticky=W)
-    nitrification_denitrification_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nitrification_denitrification_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     nitrification_denitrification_installed.grid(column=2, row=9)
     nitrification_denitrification_installed.insert(END, 0)
+    nitrification_denitrification.trace('w', change_nitrification_denitrification_value)
 
-    nitrification_denitrification_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nitrification_denitrification_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     nitrification_denitrification_recovery.grid(column=3, row=9)
     nitrification_denitrification_recovery.insert(END, 100)
 
     phosphorous_removal = BooleanVar(root)
     phosphorous_removal_button = Checkbutton(tab4, text='Phosphorous Removal', variable=phosphorous_removal).grid(
         column=1, row=10, sticky=W)
-    phosphorous_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    phosphorous_removal_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     phosphorous_removal_installed.grid(column=2, row=10)
     phosphorous_removal_installed.insert(END, 0)
+    phosphorous_removal.trace('w', change_phosphorous_removal_value)
 
-    phosphorous_removal_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    phosphorous_removal_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     phosphorous_removal_recovery.grid(column=3, row=10)
     phosphorous_removal_recovery.insert(END, 100)
 
@@ -2043,21 +2897,22 @@ def main():
     wastewater_reverse_osmosis_button = Checkbutton(tab4, text='Reverse Osmosis', variable=wastewater_reverse_osmosis).grid(column=1,
                                                                                                       row=11,
                                                                                                       sticky=W)
-    wastewater_reverse_osmosis_installed = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_reverse_osmosis_installed = Entry(tab4, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     wastewater_reverse_osmosis_installed.grid(column=2, row=11)
     wastewater_reverse_osmosis_installed.insert(END, 0)
+    wastewater_reverse_osmosis.trace('w', change_wastewater_reverse_osmosis_value)
 
-    wastewater_reverse_osmosis_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    wastewater_reverse_osmosis_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     wastewater_reverse_osmosis_recovery.grid(column=3, row=11)
     wastewater_reverse_osmosis_recovery.insert(END, 80)
 
     Label(tab4, text='Disinfection:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
     disinfection = StringVar(root)
     disinfection_choices = ['Hypochlorite', 'Ultraviolet', 'Ozone', 'None']
-    disinfection.set('Hypochlorite')
+    disinfection.set('None')
     disinfection_popup_menu = OptionMenu(tab4, disinfection, *disinfection_choices).grid(column=1, row=12, sticky=W)
 
-    disinfection_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    disinfection_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     disinfection_recovery.grid(column=3, row=12)
     disinfection_recovery.insert(END, 100)
 
@@ -2065,7 +2920,7 @@ def main():
     dechlorination_button = Checkbutton(tab4, text='Dechlorination', variable=dechlorination).grid(column=1, row=13,
                                                                                                    sticky=W)
 
-    dechlorination_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    dechlorination_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     dechlorination_recovery.grid(column=3, row=13)
     dechlorination_recovery.insert(END, 100)
 
@@ -2073,20 +2928,20 @@ def main():
     digestion = StringVar(root)
     digestion_choices = ['Aerobic Digestion', 'Anaerobic Digestion w/o Biogas Use',
                          'Anaerobic Digestion w/ Biogas Use', 'None']
-    digestion.set('Aerobic Digestion')
+    digestion.set('None')
     digestion_popup_menu = OptionMenu(tab4, digestion, *digestion_choices).grid(column=1, row=14, sticky=W)
 
-    digestion_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    digestion_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     digestion_recovery.grid(column=3, row=14)
     digestion_recovery.insert(END, 100)
 
     Label(tab4, text='Solids Dewatering:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
     dewatering = StringVar(root)
     dewatering_choices = ['Gravity Thickening', 'Mechanical Dewatering', 'Polymer Dewatering', 'None']
-    dewatering.set('Mechanical Dewatering')
+    dewatering.set('None')
     dewatering_popup_menu = OptionMenu(tab4, dewatering, *dewatering_choices).grid(column=1, row=15, sticky=W)
 
-    dewatering_recovery = Entry(tab4, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    dewatering_recovery = Entry(tab4, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     dewatering_recovery.grid(column=3, row=15)
     dewatering_recovery.insert(END, 100)
 
@@ -2101,16 +2956,16 @@ def main():
     softening_process_button = Checkbutton(tab5, text='', variable=softening_process).grid(column=1, row=2,
                                                                                            sticky=W)
 
-    softening_process_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    softening_process_recovery = Entry(tab5, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     softening_process_recovery.grid(column=5, row=2)
     softening_process_recovery.insert(END, 100)
 
     Label(tab5, text='Number of Chemical Addition Reactors:', font=('Arial', 10)).grid(column=0, row=3, sticky=E)
-    chemical_addition_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    chemical_addition_input = Entry(tab5, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     chemical_addition_input.grid(column=1, row=3, sticky=W)
     chemical_addition_input.insert(END, 0)
 
-    chemical_addition_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    chemical_addition_recovery = Entry(tab5, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     chemical_addition_recovery.grid(column=5, row=3)
     chemical_addition_recovery.insert(END, 100)
 
@@ -2120,12 +2975,13 @@ def main():
                              'Trickling Filter']
     bio_treatment.set('None')
     bio_treatment_popup_menu = OptionMenu(tab5, bio_treatment, *bio_treatment_choices).grid(column=1, row=4,
-                                                                                            columnspan=3, sticky=W)
-    bio_treatment_installed = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+                                                                                            columnspan=2, sticky=W)
+    bio_treatment_installed = Entry(tab5, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     bio_treatment_installed.grid(column=2, row=4, columnspan=3)
     bio_treatment_installed.insert(END, 0)
+    bio_treatment.trace('w', change_bio_treatment_value)
 
-    bio_treatment_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    bio_treatment_recovery = Entry(tab5, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     bio_treatment_recovery.grid(column=5, row=4)
     bio_treatment_recovery.insert(END, 100)
 
@@ -2137,13 +2993,14 @@ def main():
     volume_reduction.set('None')
     volume_reduction_popup_menu = OptionMenu(tab5, volume_reduction, *volume_reduction_choices).grid(column=1,
                                                                                                      row=5,
-                                                                                                     columnspan=3,
+                                                                                                     columnspan=2,
                                                                                                      sticky=W)
-    volume_reduction_installed = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    volume_reduction_installed = Entry(tab5, validate='all', validatecommand=(vcmd_integer, '%P', '%d'), width=10)
     volume_reduction_installed.grid(column=2, row=5, columnspan=3)
     volume_reduction_installed.insert(END, 0)
+    volume_reduction.trace('w', change_volume_reduction_value)
 
-    volume_reduction_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    volume_reduction_recovery = Entry(tab5, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     volume_reduction_recovery.grid(column=5, row=5)
     volume_reduction_recovery.insert(END, 65)
 
@@ -2151,7 +3008,7 @@ def main():
     crystallization = BooleanVar(root)
     crystallization_button = Checkbutton(tab5, text='', variable=crystallization).grid(column=1, row=6, sticky=W)
 
-    crystallization_recovery = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    crystallization_recovery = Entry(tab5, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     crystallization_recovery.grid(column=5, row=6)
     crystallization_recovery.insert(END, 95)
 
@@ -2161,98 +3018,98 @@ def main():
     Label(tab5, text='Max', font=('Arial', 10)).grid(column=3, row=8)
 
     Label(tab5, text='CaOH:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
-    caoh_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    caoh_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     caoh_dose_min_input.grid(column=1, row=9, sticky=W)
     caoh_dose_min_input.insert(END, 0)
-    caoh_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    caoh_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     caoh_dose_best_input.grid(column=2, row=9, sticky=W)
     caoh_dose_best_input.insert(END, 0)
-    caoh_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    caoh_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     caoh_dose_max_input.grid(column=3, row=9, sticky=W)
     caoh_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=9, sticky=W)
 
     Label(tab5, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
-    fecl3_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    fecl3_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     fecl3_dose_min_input.grid(column=1, row=10, sticky=W)
     fecl3_dose_min_input.insert(END, 0)
-    fecl3_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    fecl3_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     fecl3_dose_best_input.grid(column=2, row=10, sticky=W)
     fecl3_dose_best_input.insert(END, 0)
-    fecl3_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    fecl3_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     fecl3_dose_max_input.grid(column=3, row=10, sticky=W)
     fecl3_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=10, sticky=W)
 
     Label(tab5, text='HCl:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
-    hcl_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    hcl_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     hcl_dose_min_input.grid(column=1, row=11, sticky=W)
     hcl_dose_min_input.insert(END, 0)
-    hcl_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    hcl_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     hcl_dose_best_input.grid(column=2, row=11, sticky=W)
     hcl_dose_best_input.insert(END, 0)
-    hcl_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    hcl_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     hcl_dose_max_input.grid(column=3, row=11, sticky=W)
     hcl_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=11, sticky=W)
 
     Label(tab5, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
-    nutrients_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nutrients_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     nutrients_dose_min_input.grid(column=1, row=12, sticky=W)
     nutrients_dose_min_input.insert(END, 0)
-    nutrients_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    nutrients_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     nutrients_dose_best_input.grid(column=2, row=12, sticky=W)
     nutrients_dose_best_input.insert(END, 0)
-    nutrients_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    nutrients_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     nutrients_dose_max_input.grid(column=3, row=12, sticky=W)
     nutrients_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=12, sticky=W)
 
     Label(tab5, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=13,
                                                                                             sticky=E)
-    sodium_carbonate_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sodium_carbonate_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     sodium_carbonate_dose_min_input.grid(column=1, row=13, sticky=W)
     sodium_carbonate_dose_min_input.insert(END, 0)
-    sodium_carbonate_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    sodium_carbonate_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     sodium_carbonate_dose_best_input.grid(column=2, row=13, sticky=W)
     sodium_carbonate_dose_best_input.insert(END, 0)
-    sodium_carbonate_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    sodium_carbonate_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     sodium_carbonate_dose_max_input.grid(column=3, row=13, sticky=W)
     sodium_carbonate_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=13, sticky=W)
 
     Label(tab5, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
-    gac_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    gac_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     gac_dose_min_input.grid(column=1, row=14, sticky=W)
     gac_dose_min_input.insert(END, 0)
-    gac_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    gac_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     gac_dose_best_input.grid(column=2, row=14, sticky=W)
     gac_dose_best_input.insert(END, 0)
-    gac_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    gac_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     gac_dose_max_input.grid(column=3, row=14, sticky=W)
     gac_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=14, sticky=W)
 
     Label(tab5, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
-    inorganics_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    inorganics_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     inorganics_dose_min_input.grid(column=1, row=15, sticky=W)
     inorganics_dose_min_input.insert(END, 0)
-    inorganics_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    inorganics_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     inorganics_dose_best_input.grid(column=2, row=15, sticky=W)
     inorganics_dose_best_input.insert(END, 0)
-    inorganics_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    inorganics_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     inorganics_dose_max_input.grid(column=3, row=15, sticky=W)
     inorganics_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=15, sticky=W)
 
     Label(tab5, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=16, sticky=E)
-    organics_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    organics_dose_min_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     organics_dose_min_input.grid(column=1, row=16, sticky=W)
     organics_dose_min_input.insert(END, 0)
-    organics_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd, 'P%'), width=10)
+    organics_dose_best_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     organics_dose_best_input.grid(column=2, row=16, sticky=W)
     organics_dose_best_input.insert(END, 0)
-    organics_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    organics_dose_max_input = Entry(tab5, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     organics_dose_max_input.grid(column=3, row=16, sticky=W)
     organics_dose_max_input.insert(END, 0)
     Label(tab5, text='mg/L of wastewater', font=('Arial', 10)).grid(column=4, row=16, sticky=W)
@@ -2260,7 +3117,7 @@ def main():
     Label(tab6, text='Enter energy consumption and chemical dosages for the new process.').grid(column=0, row=1, columnspan=4)
 
     Label(tab6, text='Recovery:', font=('Arial', 10)).grid(column=0, row=2, sticky=E)
-    new_recovery_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_recovery_input = Entry(tab6, validate='all', validatecommand=(vcmd_percent, '%P', '%d'), width=10)
     new_recovery_input.grid(column=1, row=2, sticky=W)
     new_recovery_input.insert(END, 100)
 
@@ -2269,24 +3126,24 @@ def main():
     Label(tab6, text='Best', font=('Arial', 10)).grid(column=2, row=4)
     Label(tab6, text='Max', font=('Arial', 10)).grid(column=3, row=4)
     Label(tab6, text='Unit Electricity Consumption:', font=('Arial', 10)).grid(column=0, row=5, sticky=E)
-    new_elec_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_elec_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_elec_min_input.grid(column=1, row=5, sticky=W)
     new_elec_min_input.insert(END, 0)
-    new_elec_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_elec_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_elec_best_input.grid(column=2, row=5, sticky=W)
     new_elec_best_input.insert(END, 0)
-    new_elec_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_elec_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_elec_max_input.grid(column=3, row=5, sticky=W)
     new_elec_max_input.insert(END, 0)
     Label(tab6, text='kWh/m\N{SUPERSCRIPT THREE} of water', font=('Arial', 10)).grid(column=4, row=5, sticky=W)
     Label(tab6, text='Unit Thermal Energy Consumption:', font=('Arial', 10)).grid(column=0, row=6, sticky=E)
-    new_therm_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_therm_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_therm_min_input.grid(column=1, row=6, sticky=W)
     new_therm_min_input.insert(END, 0)
-    new_therm_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_therm_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_therm_best_input.grid(column=2, row=6, sticky=W)
     new_therm_best_input.insert(END, 0)
-    new_therm_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_therm_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_therm_max_input.grid(column=3, row=6, sticky=W)
     new_therm_max_input.insert(END, 0)
     Label(tab6, text='MJ/m\N{SUPERSCRIPT THREE} of water', font=('Arial', 10)).grid(column=4, row=6, sticky=W)
@@ -2297,97 +3154,97 @@ def main():
     Label(tab6, text='Max', font=('Arial', 10)).grid(column=3, row=8)
 
     Label(tab6, text='CaOH:', font=('Arial', 10)).grid(column=0, row=9, sticky=E)
-    new_caoh_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_caoh_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_caoh_dose_min_input.grid(column=1, row=9, sticky=W)
     new_caoh_dose_min_input.insert(END, 0)
-    new_caoh_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_caoh_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_caoh_dose_best_input.grid(column=2, row=9, sticky=W)
     new_caoh_dose_best_input.insert(END, 0)
-    new_caoh_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_caoh_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_caoh_dose_max_input.grid(column=3, row=9, sticky=W)
     new_caoh_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=9, sticky=W)
 
     Label(tab6, text=f'FeCl\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=10, sticky=E)
-    new_fecl3_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_fecl3_dose_min_input.grid(column=1, row=10, sticky=W)
     new_fecl3_dose_min_input.insert(END, 0)
-    new_fecl3_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_fecl3_dose_best_input.grid(column=2, row=10, sticky=W)
     new_fecl3_dose_best_input.insert(END, 0)
-    new_fecl3_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_fecl3_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_fecl3_dose_max_input.grid(column=3, row=10, sticky=W)
     new_fecl3_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=10, sticky=W)
 
     Label(tab6, text='HCl:', font=('Arial', 10)).grid(column=0, row=11, sticky=E)
-    new_hcl_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_hcl_dose_min_input.grid(column=1, row=11, sticky=W)
     new_hcl_dose_min_input.insert(END, 0)
-    new_hcl_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_hcl_dose_best_input.grid(column=2, row=11, sticky=W)
     new_hcl_dose_best_input.insert(END, 0)
-    new_hcl_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_hcl_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_hcl_dose_max_input.grid(column=3, row=11, sticky=W)
     new_hcl_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=11, sticky=W)
 
     Label(tab6, text='Nutrients:', font=('Arial', 10)).grid(column=0, row=12, sticky=E)
-    new_nutrients_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_nutrients_dose_min_input.grid(column=1, row=12, sticky=W)
     new_nutrients_dose_min_input.insert(END, 0)
-    new_nutrients_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_nutrients_dose_best_input.grid(column=2, row=12, sticky=W)
     new_nutrients_dose_best_input.insert(END, 0)
-    new_nutrients_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_nutrients_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_nutrients_dose_max_input.grid(column=3, row=12, sticky=W)
     new_nutrients_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=12, sticky=W)
 
     Label(tab6, text=f'Na\N{SUBSCRIPT TWO}CO\N{SUBSCRIPT THREE}:', font=('Arial', 10)).grid(column=0, row=13, sticky=E)
-    new_sodium_carbonate_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_sodium_carbonate_dose_min_input.grid(column=1, row=13, sticky=W)
     new_sodium_carbonate_dose_min_input.insert(END, 0)
-    new_sodium_carbonate_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_sodium_carbonate_dose_best_input.grid(column=2, row=13, sticky=W)
     new_sodium_carbonate_dose_best_input.insert(END, 0)
-    new_sodium_carbonate_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_sodium_carbonate_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_sodium_carbonate_dose_max_input.grid(column=3, row=13, sticky=W)
     new_sodium_carbonate_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=13, sticky=W)
 
     Label(tab6, text='Granular Activated Carbon:', font=('Arial', 10)).grid(column=0, row=14, sticky=E)
-    new_gac_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_gac_dose_min_input.grid(column=1, row=14, sticky=W)
     new_gac_dose_min_input.insert(END, 0)
-    new_gac_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_gac_dose_best_input.grid(column=2, row=14, sticky=W)
     new_gac_dose_best_input.insert(END, 0)
-    new_gac_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_gac_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_gac_dose_max_input.grid(column=3, row=14, sticky=W)
     new_gac_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=14, sticky=W)
 
     Label(tab6, text='Other Inorganic Chemicals:', font=('Arial', 10)).grid(column=0, row=15, sticky=E)
-    new_inorganics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_inorganics_dose_min_input.grid(column=1, row=15, sticky=W)
     new_inorganics_dose_min_input.insert(END, 0)
-    new_inorganics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_inorganics_dose_best_input.grid(column=2, row=15, sticky=W)
     new_inorganics_dose_best_input.insert(END, 0)
-    new_inorganics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_inorganics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_inorganics_dose_max_input.grid(column=3, row=15, sticky=W)
     new_inorganics_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=15, sticky=W)
 
     Label(tab6, text='Other Organic Chemicals:', font=('Arial', 10)).grid(column=0, row=16, sticky=E)
-    new_organics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_organics_dose_min_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_organics_dose_min_input.grid(column=1, row=16, sticky=W)
     new_organics_dose_min_input.insert(END, 0)
-    new_organics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_organics_dose_best_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_organics_dose_best_input.grid(column=2, row=16, sticky=W)
     new_organics_dose_best_input.insert(END, 0)
-    new_organics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd, '%P'), width=10)
+    new_organics_dose_max_input = Entry(tab6, validate='all', validatecommand=(vcmd_numeric, '%P', '%d'), width=10)
     new_organics_dose_max_input.grid(column=3, row=16, sticky=W)
     new_organics_dose_max_input.insert(END, 0)
     Label(tab6, text='mg/L of water', font=('Arial', 10)).grid(column=4, row=16, sticky=W)
@@ -2440,6 +3297,178 @@ def main():
     Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=21, rowspan=2)
     Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=23, rowspan=2)
     Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=25, rowspan=2)
+
+    if system_type.get() == ' ':
+        # Drinking Water Treatment System
+        source_water_choices = ['N/A']
+        source_water.set('N/A')
+        source_water_type_popup_menu = OptionMenu(tab3, source_water, *source_water_choices).grid(column=1, row=1,
+                                                                                                  sticky=W)
+        flocculation_button = Checkbutton(tab3, text='Flocculation', variable=flocculation,
+                                          state='disabled').grid(column=1, row=2, sticky=W)
+        flocculation_installed['state'] = 'disabled'
+        flocculation_recovery['state'] = 'disabled'
+        coagulation_button = Checkbutton(tab3, text='Coagulation', variable=coagulation, state='disabled').grid(
+            column=1, row=3, sticky=W)
+        coagulation_installed['state'] = 'disabled'
+        coagulation_recovery['state'] = 'disabled'
+        sedimentation_button = Checkbutton(tab3, text='Sedimentation', variable=sedimentation,
+                                           state='disabled').grid(column=1, row=4, sticky=W)
+        sedimentation_installed['state'] = 'disabled'
+        sedimentation_recovery['state'] = 'disabled'
+        filtration_choices = ['No Filtration']
+        filtration.set('No Filtration')
+        filtration_popup_menu = OptionMenu(tab3, filtration, *filtration_choices).grid(column=1, row=5, sticky=W)
+        filtration_installed['state'] = 'disabled'
+        filtration_recovery['state'] = 'disabled'
+        primary_disinfection_choices = ['None']
+        primary_disinfection.set('None')
+        primary_disinfection_popup_menu = OptionMenu(tab3, primary_disinfection,
+                                                     *primary_disinfection_choices).grid(
+            column=1, row=6, sticky=W)
+        primary_disinfection_recovery['state'] = 'disabled'
+        secondary_disinfection_choices = ['None']
+        secondary_disinfection.set('None')
+        secondary_disinfection_popup_menu = OptionMenu(tab3, secondary_disinfection,
+                                                       *secondary_disinfection_choices).grid(column=1, row=7,
+                                                                                             sticky=W)
+        secondary_disinfection_recovery['state'] = 'disabled'
+        fluoridation_button = Checkbutton(tab3, text='Fluoridation', variable=fluoridation,
+                                          state='disabled').grid(column=1, row=8, sticky=W)
+
+        fluoridation_recovery['state'] = 'disabled'
+        softening_button = Checkbutton(tab3, text='Soda Ash Softening', variable=softening,
+                                       state='disabled').grid(column=1, row=9, sticky=W)
+        softening_recovery['state'] = 'disabled'
+        ph_adjustment_button = Checkbutton(tab3, text='pH Adjustment', variable=ph_adjustment,
+                                           state='disabled').grid(column=1, row=10, sticky=W)
+        ph_adjustment_installed['state'] = 'disabled'
+        ph_adjustment_recovery['state'] = 'disabled'
+        granular_activated_carbon_button = Checkbutton(tab3, text='Granular Activated Carbon',
+                                                       variable=granular_activated_carbon, state='disabled').grid(
+            column=1, row=11, sticky=W)
+        granular_activated_carbon_installed['state'] = 'disabled'
+        granular_activated_carbon_recovery['state'] = 'disabled'
+        reverse_osmosis_button = Checkbutton(tab3, text='Reverse Osmosis', variable=reverse_osmosis,
+                                             state='disabled').grid(column=1, row=12, sticky=W)
+        reverse_osmosis_installed['state'] = 'disabled'
+        reverse_osmosis_recovery['state'] = 'disabled'
+        corrosion_control_choices = ['None']
+        corrosion_control.set('None')
+        corrosion_control_popup_menu = OptionMenu(tab3, corrosion_control, *corrosion_control_choices).grid(
+            column=1,
+            row=13,
+            sticky=W)
+
+        corrosion_control_recovery['state'] = 'disabled'
+
+        # Municipal Wastewater Treatment Process Buttons
+        aerated_grit_button = Checkbutton(tab4, text='Aerated Grit', variable=aerated_grit, state='disabled').grid(
+            column=1, row=2, sticky=W)
+        aerated_grit_installed['state'] = 'disabled'
+        aerated_grit_recovery['state'] = 'disabled'
+        grinding_button = Checkbutton(tab4, text='Grinding', variable=grinding, state='disabled').grid(
+            column=1, row=3, sticky=W)
+        grinding_recovery['state'] = 'disabled'
+        filtration_button = Checkbutton(tab4, text='Filtration', variable=ww_filtration, state='disabled').grid(
+            column=1, row=4, sticky=W)
+        ww_filtration_installed['state'] = 'disabled'
+        ww_filtration_recovery['state'] = 'disabled'
+        grit_removal_button = Checkbutton(tab4, text='Grit Removal', variable=grit_removal, state='disabled').grid(
+            column=1, row=5, sticky=W)
+        grit_removal_installed['state'] = 'disabled'
+        grit_removal_recovery['state'] = 'disabled'
+        screening_button = Checkbutton(tab4, text='Screening', variable=screening, state='disabled').grid(
+            column=1, row=6, sticky=W)
+        screening_installed['state'] = 'disabled'
+        screening_recovery['state'] = 'disabled'
+        wastewater_sedimentation_button = Checkbutton(tab4, text='Sedimentation',
+                                                      variable=wastewater_sedimentation, state='disabled').grid(
+            column=1, row=7, sticky=W)
+        wastewater_sedimentation_installed['state'] = 'disabled'
+        wastewater_sedimentation_recovery['state'] = 'disabled'
+        secondary_treatment_choices = ['None']
+        secondary_treatment_popup_menu = OptionMenu(tab4, secondary_treatment, *secondary_treatment_choices).grid(
+            column=1, row=8, sticky=W)
+        secondary_treatment.set('None')
+        secondary_treatment_recovery['state'] = 'disabled'
+        nitrification_denitrification_button = Checkbutton(tab4, text='Nitrification/Denitrification',
+                                                           variable=nitrification_denitrification,
+                                                           state='disabled').grid(column=1, row=9, sticky=W)
+        nitrification_denitrification_installed['state'] = 'disabled'
+        nitrification_denitrification_recovery['state'] = 'disabled'
+        phosphorous_removal_button = Checkbutton(tab4, text='Phosphorous Removal',
+                                                 variable=phosphorous_removal, state='disabled').grid(
+            column=1, row=10, sticky=W)
+        phosphorous_removal_installed['state'] = 'disabled'
+        phosphorous_removal_recovery['state'] = 'disabled'
+        wastewater_reverse_osmosis_button = Checkbutton(tab4, text='Reverse Osmosis',
+                                                        variable=wastewater_reverse_osmosis, state='disabled').grid(
+            column=1, row=11, sticky=W)
+        wastewater_reverse_osmosis_installed['state'] = 'disabled'
+        wastewater_reverse_osmosis_recovery['state'] = 'disabled'
+        disinfection_choices = ['None']
+        disinfection_popup_menu = OptionMenu(tab4, disinfection, *disinfection_choices).grid(column=1, row=12,
+                                                                                             sticky=W)
+        disinfection.set('None')
+        disinfection_recovery['state'] = 'disabled'
+        dechlorination_button = Checkbutton(tab4, text='Dechlorination', variable=dechlorination,
+                                            state='disabled').grid(column=1, row=13, sticky=W)
+        dechlorination_recovery['state'] = 'disabled'
+        digestion_choices = ['None']
+        digestion_popup_menu = OptionMenu(tab4, digestion, *digestion_choices).grid(column=1, row=14, sticky=W)
+        digestion.set('None')
+        digestion_recovery['state'] = 'disabled'
+        dewatering_choices = ['None']
+        dewatering_popup_menu = OptionMenu(tab4, dewatering, *dewatering_choices).grid(column=1, row=15, sticky=W)
+        dewatering.set('None')
+        dewatering_recovery['state'] = 'disabled'
+
+        # Industrial Wastewater Treatment Process Buttons
+        softening_process_button = Checkbutton(tab5, text='', variable=softening_process, state='disabled').grid(
+            column=1, row=2, sticky=W)
+        softening_process_recovery['state'] = 'disabled'
+        chemical_addition_input['state'] = 'disabled'
+        chemical_addition_recovery['state'] = 'disabled'
+        bio_treatment_choices = ['None']
+        bio_treatment_popup_menu = OptionMenu(tab5, bio_treatment, *bio_treatment_choices).grid(
+            column=1, row=4, columnspan=2, sticky=W)
+        bio_treatment_installed['state'] = 'disabled'
+        bio_treatment_recovery['state'] = 'disabled'
+        volume_reduction_choices = ['None']
+        volume_reduction_popup_menu = OptionMenu(tab5, volume_reduction, *volume_reduction_choices).grid(
+            column=1, row=5, columnspan=2, sticky=W)
+        volume_reduction_installed['state'] = 'disabled'
+        volume_reduction_recovery['state'] = 'disabled'
+        crystallization_button = Checkbutton(tab5, text='', variable=crystallization, state='disabled').grid(
+            column=1, row=6, sticky=W)
+        crystallization_recovery['state'] = 'disabled'
+        caoh_dose_min_input['state'] = 'disabled'
+        caoh_dose_best_input['state'] = 'disabled'
+        caoh_dose_max_input['state'] = 'disabled'
+        fecl3_dose_min_input['state'] = 'disabled'
+        fecl3_dose_best_input['state'] = 'disabled'
+        fecl3_dose_max_input['state'] = 'disabled'
+        hcl_dose_min_input['state'] = 'disabled'
+        hcl_dose_best_input['state'] = 'disabled'
+        hcl_dose_max_input['state'] = 'disabled'
+        nutrients_dose_min_input['state'] = 'disabled'
+        nutrients_dose_best_input['state'] = 'disabled'
+        nutrients_dose_max_input['state'] = 'disabled'
+        sodium_carbonate_dose_min_input['state'] = 'disabled'
+        sodium_carbonate_dose_best_input['state'] = 'disabled'
+        sodium_carbonate_dose_max_input['state'] = 'disabled'
+        gac_dose_min_input['state'] = 'disabled'
+        gac_dose_best_input['state'] = 'disabled'
+        gac_dose_max_input['state'] = 'disabled'
+        inorganics_dose_min_input['state'] = 'disabled'
+        inorganics_dose_best_input['state'] = 'disabled'
+        inorganics_dose_max_input['state'] = 'disabled'
+        organics_dose_min_input['state'] = 'disabled'
+        organics_dose_best_input['state'] = 'disabled'
+        organics_dose_max_input['state'] = 'disabled'
+
+
 
     def round_sig(x, sig=2):
 
@@ -3197,6 +4226,129 @@ def main():
         new_organics_dose_max_input.delete(first=0, last=100)
         new_organics_dose_max_input.insert(END, read_new_organics_dose_max_input)
 
+    # Errors and round significant figures
+    def incorrect_industrial_chemical_dosage_error_message():
+        window1 = Toplevel(root)
+        window1.grid()
+        window1.title("Error")
+        Label(window1, text='You have defined an infeasible chemical dose distribution for an industrial wastewater'
+                            'treatment process by using a minimum dose that is greater than the best guess or '
+                            'maximum dose, a best guess for the dose that is outside of the minimum and maximum '
+                            'range, or a maximum dose that is less than the best guess or minimum dose.  Please '
+                            'recheck your inputs on the Industrial Wastewater treatment tab and rerun the model.',
+              font=('Arial', 10)).grid(
+            row=0, column=0)
+        button = Button(window1, text="Dismiss", command=window1.destroy).grid(row=1, column=0)
+
+    def incorrect_new_process_chemical_dosage_error_message():
+        window1 = Toplevel(root)
+        window1.grid()
+        window1.title("Error")
+        Label(window1, text='You have defined an infeasible chemical dose distribution for a new'
+                            'treatment process by using a minimum dose that is greater than the best guess or '
+                            'maximum dose, a best guess for the dose that is outside of the minimum and maximum '
+                            'range, or a maximum dose that is less than the best guess or minimum dose.  Please '
+                            'recheck your inputs on the New Process treatment tab and rerun the model.',
+              font=('Arial', 10)).grid(
+            row=0, column=0)
+        button = Button(window1, text="Dismiss", command=window1.destroy).grid(row=1, column=0)
+
+    def incorrect_new_process_electrical_energy_consumption_error_message():
+        window1 = Toplevel(root)
+        window1.grid()
+        window1.title("Error")
+        Label(window1, text='You have defined an infeasible electricity consumption distribution for a new'
+                            'treatment process by using a minimum dose that is greater than the best guess or '
+                            'maximum dose, a best guess for the dose that is outside of the minimum and maximum '
+                            'range, or a maximum dose that is less than the best guess or minimum dose.  Please '
+                            'recheck your inputs on the New Process treatment tab and rerun the model.',
+              font=('Arial', 10)).grid(
+            row=0, column=0)
+        button = Button(window1, text="Dismiss", command=window1.destroy).grid(row=1, column=0)
+
+    def incorrect_new_process_thermal_energy_consumption_error_message():
+        window1 = Toplevel(root)
+        window1.grid()
+        window1.title("Error")
+        Label(window1, text='You have defined an infeasible thermal energy consumption distribution for a new'
+                            'treatment process by using a minimum dose that is greater than the best guess or '
+                            'maximum dose, a best guess for the dose that is outside of the minimum and maximum '
+                            'range, or a maximum dose that is less than the best guess or minimum dose.  Please '
+                            'recheck your inputs on the New Process treatment tab and rerun the model.',
+              font=('Arial', 10)).grid(
+            row=0, column=0)
+        button = Button(window1, text="Dismiss", command=window1.destroy).grid(row=1, column=0)
+
+    def no_treatment_process_selected_error_message():
+        window1 = Toplevel(root)
+        window1.grid()
+        window1.title("Error")
+        Label(window1, text='You have not selected a treatment process type.  Please go to the General Information tab '
+                            'and select a system type',
+              font=('Arial', 10)).grid(
+            row=0, column=0)
+        button = Button(window1, text="Dismiss", command=window1.destroy).grid(row=1, column=0)
+
+    def check_input():
+
+        if not float(caoh_dose_min_input.get()) <= float(caoh_dose_best_input.get()) <= float(
+                caoh_dose_max_input.get()):
+            return incorrect_industrial_chemical_dosage_error_message()
+        if not float(fecl3_dose_min_input.get()) <= float(fecl3_dose_best_input.get()) <= float(
+                fecl3_dose_max_input.get()):
+            return incorrect_industrial_chemical_dosage_error_message()
+        if not float(hcl_dose_min_input.get()) <= float(hcl_dose_best_input.get()) <= float(hcl_dose_max_input.get()):
+            return incorrect_industrial_chemical_dosage_error_message()
+        if not float(nutrients_dose_min_input.get()) <= float(nutrients_dose_best_input.get()) <= float(
+                nutrients_dose_max_input.get()):
+            return incorrect_industrial_chemical_dosage_error_message()
+        if not float(sodium_carbonate_dose_min_input.get()) <= float(sodium_carbonate_dose_best_input.get()) <= float(
+                sodium_carbonate_dose_max_input.get()):
+            return incorrect_industrial_chemical_dosage_error_message()
+        if not float(gac_dose_min_input.get()) <= float(gac_dose_best_input.get()) <= float(gac_dose_max_input.get()):
+            return incorrect_industrial_chemical_dosage_error_message()
+        if not float(organics_dose_min_input.get()) <= float(organics_dose_best_input.get()) <= float(
+                organics_dose_max_input.get()):
+            return incorrect_industrial_chemical_dosage_error_message()
+        if not float(inorganics_dose_min_input.get()) <= float(inorganics_dose_best_input.get()) <= float(
+                inorganics_dose_max_input.get()):
+            return incorrect_industrial_chemical_dosage_error_message()
+
+        if not float(new_elec_min_input.get()) <= float(new_elec_best_input.get()) <= float(new_elec_max_input.get()):
+            return incorrect_new_process_electrical_energy_consumption_error_message()
+
+        if not float(new_therm_min_input.get()) <= float(new_therm_best_input.get()) <= float(
+                new_therm_max_input.get()):
+            return incorrect_new_process_thermal_energy_consumption_error_message()
+
+        if not float(new_caoh_dose_min_input.get()) <= float(new_caoh_dose_best_input.get()) <= float(
+                new_caoh_dose_max_input.get()):
+            return incorrect_new_process_chemical_dosage_error_message()
+        if not float(new_fecl3_dose_min_input.get()) <= float(new_fecl3_dose_best_input.get()) <= float(
+                new_fecl3_dose_max_input.get()):
+            return incorrect_new_process_chemical_dosage_error_message()
+        if not float(new_hcl_dose_min_input.get()) <= float(new_hcl_dose_best_input.get()) <= float(
+                new_hcl_dose_max_input.get()):
+            return incorrect_new_process_chemical_dosage_error_message()
+        if not float(new_nutrients_dose_min_input.get()) <= float(new_nutrients_dose_best_input.get()) <= float(
+                new_nutrients_dose_max_input.get()):
+            return incorrect_new_process_chemical_dosage_error_message()
+        if not float(new_sodium_carbonate_dose_min_input.get()) <= float(
+                new_sodium_carbonate_dose_best_input.get()) <= float(new_sodium_carbonate_dose_max_input.get()):
+            return incorrect_new_process_chemical_dosage_error_message()
+        if not float(new_gac_dose_min_input.get()) <= float(new_gac_dose_best_input.get()) <= float(
+                new_gac_dose_max_input.get()):
+            return incorrect_new_process_chemical_dosage_error_message()
+        if not float(new_organics_dose_min_input.get()) <= float(new_organics_dose_best_input.get()) <= float(
+                new_organics_dose_max_input.get()):
+            return incorrect_new_process_chemical_dosage_error_message()
+        if not float(new_inorganics_dose_min_input.get()) <= float(new_inorganics_dose_best_input.get()) <= float(
+                new_inorganics_dose_max_input.get()):
+            return incorrect_new_process_chemical_dosage_error_message()
+        if system_type.get() == ' ':
+            return no_treatment_process_selected_error_message()
+
+
     def gather_inputs():
         '''This function collects the model inputs and stores them into a dictionary.'''
         basic_info={'system type': system_type.get(), 'system size': float(system_size_input.get()),
@@ -3555,13 +4707,218 @@ def main():
 
         return basic_info, geography_info, baseline_treatment_process_info, new_process_info
 
-
     def calculate_results():
 
         global required_dosage_summary, nox_emissions_summary, so2_emissions_summary, pm25_emissions_summary, \
             co2_emissions_summary, health_damages_summary, climate_damages_summary, total_damages_summary
 
         basic_info, geography_info, baseline_treatment_process_info, new_process_info = gather_inputs()
+
+        # Clear out Results table
+        empty_results = '               '
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=1, row=5)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=1, row=6)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=5)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=6)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=5)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=6)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=5)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=6)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=5)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=6)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=5)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=6)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=5)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=6)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=1, row=7)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=1, row=8)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=7)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=8)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=7)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=8)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=7)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=8)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=7)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=8)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=7)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=8)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=7)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=8)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=6, row=3)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=6, row=4)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=4, row=3)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=4, row=4)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=3, row=3)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=3, row=4)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=5, row=3)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=5, row=4)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=7, row=3)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=7, row=4)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=8, row=3)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=8, row=4)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=6, row=9)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=6, row=10)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=4, row=9)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=4, row=10)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=3, row=9)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=3, row=10)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=5, row=9)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=5, row=10)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=11)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=12)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=11)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=12)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=11)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=12)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=11)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=12)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=11)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=12)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=13)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=14)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=13)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=14)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=13)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=14)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=13)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=14)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=13)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=14)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=15)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=16)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=15)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=16)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=15)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=16)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=15)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=16)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=15)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=16)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=17)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=18)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=17)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=18)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=17)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=18)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=17)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=18)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=17)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=18)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=19)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=20)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=19)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=20)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=19)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=20)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=19)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=20)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=19)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=20)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=21)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=22)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=21)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=22)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=21)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=22)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=21)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=22)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=21)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=22)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=23)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=24)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=23)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=24)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=23)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=24)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=23)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=24)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=23)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=24)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=25)
+        Label(tab7, text=empty_results, font=('Arial', 10,)).grid(column=1, row=26)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=25)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=6, row=26)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=25)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=4, row=26)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=25)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=3, row=26)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=25)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=5, row=26)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=7, row=9)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=7, row=10)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=8, row=9)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=8, row=10)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=11)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=12)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=11)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=12)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=13)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=14)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=13)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=14)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=15)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=16)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=15)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=16)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=17)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=18)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=17)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=18)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=19)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=20)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=19)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=20)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=21)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=22)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=21)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=22)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=23)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=24)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=23)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=24)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=25)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=7, row=26)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=25)
+        Label(tab7, text=empty_results, font=('Arial', 10)).grid(column=8, row=26)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=3)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=4)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=5)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=6)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=7)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=8)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=9)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=10)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=11)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=12)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=13)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=14)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=15)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=16)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=17)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=18)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=19)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=20)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=21)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=22)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=23)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=24)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=25)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'italic')).grid(column=9, row=26)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=3, row=27)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=3, row=28)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=4, row=27)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=4, row=28)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=5, row=27)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=5, row=28)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=6, row=27)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=6, row=28)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=7, row=27)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=7, row=28)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=8, row=27)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=8, row=28)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=9, row=27)
+        Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=9, row=28)
+
 
         # Calculate and report electricity consumption.
         electricity_consumption_estimates = calculate_electricity_consumption(basic_info,
@@ -5013,7 +6370,7 @@ def main():
     filemenu.add_command(label="Exit", command=root.quit)
     analysismenu = Menu(menu)
     menu.add_cascade(label="Analysis", menu=analysismenu)
-    analysismenu.add_command(label='Calculate', command=calculate_results)
+    analysismenu.add_command(label='Calculate', command=combine_funcs(check_input, calculate_results))
     helpmenu = Menu(menu)
     menu.add_cascade(label="Help", menu=helpmenu)
     helpmenu.add_command(label="About", command=show_about_program)
