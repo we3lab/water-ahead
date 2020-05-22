@@ -14,7 +14,7 @@ unit_elec_consumption_dictionary = {#  For municipal wastewater treatment proces
                                     'dechlorination': {'min': 0.03, 'max': 0.15},
                                     'hypochlorination_wastewater': {'min': 2e-5, 'max': 5e-4},
                                     'uv_disinfection_wastewater': {'min': 0.015, 'max': 0.066},
-                                    'denitrifcation_nitrification': {'min': 0.08, 'max': 0.09},
+                                    'nitrification_denitrification': {'min': 0.08, 'max': 0.09},
                                     'phosphorous_removal': {'min': 0.06, 'max': 0.14},
                                     'aerobic_digestion': {'min': 0.05, 'max': 0.30},
                                     'anaerobic_digestion': {'min': 0.25, 'max': 0.28},
