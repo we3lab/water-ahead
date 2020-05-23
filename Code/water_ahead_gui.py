@@ -1252,8 +1252,8 @@ def main():
             fluoridation_inorganics = np.zeros(runs)
 
         if softening == 1:
-            softening_soda_ash = np.random.uniform(unit_sodium_carbonate_consumption_dictionary['lime soda ash softening']['min'],
-                                                           unit_sodium_carbonate_consumption_dictionary['lime soda ash softening']['max'],
+            softening_soda_ash = np.random.uniform(unit_sodium_carbonate_consumption_dictionary['soda ash softening']['min'],
+                                                           unit_sodium_carbonate_consumption_dictionary['soda ash softening']['max'],
                                                            (runs, 1)) * volume_scale_factor
         else:
             softening_soda_ash = np.zeros(runs)
