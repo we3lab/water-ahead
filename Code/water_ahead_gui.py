@@ -1685,7 +1685,7 @@ def main():
     root = Tk()
 
     root.title("Water AHEAD")
-    note = Notebook(root, width=850, height=700, activefg='black', inactivefg='gray')  # Create a Note book Instance
+    note = Notebook(root, width=921, height=700, activefg='black', inactivefg='gray')  # Create a Note book Instance
     note.grid()
     tab1 = note.add_tab(text='General Properties')  # Create an overview tab.
     tab2 = note.add_tab(text='Geography')  # Create a tab to ask about the system geography (i.e., where is it located  or will you be using nationwide averages?)
@@ -1694,6 +1694,7 @@ def main():
     tab5 = note.add_tab(text='Industrial Wastewater System')
     tab6 = note.add_tab(text='New Treatment Process')
     tab7 = note.add_tab(text='Results')
+    tab8 = note.add_tab(text='Cost Results')
 
     def callback_integer(inStr, acttyp):
         if acttyp == '1':
@@ -3297,6 +3298,16 @@ def main():
     Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=21, rowspan=2)
     Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=23, rowspan=2)
     Label(tab7, text='mg/L', font=('Arial', 10)).grid(column=2, row=25, rowspan=2)
+
+    Label(tab8, text='Cost Results', font=('Arial', 10, 'bold')).grid(column=2, row=0, columnspan=10)
+    Label(tab8, text='Treatment Process', font=('Arial', 10, 'bold')).grid(column=0, row=1, columnspan=3)
+    Label(tab8, text='Granular Activated Carbon (GAC)', font=('Arial', 10)).grid(column=0, row=3, columnspan=3)
+    Label(tab8, text='Packed Tower Aeration (PTA)', font=('Arial', 10)).grid(column=0, row=5, columnspan=3)
+    Label(tab8, text='Nanofiltration / Reverse Osmosis (NFRO)', font=('Arial', 10)).grid(column=0, row=7, columnspan=3)
+    Label(tab8, text='Levelized Cost of Water (LCW)', font=('Arial', 10, 'bold')).grid(column=16, row=1, columnspan=4)
+    Label(tab8, text='$/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=18, row=3)
+    Label(tab8, text='$/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=18, row=5)
+    Label(tab8, text='$/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=18, row=7)
 
     if system_type.get() == ' ':
         # Drinking Water Treatment System
@@ -5903,6 +5914,21 @@ def main():
                                  med_inorganics_damages, inorganics_damages_range, med_organics_damages,
                                  organics_damages_range,
                                  med_total_damages, total_damages_range]
+        # Calculate Cost Results
+        # flow = float(system_size_input.get())
+        #
+        # def gac_cost_calculation(X):
+        #     Y = -1.6327 * (X) - 0.3284
+        #     return Y
+        #
+        # gac_cost = np.power(gac_cost_calculation(np.log(float(system_size_input.get()))))
+        gac_cost = 1.2
+        pta_cost = 0.8
+        nfro_cost = 1.9
+
+        Label(tab8, text=gac_cost, font=('Arial', 10)).grid(column=17, row=3)
+        Label(tab8, text=pta_cost, font=('Arial', 10)).grid(column=17, row=5)
+        Label(tab8, text=nfro_cost, font=('Arial', 10)).grid(column=17, row=7)
 
         messagebox.showinfo("Success!", "Results have been calculated and are available on the Results tab.")
 
