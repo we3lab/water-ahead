@@ -3308,6 +3308,17 @@ def main():
     Label(tab8, text='$/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=18, row=3)
     Label(tab8, text='$/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=18, row=5)
     Label(tab8, text='$/m\N{SUPERSCRIPT THREE}', font=('Arial', 10)).grid(column=18, row=7)
+    Label(tab8, text='  ', font=('Arial', 10, 'bold')).grid(column=20, row=1, columnspan=4)
+    Label(tab8, text='Total Capital Cost', font=('Arial', 10, 'bold')).grid(column=24, row=1, columnspan=4)
+    Label(tab8, text='$', font=('Arial', 10)).grid(column=27, row=3)
+    Label(tab8, text='$', font=('Arial', 10)).grid(column=27, row=5)
+    Label(tab8, text='$', font=('Arial', 10)).grid(column=27, row=7)
+    Label(tab8, text='  ', font=('Arial', 10, 'bold')).grid(column=28, row=1, columnspan=4)
+    Label(tab8, text='Annual O&M', font=('Arial', 10, 'bold')).grid(column=32, row=1, columnspan=4)
+    Label(tab8, text='$', font=('Arial', 10)).grid(column=35, row=3)
+    Label(tab8, text='$', font=('Arial', 10)).grid(column=35, row=5)
+    Label(tab8, text='$', font=('Arial', 10)).grid(column=35, row=7)
+
 
     if system_type.get() == ' ':
         # Drinking Water Treatment System
@@ -5914,17 +5925,26 @@ def main():
                                  med_inorganics_damages, inorganics_damages_range, med_organics_damages,
                                  organics_damages_range,
                                  med_total_damages, total_damages_range]
-        # Calculate Cost Results
-        # flow = float(system_size_input.get())
-        #
-        # def gac_cost_calculation(X):
-        #     Y = -1.6327 * (X) - 0.3284
-        #     return Y
-        #
-        # gac_cost = np.power(gac_cost_calculation(np.log(float(system_size_input.get()))))
-        gac_cost = 1.2
-        pta_cost = 0.8
-        nfro_cost = 1.9
+        #Calculate Cost Results
+        flow = np.log(float(system_size_input.get())/3785.4118)
+
+        def gac_cost_calculation(X): #GAC Calculations
+            Y = 0.1248 * (X) - 1.9436
+            return Y
+
+        gac_cost = round((np.exp(gac_cost_calculation(flow))),2) #GAC Results
+
+        def nfro_cost_calculation(X): #NFRO Calculations
+            Y = -0.3178 * (X) - 0.4466
+            return Y
+
+        nfro_cost = round((np.exp(nfro_cost_calculation(flow))),2) #NFRO Results
+
+        def pta_cost_calculation(X): #PTA Calculations
+            Y = -0.4404 * (X) - 2.0579
+            return Y
+
+        pta_cost = round((np.exp(pta_cost_calculation(flow))),2) #PTA Results
 
         Label(tab8, text=gac_cost, font=('Arial', 10)).grid(column=17, row=3)
         Label(tab8, text=pta_cost, font=('Arial', 10)).grid(column=17, row=5)
