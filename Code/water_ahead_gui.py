@@ -5928,27 +5928,63 @@ def main():
         #Calculate Cost Results
         flow = np.log(float(system_size_input.get())/3785.4118)
 
-        def gac_cost_calculation(X): #GAC Calculations
+        def gac_lcw_calculation(X): #GAC Calculations
             Y = 0.1248 * (X) - 1.9436
             return Y
 
-        gac_cost = round((np.exp(gac_cost_calculation(flow))),2) #GAC Results
+        def gac_capital_calculation(X):
+            Y = 236174 * (X) + 413593
+            return Y
 
-        def nfro_cost_calculation(X): #NFRO Calculations
+        def gac_om_calculation(X):
+            Y = 141578 * (X) - 18866
+            return Y
+
+        gac_lcw = round((np.exp(gac_lcw_calculation(flow))),2) #GAC Results
+        gac_capital = round(gac_capital_calculation(flow), 2)
+        gac_om = round(gac_om_calculation(flow), 2)
+
+        def nfro_lcw_calculation(X): #NFRO Calculations
             Y = -0.3178 * (X) - 0.4466
             return Y
 
-        nfro_cost = round((np.exp(nfro_cost_calculation(flow))),2) #NFRO Results
+        def nfro_capital_calculation(X):
+            Y = 1000000 * (X) + 3000000
+            return Y
 
-        def pta_cost_calculation(X): #PTA Calculations
+        def nfro_om_calculation(X):
+            Y = 243567 * (X) + 94442
+            return Y
+
+        nfro_lcw = round((np.exp(nfro_lcw_calculation(flow))),2) #NFRO Results
+        nfro_capital = round(nfro_capital_calculation(flow), 2)
+        nfro_om = round(nfro_om_calculation(flow), 2)
+
+        def pta_lcw_calculation(X): #PTA Calculations
             Y = -0.4404 * (X) - 2.0579
             return Y
 
-        pta_cost = round((np.exp(pta_cost_calculation(flow))),2) #PTA Results
+        def pta_capital_calculation(X):
+            Y = 249042 * (X) + 442372
+            return Y
 
-        Label(tab8, text=gac_cost, font=('Arial', 10)).grid(column=17, row=3)
-        Label(tab8, text=pta_cost, font=('Arial', 10)).grid(column=17, row=5)
-        Label(tab8, text=nfro_cost, font=('Arial', 10)).grid(column=17, row=7)
+        def pta_om_calculation(X):
+            Y = 26592 * (X) +7749.2
+            return Y
+
+        pta_lcw = round((np.exp(pta_lcw_calculation(flow))),2) #PTA Results
+        pta_capital = round(pta_capital_calculation(flow),2)
+        pta_om = round(pta_om_calculation(flow),2)
+
+        Label(tab8, text=gac_lcw, font=('Arial', 10)).grid(column=17, row=3)
+        Label(tab8, text=gac_capital, font=('Arial', 10)).grid(column=26, row=3)
+        Label(tab8, text=gac_om, font=('Arial', 10)).grid(column=34, row=3)
+        Label(tab8, text=pta_lcw, font=('Arial', 10)).grid(column=17, row=5)
+        Label(tab8, text=pta_capital, font=('Arial', 10)).grid(column=26, row=5)
+        Label(tab8, text=pta_om, font=('Arial', 10)).grid(column=34, row=5)
+        Label(tab8, text=nfro_lcw, font=('Arial', 10)).grid(column=17, row=7)
+        Label(tab8, text=nfro_capital, font=('Arial', 10)).grid(column=26, row=7)
+        Label(tab8, text=nfro_om, font=('Arial', 10)).grid(column=34, row=7)
 
         messagebox.showinfo("Success!", "Results have been calculated and are available on the Results tab.")
 
