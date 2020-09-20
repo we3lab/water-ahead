@@ -4940,6 +4940,15 @@ def main():
         Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=8, row=28)
         Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=9, row=27)
         Label(tab7, text=empty_results, font=('Arial', 10, 'bold')).grid(column=9, row=28)
+        Label(tab8, text=empty_results, font=('Arial', 10, 'bold')).grid(column=17, row=3)
+        Label(tab8, text=empty_results, font=('Arial', 10, 'bold')).grid(column=17, row=5)
+        Label(tab8, text=empty_results, font=('Arial', 10, 'bold')).grid(column=17, row=7)
+        Label(tab8, text=empty_results, font=('Arial', 10, 'bold')).grid(column=26, row=3)
+        Label(tab8, text=empty_results, font=('Arial', 10, 'bold')).grid(column=26, row=5)
+        Label(tab8, text=empty_results, font=('Arial', 10, 'bold')).grid(column=26, row=7)
+        Label(tab8, text=empty_results, font=('Arial', 10, 'bold')).grid(column=34, row=3)
+        Label(tab8, text=empty_results, font=('Arial', 10, 'bold')).grid(column=34, row=5)
+        Label(tab8, text=empty_results, font=('Arial', 10, 'bold')).grid(column=34, row=7)
 
 
         # Calculate and report electricity consumption.
@@ -5940,9 +5949,15 @@ def main():
             Y = 141578 * (X) - 18866
             return Y
 
-        gac_lcw = round((np.exp(gac_lcw_calculation(flow))),2) #GAC Results
-        gac_capital = round(gac_capital_calculation(flow), 2)
-        gac_om = round(gac_om_calculation(flow), 2)
+        if granular_activated_carbon.get() == True:
+
+            gac_lcw = round((np.exp(gac_lcw_calculation(flow))),2) #GAC Results
+            gac_capital = round(gac_capital_calculation(flow), 2)
+            gac_om = round(gac_om_calculation(flow), 2)
+        else:
+            gac_lcw = 0
+            gac_capital = 0
+            gac_om = 0
 
         def nfro_lcw_calculation(X): #NFRO Calculations
             Y = -0.3178 * (X) - 0.4466
@@ -5956,9 +5971,14 @@ def main():
             Y = 243567 * (X) + 94442
             return Y
 
-        nfro_lcw = round((np.exp(nfro_lcw_calculation(flow))),2) #NFRO Results
-        nfro_capital = round(nfro_capital_calculation(flow), 2)
-        nfro_om = round(nfro_om_calculation(flow), 2)
+        if reverse_osmosis.get() == True:
+            nfro_lcw = round((np.exp(nfro_lcw_calculation(flow))),2) #NFRO Results
+            nfro_capital = round(nfro_capital_calculation(flow), 2)
+            nfro_om = round(nfro_om_calculation(flow), 2)
+        else:
+            nfro_lcw = 0
+            nfro_capital = 0
+            nfro_om = 0
 
         def pta_lcw_calculation(X): #PTA Calculations
             Y = -0.4404 * (X) - 2.0579
@@ -5972,9 +5992,14 @@ def main():
             Y = 26592 * (X) +7749.2
             return Y
 
-        pta_lcw = round((np.exp(pta_lcw_calculation(flow))),2) #PTA Results
-        pta_capital = round(pta_capital_calculation(flow),2)
-        pta_om = round(pta_om_calculation(flow),2)
+        if 1 == 2:
+            pta_lcw = round((np.exp(pta_lcw_calculation(flow))),2) #PTA Results
+            pta_capital = round(pta_capital_calculation(flow),2)
+            pta_om = round(pta_om_calculation(flow),2)
+        else:
+            pta_lcw = 0
+            pta_capital = 0
+            pta_om = 0
 
         Label(tab8, text=gac_lcw, font=('Arial', 10)).grid(column=17, row=3)
         Label(tab8, text=gac_capital, font=('Arial', 10)).grid(column=26, row=3)
